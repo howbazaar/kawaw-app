@@ -1,0 +1,8 @@
+# Ignore the bin and object directories
+**/bin
+**/obj
+# Ignore the packages directory, except for the repositories.config
+**/packages/*
+!**/packages/repositories.config
+# Ignore the user's solution option files
+*.suo
