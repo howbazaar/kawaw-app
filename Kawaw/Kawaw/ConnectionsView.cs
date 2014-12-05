@@ -7,7 +7,7 @@ namespace Kawaw
         public ConnectionsView()
         {
             Title = "Connections";
-            // Icon = "kawaw.png";
+            Icon = "kawaw.png";
             Content = new Label { Text = "connections view" };
         }
     }

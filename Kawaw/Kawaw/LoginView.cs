@@ -7,7 +7,7 @@ namespace Kawaw
         public LoginView()
         {
             Title = "Login";
-
+            Icon = "kawaw.png";
             Padding = new Thickness(20);
             //BackgroundColor = Color.Aqua;
             var emailEntry = new Entry

@@ -8,7 +8,7 @@ namespace Kawaw
         public EventsView()
         {
             Title = "Events";
-            // Icon = "kawaw.png";
+            Icon = "kawaw.png";
             Content = new Label { Text = "events view" };
 
             ToolbarItems.Add(new ToolbarItem("Logout", null, () =>

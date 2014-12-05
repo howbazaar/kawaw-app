@@ -85,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Properties\AndroidManifest.xml" />
+    <AndroidResource Include="Resources\Drawable\kawaw.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kawaw\Kawaw.csproj">
