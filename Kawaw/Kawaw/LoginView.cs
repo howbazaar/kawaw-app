@@ -7,16 +7,17 @@ namespace Kawaw
         public LoginView()
         {
             Title = "Login";
-
+            Icon = "kawaw.png";
             Padding = new Thickness(20);
-            //BackgroundColor = Color.Aqua;
+
             var emailEntry = new Entry
             {
-                Placeholder = "name@example.com"
+                Placeholder = "E-mail address"
             };
             emailEntry.SetBinding(Entry.TextProperty, "Email");
             var passwordEntry = new Entry
             {
+                Placeholder = "Password",
                 IsPassword = true
             };
             passwordEntry.SetBinding(Entry.TextProperty, "Password");
@@ -35,9 +36,7 @@ namespace Kawaw
             {
                 Spacing = 10,
                 Children = {
-                    new Label{ Text = "E-mail" },
                     emailEntry,
-                    new Label{ Text = "Password" },
                     passwordEntry,
                     loginButton,
                     registerButton

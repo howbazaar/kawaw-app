@@ -1,160 +1,147 @@
-﻿using System.Collections;
-using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Linq.Expressions;
+using System.Net;
+using System.Net.Http;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace Kawaw
 {
-    class MyMainPage : ContentPage
+    namespace JSON
     {
-        public MyMainPage(UserProfile profile)
+        [DataContract]
+        public class User
         {
-            Title = "Connections";
-            BackgroundColor = Color.Blue;
-            BindingContext = profile;
+            [DataMember(Name = "date_of_birth")]
+            public string DateOfBirth { get; set; }
 
-            var list = new ListView
-            {
-                IsGroupingEnabled = true,
-                RowHeight = 100,
-            };
+            [DataMember(Name = "first_name")]
+            public string FirstName { get; set; }
 
-            //list.SetBinding(ListView.ItemsSourceProperty, "Data");
+            [DataMember(Name = "last_name")]
+            public string LastName { get; set; }
 
-            Content = list;					
+            [DataMember(Name = "token")]
+            public string CSRFToken { get; set; }
+
+            [DataMember(Name = "full_name")]
+            public string FullName { get; set; }
+
+            [DataMember(Name = "address")]
+            public string Address { get; set; }
+
+            // There is a social thing, but need to remember what it does.
+            [DataMember(Name = "email")]
+            public string PrimaryEmail { get; set; }
+
+            [DataMember(Name = "emails")]
+            public Email[] Emails { get; set; }
+        }
+
+        [DataContract]
+        public class Email
+        {
+            [DataMember(Name = "verified")]
+            public bool Verified { get; set; }
+
+            [DataMember(Name = "email")]
+            public string Address { get; set; }
+
+            [DataMember(Name = "primary")]
+            public bool Primary { get; set; }
         }
     }
 
-    class NavigationViewModel : BaseViewModel
-    {
-        private NavigationItem _selectedItem;
 
-        public class NavigationItem
+    interface IRemoteSite
+    {
+        Task<bool> Login(string username, string password);
+
+
+    }
+
+    class RemoteSite : IRemoteSite
+    {
+        private string _remote;
+        private HttpClient _client;
+        private string _csrf_token;
+        private CookieContainer _cookies;
+        public RemoteSite()
         {
-            public string Name { get; set; }
-            public string Description { get; set; }
+            _cookies = new CookieContainer();
+            HttpClientHandler handler = new HttpClientHandler();
+            handler.CookieContainer = _cookies;
+
+            // _remote = "https://kawaw.com";
+            _remote = "http://192.168.1.7:8080";
+            _client = new HttpClient(handler);
+            _client.BaseAddress = new Uri(_remote);
+            // Fake it for the all auth plugin.
+            _client.DefaultRequestHeaders.Add("X_REQUESTED_WITH", "XMLHttpRequest");
         }
 
-        public NavigationItem SelectedItem
+        private async Task<string> GetCSRFToken()
         {
-            get { return _selectedItem; }
-            set
+            if (_csrf_token != null)
+                return _csrf_token;
+
+            await Get("+login-form/");
+
+            var cookie = _cookies.GetCookies(new Uri(_remote))["csrftoken"];
+            _csrf_token=cookie.Value;
+            return _csrf_token;
+        }
+
+        private async Task<HttpResponseMessage> Get(string path)
+        {
+            var response = await _client.GetAsync(path);
+            return response;
+        }
+
+        private async Task<HttpResponseMessage> Post(string path, Dictionary<string, string> formAttributes)
+        {
+            var csrfToken = await GetCSRFToken();
+            var content = new FormUrlEncodedContent(formAttributes);
+            content.Headers.Add("X-CSRFToken", csrfToken);
+            //content.Headers.Add("HTTP_X_REQUESTED_WITH", "XMLHttpRequest");
+            var response = await _client.PostAsync(path, content);
+            return response;
+        }
+
+        public async Task<JSON.User> GetUserDetails()
+        {
+            var response = await Get("+user/");
+            var jsonSerializer = new DataContractJsonSerializer(typeof(JSON.User));
+            // TODO: throw a known error for Forbidden.
+            var stream = await response.Content.ReadAsStreamAsync();
+            var objResponse = jsonSerializer.ReadObject(stream);
+            return objResponse as JSON.User;
+        }
+
+        public async Task<bool> Login(string username, string password)
+        {
+            var values = new Dictionary<string, string>();
+            values["login"] = username;
+            values["password"] = password;
+            try
             {
-                SetProperty(ref _selectedItem, value);
-                if (value != null)
-                {
-                    MessagingCenter.Send(this, "show-page", _selectedItem.Name);
-                    SelectedItem = null;
-                }
+                var response = await Post("accounts/login/", values);
+                Debug.WriteLine(response.StatusCode);
+                var content = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine(content);
+                return response.IsSuccessStatusCode;
             }
-        }
-
-        public IList Items { get; private set; }
-        public NavigationViewModel()
-        {
-            Items = new ObservableCollection<object>
+            catch (Exception e)
             {
-                new NavigationItem{Name="Events", Description="events description"},
-                new NavigationItem{Name="Connections", Description="connections description"},
-                new NavigationItem{Name="Logout", Description="logout description"},
-            };
-
+                Debug.WriteLine(e.Message);
+            }
+            return false;
         }
     }
-    // This is the view that contains the buttons that take the user to the different
-    // main page elements, connections, events, profile (master bit of the root view).
-    class NavigationView : BaseView
-    {
-        public NavigationView()
-        {
-            Title = "kawaw";
-            // Icon = "kawaw.png";
-            var list = new ListView();
-            list.SetBinding(ListView.ItemsSourceProperty, "Items");
-            list.SetBinding(ListView.SelectedItemProperty, "SelectedItem", BindingMode.TwoWay);
-            list.ItemTemplate = new DataTemplate(typeof(TextCell));
-            list.ItemTemplate.SetBinding(TextCell.TextProperty, "Name");
-            list.ItemTemplate.SetBinding(TextCell.DetailProperty, "Description");
-            Content = list;
-
-        }
-    }
-
-    class EventsView : BaseView
-    {
-        public EventsView()
-        {
-            Title = "Events";
-            // Icon = "kawaw.png";
-            Content = new Label { Text = "events view" };
-
-            ToolbarItems.Add(new ToolbarItem("Logout", null, () =>
-            {
-                Debug.WriteLine("logout");
-            }, ToolbarItemOrder.Secondary));
-        }
-    }
-
-    class ConnectionsView : BaseView
-    {
-        public ConnectionsView()
-        {
-            Title = "Connections";
-            // Icon = "kawaw.png";
-            Content = new Label { Text = "connections view" };
-        }
-    }
-
-    class RootViewModel : BaseViewModel
-    {
-        private ViewModelNavigation _navigation;
-
-        public override ViewModelNavigation Navigation
-        {
-            get { return _navigation; }
-            set { _navigation = value; Init(); }
-        }
-
-        private void Init()
-        {
-            // check to see if logged in, and if not pushe the login page
-            _navigation.PushModalAsync(new LoginViewModel());
-        }
-
-        public RootViewModel()
-        {
-            // not logged in so push the login page
-            
-        }
-    }
-    class RootView : MasterDetailPage
-    {
-        public RootView()
-        {
-            this.SetBinding(NavigationProperty, new Binding("Navigation", converter: new NavigationConverter()));
-            this.SetBinding(IsBusyProperty, "IsBusy");
- 
-            var navigationModel = new NavigationViewModel();
-            var eventModel = new EventsViewModel();
-            Master = ViewModelNavigation.GetPageForViewModel(navigationModel);
-            Detail = ViewModelNavigation.GetPageForViewModel(eventModel);
-
-            MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) =>
-            {
-                Debug.WriteLine("show-page: {0}", page);
-            });
-        }
-    }
-
-    class ConnectionsViewModel : BaseViewModel
-    {
-    }
-
-    class EventsViewModel : BaseViewModel
-    {
-    }
-
     public class App : Application
     {
         public UserProfile Profile;
@@ -174,9 +161,6 @@ namespace Kawaw
 
             Profile = GetProfile();
             
-            // if not logged in, push the login page
-//            master.Navigation.PushModalAsync(new NavigationPage(new LoginView()));
-
             MainPage = rootView;
         }
 
@@ -198,21 +182,18 @@ namespace Kawaw
         protected override void OnResume()
         {
             Profile.Note("OnResume");
-            //Console.WriteLine("OnResume");
             base.OnResume();
         }
 
         protected override void OnSleep()
         {
             Profile.Note("OnSleep");
-            //Console.WriteLine("OnSleep");
             base.OnSleep();
         }
 
         protected override void OnStart()
         {
             Profile.Note("OnStart");
-            //Console.WriteLine("OnStart");
             base.OnStart();
         }
 

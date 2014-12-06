@@ -5,6 +5,8 @@ namespace Kawaw
         public RegisterView()
         {
             Title = "Register";
+            Icon = "kawaw.png";
+
         }
     }
 }
