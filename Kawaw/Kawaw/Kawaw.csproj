@@ -41,6 +41,8 @@
     <Compile Include="ConnectionsViewModel.cs" />
     <Compile Include="EventsView.cs" />
     <Compile Include="EventsViewModel.cs" />
+    <Compile Include="GlobalSettingsView.cs" />
+    <Compile Include="GlobalSettingsViewModel.cs" />
     <Compile Include="LoginView.cs" />
     <Compile Include="LoginViewModel.cs" />
     <Compile Include="NavigationConverter.cs" />

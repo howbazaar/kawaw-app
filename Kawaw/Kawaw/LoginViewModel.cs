@@ -40,9 +40,20 @@ namespace Kawaw
                 Debug.WriteLine("Email: " + email);
                 Debug.WriteLine("Password: {0}", password);
                 IsBusy = true;
-                await Task.Delay(2000);
-                var request = HttpWebRequest.CreateHttp("https://kawaw.com/+login-form");
 
+                var remote = new RemoteSite();
+                var worked = await remote.Login(email, password);
+                Debug.WriteLine(worked);
+                if (!worked)
+                {
+                    IsBusy = false;
+                    // TODO: show error message about bad credentials.
+                    canLogin = true;
+                    loginCommand.ChangeCanExecute();
+                    return;
+                }
+                var user = await remote.GetUserDetails();
+                Debug.WriteLine(user);
                 // assume we have logged in and pop the page
                 IsBusy = false;
                 await Navigation.PopModalAsync();
