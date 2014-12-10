@@ -42,6 +42,15 @@ namespace Kawaw
                     registerButton
                 }
             };
+
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            // Say we have handled it.
+            // This means that the app won't close on back button. Jason is going to think about it
+            // and let me know what to do.
+            return true;
         }
     }
 }

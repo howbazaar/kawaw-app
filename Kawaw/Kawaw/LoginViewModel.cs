@@ -30,7 +30,7 @@ namespace Kawaw
         {
             RegisterCommand = new Command(async () =>
             {
-                await Navigation.PushAsync(new RegisterViewModel(_app));
+                await Navigation.PushAsync(new RegisterViewModel(App));
             });
             Command loginCommand = null;
             bool canLogin = true;
@@ -55,7 +55,7 @@ namespace Kawaw
                 }
                 var details= await remote.GetUserDetails();
                 var user = new RemoteUser(details);
-                _app.User = user;
+                App.User = user;
 
                 // assume we have logged in and pop the page
                 IsBusy = false;

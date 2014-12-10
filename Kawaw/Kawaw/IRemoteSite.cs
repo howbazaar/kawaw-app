@@ -6,5 +6,6 @@ namespace Kawaw
     {
         Task<bool> Login(string username, string password);
         Task<JSON.User> GetUserDetails();
+        void Logout();
     }
 }

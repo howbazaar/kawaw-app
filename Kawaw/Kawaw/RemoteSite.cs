@@ -40,27 +40,37 @@ namespace Kawaw
             return _csrf_token;
         }
 
-        private async Task<HttpResponseMessage> Get(string path)
+        private Task<HttpResponseMessage> Get(string path)
         {
-            var response = await _client.GetAsync(path);
-            return response;
+            return _client.GetAsync(path);
+        }
+
+        private async Task<HttpResponseMessage> Post(string path)
+        {
+            // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
+            // this it will come back to the thread that initially called await, which will always be the ui thread
+            var csrfToken = await GetCSRFToken().ConfigureAwait(false);
+            var content = new ByteArrayContent(new byte[0]);
+            content.Headers.Add("X-CSRFToken", csrfToken);
+            return await _client.PostAsync(path, content).ConfigureAwait(false);
         }
 
         private async Task<HttpResponseMessage> Post(string path, Dictionary<string, string> formAttributes)
         {
-            var csrfToken = await GetCSRFToken();
+            // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
+            // this it will come back to the thread that initially called await, which will always be the ui thread
+            var csrfToken = await GetCSRFToken().ConfigureAwait(false);
             var content = new FormUrlEncodedContent(formAttributes);
             content.Headers.Add("X-CSRFToken", csrfToken);
-            var response = await _client.PostAsync(path, content);
-            return response;
+            return await _client.PostAsync(path, content).ConfigureAwait(false);
         }
 
         public async Task<JSON.User> GetUserDetails()
         {
-            var response = await Get("+user/");
+            var response = await Get("+user/").ConfigureAwait(false);
             var jsonSerializer = new DataContractJsonSerializer(typeof(JSON.User));
             // TODO: throw a known error for Forbidden.
-            var stream = await response.Content.ReadAsStreamAsync();
+            var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
             var objResponse = jsonSerializer.ReadObject(stream);
             return objResponse as JSON.User;
         }
@@ -73,9 +83,9 @@ namespace Kawaw
             values["remember"] = "True";
             try
             {
-                var response = await Post("accounts/login/", values);
+                var response = await Post("accounts/login/", values).ConfigureAwait(false);
                 Debug.WriteLine(response.StatusCode);
-                var content = await response.Content.ReadAsStringAsync();
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 Debug.WriteLine(content);
                 return response.IsSuccessStatusCode;
             }
@@ -84,6 +94,14 @@ namespace Kawaw
                 Debug.WriteLine(e.Message);
             }
             return false;
+        }
+
+        public async void Logout()
+        {
+            var response = await Post("accounts/logout/").ConfigureAwait(false);
+            Debug.WriteLine(response.StatusCode);
+            var content = await response.Content.ReadAsStringAsync();
+            Debug.WriteLine(response.IsSuccessStatusCode);
         }
     }
 }

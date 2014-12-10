@@ -43,20 +43,12 @@ namespace Kawaw
             }
 
             var rootModel = new RootViewModel(this);
-            var navigationModel = new NavigationViewModel(this);
-            var eventModel = new EventsViewModel(this);
             var rootView = new RootView
             {
                 BindingContext = rootModel,
-                Master = ViewModelNavigation.GetPageForViewModel(navigationModel),
-                Detail = ViewModelNavigation.GetPageForViewModel(eventModel)
+                Master = ViewModelNavigation.GetPageForViewModel(rootModel.NavigationModel),
+                Detail = ViewModelNavigation.GetPageForViewModel(rootModel.EventsModel)
             };
-
-            if (User == null)
-            {
-                var loginViewModel = new LoginViewModel(this);
-                rootView.Navigation.PushModalAsync(new NavigationPage(ViewModelNavigation.GetPageForViewModel(loginViewModel)));
-            }
 
             MainPage = rootView;
         }

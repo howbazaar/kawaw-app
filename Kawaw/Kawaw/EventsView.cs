@@ -14,6 +14,8 @@ namespace Kawaw
             ToolbarItems.Add(new ToolbarItem("Logout", null, () =>
             {
                 Debug.WriteLine("logout");
+                MessagingCenter.Send<object>(this, "logout");
+
             }, ToolbarItemOrder.Secondary));
         }
     }

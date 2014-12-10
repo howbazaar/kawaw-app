@@ -9,11 +9,11 @@ namespace Kawaw
     {
         public virtual ViewModelNavigation Navigation {get; set;}
         private bool isBusy;
-        protected IApp _app;
+        protected IApp App;
 
         public BaseViewModel(IApp app)
         {
-            _app = app;
+            App = app;
         }
 
         public bool IsBusy
