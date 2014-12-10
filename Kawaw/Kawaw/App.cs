@@ -47,7 +47,7 @@ namespace Kawaw
             {
                 BindingContext = rootModel,
                 Master = ViewModelNavigation.GetPageForViewModel(rootModel.NavigationModel),
-                Detail = ViewModelNavigation.GetPageForViewModel(rootModel.EventsModel)
+                Detail = new NavigationPage(ViewModelNavigation.GetPageForViewModel(rootModel.EventsModel))
             };
 
             MainPage = rootView;

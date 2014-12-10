@@ -35,7 +35,6 @@ namespace Kawaw
             {
                 new NavigationItem{Name="Events", Description="events description"},
                 new NavigationItem{Name="Connections", Description="connections description"},
-                new NavigationItem{Name="Logout", Description="logout description"},
             };
 
         }

@@ -13,7 +13,7 @@ namespace Kawaw
             MessagingCenter.Subscribe(this, "show-page", (RootViewModel sender, BaseViewModel model) =>
             {
                 Debug.WriteLine("root view show model {0}", model.ToString());
-                Detail = ViewModelNavigation.GetPageForViewModel(model);
+                Detail = new NavigationPage(ViewModelNavigation.GetPageForViewModel(model));
                 IsPresented = false;
             });
 
