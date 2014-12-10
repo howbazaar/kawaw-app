@@ -43,6 +43,8 @@
     <Compile Include="EventsViewModel.cs" />
     <Compile Include="GlobalSettingsView.cs" />
     <Compile Include="GlobalSettingsViewModel.cs" />
+    <Compile Include="IRemoteSite.cs" />
+    <Compile Include="JSON\User.cs" />
     <Compile Include="LoginView.cs" />
     <Compile Include="LoginViewModel.cs" />
     <Compile Include="NavigationConverter.cs" />
@@ -52,6 +54,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegisterView.cs" />
     <Compile Include="RegisterViewModel.cs" />
+    <Compile Include="RemoteSite.cs" />
+    <Compile Include="RemoteUser.cs" />
     <Compile Include="RootView.cs" />
     <Compile Include="RootViewModel.cs" />
     <Compile Include="ViewModelNavigation.cs" />

@@ -35,18 +35,20 @@ namespace Kawaw
             set { SetProperty(ref password2, value); }
         }
         public ICommand RegisterCommand { get; private set; }
-        public RegisterViewModel()
+        public RegisterViewModel(IApp app)
+            : base(app)
         {
-            RegisterCommand = new Command(async () => {
-                                                          Debug.WriteLine("Email: " + email);
-                                                          Debug.WriteLine("Password: {0}", password);
-                                                          IsBusy = true;
-                                                          await Task.Delay(2000);
-                                                          var request = HttpWebRequest.CreateHttp("https://kawaw.com/+login-form");
-                
-                                                          // assume we have logged in and pop the page
-                                                          IsBusy = false;
-                                                          await Navigation.PopModalAsync();
+            RegisterCommand = new Command(async () =>
+            {
+                Debug.WriteLine("Email: " + email);
+                Debug.WriteLine("Password: {0}", password);
+                IsBusy = true;
+                await Task.Delay(2000);
+                var request = HttpWebRequest.CreateHttp("https://kawaw.com/+login-form");
+
+                // assume we have logged in and pop the page
+                IsBusy = false;
+                await Navigation.PopModalAsync();
             });
         }
 

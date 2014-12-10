@@ -29,7 +29,7 @@ namespace Kawaw
         }
 
         public IList Items { get; private set; }
-        public NavigationViewModel()
+        public NavigationViewModel(IApp app) : base(app)
         {
             Items = new ObservableCollection<object>
             {
