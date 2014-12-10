@@ -25,11 +25,12 @@ namespace Kawaw
         // autoproperty magic, c# rubbish
         public ICommand LoginCommand { get; private set; }
         public ICommand RegisterCommand { get; private set; }
-        public LoginViewModel()
+        public LoginViewModel(IApp app)
+            : base(app)
         {
             RegisterCommand = new Command(async () =>
             {
-                await Navigation.PushAsync(new RegisterViewModel());
+                await Navigation.PushAsync(new RegisterViewModel(App));
             });
             Command loginCommand = null;
             bool canLogin = true;
@@ -52,8 +53,10 @@ namespace Kawaw
                     loginCommand.ChangeCanExecute();
                     return;
                 }
-                var user = await remote.GetUserDetails();
-                Debug.WriteLine(user);
+                var details= await remote.GetUserDetails();
+                var user = new RemoteUser(details);
+                App.User = user;
+
                 // assume we have logged in and pop the page
                 IsBusy = false;
                 await Navigation.PopModalAsync();

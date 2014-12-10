@@ -9,16 +9,14 @@ namespace Kawaw
         {
             this.SetBinding(NavigationProperty, new Binding("Navigation", converter: new NavigationConverter()));
             this.SetBinding(IsBusyProperty, "IsBusy");
- 
-            var navigationModel = new NavigationViewModel();
-            var eventModel = new EventsViewModel();
-            Master = ViewModelNavigation.GetPageForViewModel(navigationModel);
-            Detail = ViewModelNavigation.GetPageForViewModel(eventModel);
 
-            MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) =>
+            MessagingCenter.Subscribe(this, "show-page", (RootViewModel sender, BaseViewModel model) =>
             {
-                Debug.WriteLine("show-page: {0}", page);
+                Debug.WriteLine("root view show model {0}", model.ToString());
+                Detail = new NavigationPage(ViewModelNavigation.GetPageForViewModel(model));
+                IsPresented = false;
             });
+
         }
     }
 }

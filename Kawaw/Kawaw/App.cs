@@ -1,150 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq.Expressions;
-using System.Net;
-using System.Net.Http;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Xamarin.Forms;
 
 namespace Kawaw
 {
-    namespace JSON
+    interface IApp
     {
-        [DataContract]
-        public class User
-        {
-            [DataMember(Name = "date_of_birth")]
-            public string DateOfBirth { get; set; }
-
-            [DataMember(Name = "first_name")]
-            public string FirstName { get; set; }
-
-            [DataMember(Name = "last_name")]
-            public string LastName { get; set; }
-
-            [DataMember(Name = "token")]
-            public string CSRFToken { get; set; }
-
-            [DataMember(Name = "full_name")]
-            public string FullName { get; set; }
-
-            [DataMember(Name = "address")]
-            public string Address { get; set; }
-
-            // There is a social thing, but need to remember what it does.
-            [DataMember(Name = "email")]
-            public string PrimaryEmail { get; set; }
-
-            [DataMember(Name = "emails")]
-            public Email[] Emails { get; set; }
-        }
-
-        [DataContract]
-        public class Email
-        {
-            [DataMember(Name = "verified")]
-            public bool Verified { get; set; }
-
-            [DataMember(Name = "email")]
-            public string Address { get; set; }
-
-            [DataMember(Name = "primary")]
-            public bool Primary { get; set; }
-        }
+        IRemoteSite Remote { get; }
+        RemoteUser User { get; set; }
     }
 
-
-    interface IRemoteSite
+    public class App : Application, IApp
     {
-        Task<bool> Login(string username, string password);
-
-
-    }
-
-    class RemoteSite : IRemoteSite
-    {
-        private string _remote;
-        private HttpClient _client;
-        private string _csrf_token;
-        private CookieContainer _cookies;
-        public RemoteSite()
-        {
-            _cookies = new CookieContainer();
-            HttpClientHandler handler = new HttpClientHandler();
-            handler.CookieContainer = _cookies;
-
-            // _remote = "https://kawaw.com";
-            _remote = "http://192.168.1.7:8080";
-            _client = new HttpClient(handler);
-            _client.BaseAddress = new Uri(_remote);
-            // Fake it for the all auth plugin.
-            _client.DefaultRequestHeaders.Add("X_REQUESTED_WITH", "XMLHttpRequest");
-        }
-
-        private async Task<string> GetCSRFToken()
-        {
-            if (_csrf_token != null)
-                return _csrf_token;
-
-            await Get("+login-form/");
-
-            var cookie = _cookies.GetCookies(new Uri(_remote))["csrftoken"];
-            _csrf_token=cookie.Value;
-            return _csrf_token;
-        }
-
-        private async Task<HttpResponseMessage> Get(string path)
-        {
-            var response = await _client.GetAsync(path);
-            return response;
-        }
-
-        private async Task<HttpResponseMessage> Post(string path, Dictionary<string, string> formAttributes)
-        {
-            var csrfToken = await GetCSRFToken();
-            var content = new FormUrlEncodedContent(formAttributes);
-            content.Headers.Add("X-CSRFToken", csrfToken);
-            //content.Headers.Add("HTTP_X_REQUESTED_WITH", "XMLHttpRequest");
-            var response = await _client.PostAsync(path, content);
-            return response;
-        }
-
-        public async Task<JSON.User> GetUserDetails()
-        {
-            var response = await Get("+user/");
-            var jsonSerializer = new DataContractJsonSerializer(typeof(JSON.User));
-            // TODO: throw a known error for Forbidden.
-            var stream = await response.Content.ReadAsStreamAsync();
-            var objResponse = jsonSerializer.ReadObject(stream);
-            return objResponse as JSON.User;
-        }
-
-        public async Task<bool> Login(string username, string password)
-        {
-            var values = new Dictionary<string, string>();
-            values["login"] = username;
-            values["password"] = password;
-            try
-            {
-                var response = await Post("accounts/login/", values);
-                Debug.WriteLine(response.StatusCode);
-                var content = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine(content);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.Message);
-            }
-            return false;
-        }
-    }
-    public class App : Application
-    {
-        public UserProfile Profile;
+        private RemoteUser _user;
 
         // chevron is the rootview.master.icon
         // android is the page icon
@@ -156,47 +23,70 @@ namespace Kawaw
             ViewModelNavigation.Register<ConnectionsViewModel, ConnectionsView>();
             ViewModelNavigation.Register<NavigationViewModel, NavigationView>();
 
-            var rootModel = new RootViewModel();
-            var rootView = new RootView {BindingContext = rootModel};
-
-            Profile = GetProfile();
-            
-            MainPage = rootView;
-        }
-
-        private UserProfile GetProfile()
-        {
-            if (!Properties.ContainsKey("UserProfile"))
+            // Look to see if we have a logged in person.
+            if (Properties.ContainsKey("User"))
             {
-                Properties["UserProfile"] = new UserProfile();
+                User = Properties["User"] as RemoteUser;
+                Debug.WriteLine(User.FullName);
+            }
+            if (Properties.ContainsKey("Site"))
+            {
+                Debug.WriteLine("Site exists in properties already.");
+                // Remote = Properties["Site"] as RemoteSite;
+                Remote = new RemoteSite();
+            }
+            else
+            {
+                Debug.WriteLine("Creating new site.");
+                Remote = new RemoteSite();
+                // Properties["Site"] = Remote;
             }
 
-            return (UserProfile)Properties["UserProfile"];
-        }
+            var rootModel = new RootViewModel(this);
+            var rootView = new RootView
+            {
+                BindingContext = rootModel,
+                Master = ViewModelNavigation.GetPageForViewModel(rootModel.NavigationModel),
+                Detail = new NavigationPage(ViewModelNavigation.GetPageForViewModel(rootModel.EventsModel))
+            };
 
-        private void SetProfile()
-        {
-            Properties["UserProfile"] = Profile;
+            MainPage = rootView;
         }
 
         protected override void OnResume()
         {
-            Profile.Note("OnResume");
             base.OnResume();
         }
 
         protected override void OnSleep()
         {
-            Profile.Note("OnSleep");
             base.OnSleep();
         }
 
         protected override void OnStart()
         {
-            Profile.Note("OnStart");
             base.OnStart();
         }
 
+        public IRemoteSite Remote { get; private set; }
+
+        public RemoteUser User
+        {
+            get { return _user; }
+            set
+            {
+                _user = value;
+                // should also work with nil...
+                if (_user != null)
+                {
+                    Properties["User"] = _user;
+                }
+                else
+                {
+                    Properties.Remove("User");
+                }
+            }
+        }
     }
 
 }

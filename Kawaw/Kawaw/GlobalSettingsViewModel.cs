@@ -2,6 +2,11 @@ namespace Kawaw
 {
     class GlobalSettingsViewModel : BaseViewModel
     {
+        public GlobalSettingsViewModel(IApp app)
+            : base(app)
+        {
+            
+        }
         private string _site;
 
         public string Site
