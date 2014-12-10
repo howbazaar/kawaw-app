@@ -26,8 +26,7 @@ namespace Kawaw
             // Look to see if we have a logged in person.
             if (Properties.ContainsKey("User"))
             {
-                var userString = Properties["User"] as string;
-                User = RemoteUser.FromString( userString);
+                User = Properties["User"] as RemoteUser;
                 Debug.WriteLine(User.FullName);
             }
             if (Properties.ContainsKey("Site"))
@@ -69,14 +68,6 @@ namespace Kawaw
 
         protected override void OnSleep()
         {
-            if (User == null)
-            {
-                Properties.Remove("User");
-            }
-            else
-            {
-                Properties["User"] = RemoteUser.ToString(User);
-            }
             base.OnSleep();
         }
 
@@ -90,20 +81,19 @@ namespace Kawaw
         public RemoteUser User
         {
             get { return _user; }
-            set { _user = value; }
-//            set
-//            {
-//               _user = value;
-//                 // should also work with nil...
-//                if (_user != null)
-//                {
-//                    Properties["User"] = _user;
-//                }
-//                else
-//                {
-//                    Properties.Remove("User");
-//                }
-//            }
+            set
+            {
+                _user = value;
+                // should also work with nil...
+                if (_user != null)
+                {
+                    Properties["User"] = _user;
+                }
+                else
+                {
+                    Properties.Remove("User");
+                }
+            }
         }
     }
 

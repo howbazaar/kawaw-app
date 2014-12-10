@@ -42,23 +42,6 @@ namespace Kawaw
     [DataContract]
     public class RemoteUser 
     {
-        public static string ToString(RemoteUser user)
-        {
-            var jsonSerializer = new DataContractJsonSerializer(typeof(RemoteUser));
-            var stream = new MemoryStream();
-            jsonSerializer.WriteObject(stream, user);
-            var buffer = stream.ToArray();
-            return Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-        }
-
-        public static RemoteUser FromString(string value)
-        {
-            var jsonSerializer = new DataContractJsonSerializer(typeof(RemoteUser));
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(value ?? ""));
-            var objResponse = jsonSerializer.ReadObject(stream);
-            return objResponse as RemoteUser;
-        }
-
         // NOTE: probably want to store the cookies with the user so it gets persisted correctly.
         [DataMember(Name = "user")]
         private JSON.User _user;
