@@ -37,6 +37,8 @@
     <Compile Include="App.cs" />
     <Compile Include="BaseView.cs" />
     <Compile Include="BaseViewModel.cs" />
+    <Compile Include="ChangeDetailsView.cs" />
+    <Compile Include="ChangeDetailsViewModel.cs" />
     <Compile Include="ConnectionsView.cs" />
     <Compile Include="ConnectionsViewModel.cs" />
     <Compile Include="EventsView.cs" />
@@ -51,6 +53,8 @@
     <Compile Include="NavigationView.cs" />
     <Compile Include="NavigationViewModel.cs" />
     <Compile Include="Profile.cs" />
+    <Compile Include="ProfileView.cs" />
+    <Compile Include="ProfileViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegisterView.cs" />
     <Compile Include="RegisterViewModel.cs" />

@@ -5,7 +5,7 @@ namespace Kawaw
         public ConnectionsViewModel(IApp app)
             : base(app)
         {
-            
+
         }
     }
 }

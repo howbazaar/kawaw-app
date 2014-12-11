@@ -17,6 +17,7 @@ namespace Kawaw
         public EventsViewModel EventsModel { get; private set; }
         public ConnectionsViewModel ConnectionsModel { get; private set; }
         public LoginViewModel LoginModel { get; private set; }
+        public ProfileViewModel ProfileModel { get; private set; }
 
         private async void Init()
         {
@@ -24,11 +25,6 @@ namespace Kawaw
             {
                 await Navigation.PushModalAsync(LoginModel);
             }
-            // TODO: listen to login-needed events from other senders.
-            //MessagingCenter.Subscribe(this, "login-needed", async (RootViewModel sender, LoginViewModel model) =>
-           // {
-             //   await Navigation.PushModalAsync(ViewModelNavigation.GetPageForViewModel(model));
-            //});
         }
 
         public RootViewModel(IApp app) : base(app)
@@ -37,6 +33,7 @@ namespace Kawaw
             EventsModel = new EventsViewModel(app);
             ConnectionsModel = new ConnectionsViewModel(app);
             LoginModel = new LoginViewModel(app);
+            ProfileModel = new ProfileViewModel(app);
 
             // not logged in so push the login page
             MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) =>
@@ -50,6 +47,9 @@ namespace Kawaw
                     case "Connections":
                         MessagingCenter.Send<RootViewModel, BaseViewModel>(this, "show-page", ConnectionsModel);
                         break;
+                    case "Profile":
+                        MessagingCenter.Send<RootViewModel, BaseViewModel>(this, "show-page", ProfileModel);
+                        break;
                     default:
                         Debug.WriteLine("Unknown page {0}", page);
                         break;
@@ -59,6 +59,7 @@ namespace Kawaw
             {
                 App.Remote.Logout();
                 App.User = null;
+                LoginModel.Reset();
                 await Navigation.PushModalAsync(LoginModel);
             });
         }
