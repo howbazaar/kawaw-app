@@ -17,6 +17,7 @@ namespace Kawaw
         public EventsViewModel EventsModel { get; private set; }
         public ConnectionsViewModel ConnectionsModel { get; private set; }
         public LoginViewModel LoginModel { get; private set; }
+        public ProfileViewModel ProfileModel { get; private set; }
 
         private async void Init()
         {
@@ -32,6 +33,7 @@ namespace Kawaw
             EventsModel = new EventsViewModel(app);
             ConnectionsModel = new ConnectionsViewModel(app);
             LoginModel = new LoginViewModel(app);
+            ProfileModel = new ProfileViewModel(app);
 
             // not logged in so push the login page
             MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) =>
@@ -44,6 +46,9 @@ namespace Kawaw
                         break;
                     case "Connections":
                         MessagingCenter.Send<RootViewModel, BaseViewModel>(this, "show-page", ConnectionsModel);
+                        break;
+                    case "Profile":
+                        MessagingCenter.Send<RootViewModel, BaseViewModel>(this, "show-page", ProfileModel);
                         break;
                     default:
                         Debug.WriteLine("Unknown page {0}", page);
