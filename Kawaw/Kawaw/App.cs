@@ -22,26 +22,20 @@ namespace Kawaw
             ViewModelNavigation.Register<EventsViewModel, EventsView>();
             ViewModelNavigation.Register<ConnectionsViewModel, ConnectionsView>();
             ViewModelNavigation.Register<ProfileViewModel, ProfileView>();
+            ViewModelNavigation.Register<ChangeDetailsViewModel, ChangeDetailsView>();
             ViewModelNavigation.Register<NavigationViewModel, NavigationView>();
 
             // Look to see if we have a logged in person.
+            string csrftoken = null;
+            string sessionid = null;
             if (Properties.ContainsKey("User"))
             {
                 User = Properties["User"] as RemoteUser;
                 Debug.WriteLine(User.FullName);
+                csrftoken = User.CSRFToken;
+                sessionid = User.SessionId;
             }
-            if (Properties.ContainsKey("Site"))
-            {
-                Debug.WriteLine("Site exists in properties already.");
-                // Remote = Properties["Site"] as RemoteSite;
-                Remote = new RemoteSite();
-            }
-            else
-            {
-                Debug.WriteLine("Creating new site.");
-                Remote = new RemoteSite();
-                // Properties["Site"] = Remote;
-            }
+            Remote = new RemoteSite(csrftoken, sessionid);
 
             var rootModel = new RootViewModel(this);
             var rootView = new RootView
@@ -52,6 +46,8 @@ namespace Kawaw
             };
 
             MainPage = rootView;
+
+
         }
 
         protected override void OnResume()

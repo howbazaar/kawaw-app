@@ -37,6 +37,8 @@
     <Compile Include="App.cs" />
     <Compile Include="BaseView.cs" />
     <Compile Include="BaseViewModel.cs" />
+    <Compile Include="ChangeDetailsView.cs" />
+    <Compile Include="ChangeDetailsViewModel.cs" />
     <Compile Include="ConnectionsView.cs" />
     <Compile Include="ConnectionsViewModel.cs" />
     <Compile Include="EventsView.cs" />

@@ -42,7 +42,7 @@ namespace Kawaw
                 Debug.WriteLine("Password: {0}", password);
                 IsBusy = true;
 
-                var remote = new RemoteSite();
+                var remote = app.Remote;
                 var worked = await remote.Login(email, password);
                 Debug.WriteLine(worked);
                 if (!worked)
@@ -55,6 +55,8 @@ namespace Kawaw
                 }
                 var details= await remote.GetUserDetails();
                 var user = new RemoteUser(details);
+                user.CSRFToken = remote.CSRFToken;
+                user.SessionId = remote.SessionId;
                 App.User = user;
 
                 // assume we have logged in and pop the page

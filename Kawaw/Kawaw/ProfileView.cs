@@ -8,7 +8,28 @@ namespace Kawaw
         {
             Title = "Profile";
             Icon = "kawaw.png";
-            Content = new Label { Text = "profile view" };
+
+            var name = new Label();
+            name.SetBinding(Label.TextProperty, "FullName");
+            var address = new Label();
+            address.SetBinding(Label.TextProperty, "Address");
+
+            var changeDetails = new Button
+            {
+                Text = "Change Details"
+            };
+            changeDetails.SetBinding(Button.CommandProperty, "ChangeDetailsCommand");
+
+            Content = new StackLayout
+            {
+                Spacing = 10,
+                Children =
+                {
+                    name,
+                    address,
+                    changeDetails,
+                }
+            };
 
             ToolbarItems.Add(new ToolbarItem("Logout", null, () => MessagingCenter.Send<object>(this, "logout"), ToolbarItemOrder.Secondary));
         }
