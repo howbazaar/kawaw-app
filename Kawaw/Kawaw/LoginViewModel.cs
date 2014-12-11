@@ -61,9 +61,18 @@ namespace Kawaw
                 IsBusy = false;
                 await Navigation.PopModalAsync();
 
+                canLogin = true;
+                loginCommand.ChangeCanExecute();
+
                 // set canLogin back to true if something fucked up.
             }, () => canLogin);
             LoginCommand = loginCommand;
+        }
+
+        public void Reset()
+        {
+            Email = "";
+            Password = "";
         }
     }
 }

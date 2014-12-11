@@ -24,11 +24,6 @@ namespace Kawaw
             {
                 await Navigation.PushModalAsync(LoginModel);
             }
-            // TODO: listen to login-needed events from other senders.
-            //MessagingCenter.Subscribe(this, "login-needed", async (RootViewModel sender, LoginViewModel model) =>
-           // {
-             //   await Navigation.PushModalAsync(ViewModelNavigation.GetPageForViewModel(model));
-            //});
         }
 
         public RootViewModel(IApp app) : base(app)
@@ -59,6 +54,7 @@ namespace Kawaw
             {
                 App.Remote.Logout();
                 App.User = null;
+                LoginModel.Reset();
                 await Navigation.PushModalAsync(LoginModel);
             });
         }
