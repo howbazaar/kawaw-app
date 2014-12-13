@@ -2,6 +2,37 @@
 
 namespace Kawaw
 {
+    class DatePopupView: BaseView
+    {
+        public DatePopupView()
+        {
+            Label header = new Label
+            {
+                Text = "DatePicker",
+                Font = Font.SystemFontOfSize(50, FontAttributes.Bold),
+                HorizontalOptions = LayoutOptions.Center
+            };
+
+            DatePicker datePicker = new DatePicker
+            {
+                Format = "D",
+                VerticalOptions = LayoutOptions.CenterAndExpand
+            };
+
+            // Accomodate iPhone status bar.
+            this.Padding = new Thickness(10, Device.OnPlatform(20, 0, 0), 10, 5);
+
+            // Build the page.
+            this.Content = new StackLayout
+            {
+                Children = 
+                {
+                    header,
+                    datePicker
+                }
+            };
+        }
+    }
     class ChangeDetailsView : BaseView
     {
         public ChangeDetailsView()
@@ -38,6 +69,24 @@ namespace Kawaw
             };
             saveButton.SetBinding(Button.CommandProperty, "SaveCommand");
 
+            var changeDOB = new Button
+            {
+                Text = "Change"
+            };
+            changeDOB.SetBinding(Button.CommandProperty, "ChangeDateOfBirthCommand");
+            var clearDOB = new Button
+            {
+                Text = "Clear"
+            };
+            clearDOB.SetBinding(Button.CommandProperty, "ClearDateOfBirthCommand ");
+
+            var dob = new Label
+            {
+                VerticalOptions = LayoutOptions.Center,
+            };
+            dob.SetBinding(Label.TextProperty, "DateOfBirth", BindingMode.Default,
+                new OptionalDateConverter());
+
             Content = new StackLayout
             {
                 Spacing = 10,
@@ -47,7 +96,18 @@ namespace Kawaw
                     lastNameEntry,
                     new Label {Text = "Address"},
                     addressEdit,
-                    dobEntry,
+                    new Label{Text = "Date of Birth: "},
+                    new StackLayout
+                    {
+                        Orientation = StackOrientation.Horizontal,
+                        Children =
+                        {
+                            dob,
+                            changeDOB,
+                            clearDOB,
+                        }
+                    },
+
                     saveButton
                 }
             };

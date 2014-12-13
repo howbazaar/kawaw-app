@@ -146,7 +146,14 @@ namespace Kawaw
             values["first_name"] = firstName;
             values["last_name"] = lastName;
             values["address"] = address;
-            values["date_of_birth"] = dateOfBirth.ToString("yyyy-MM-dd");
+            if (dateOfBirth == new DateTime(0))
+            {
+                values["date_of_birth"] = "";
+            }
+            else
+            {
+                values["date_of_birth"] = dateOfBirth.ToString("yyyy-MM-dd");
+            }
             var response = await Post("+update-details/", values).ConfigureAwait(false);
             Debug.WriteLine(response.StatusCode);
             // TODO: on 404 throw site down....

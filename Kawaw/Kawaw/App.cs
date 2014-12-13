@@ -24,6 +24,7 @@ namespace Kawaw
             ViewModelNavigation.Register<ProfileViewModel, ProfileView>();
             ViewModelNavigation.Register<ChangeDetailsViewModel, ChangeDetailsView>();
             ViewModelNavigation.Register<NavigationViewModel, NavigationView>();
+            ViewModelNavigation.Register<DatePopupViewModel, DatePopupView>();
 
             // Look to see if we have a logged in person.
             string csrftoken = null;
@@ -42,7 +43,8 @@ namespace Kawaw
             {
                 BindingContext = rootModel,
                 Master = ViewModelNavigation.GetPageForViewModel(rootModel.NavigationModel),
-                Detail = new NavigationPage(ViewModelNavigation.GetPageForViewModel(rootModel.EventsModel))
+                // Profile for now, should remember the last page.
+                Detail = new NavigationPage(ViewModelNavigation.GetPageForViewModel(rootModel.ProfileModel))
             };
 
             MainPage = rootView;

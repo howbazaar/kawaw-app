@@ -58,6 +58,7 @@ namespace Kawaw
                 user.CSRFToken = remote.CSRFToken;
                 user.SessionId = remote.SessionId;
                 App.User = user;
+                MessagingCenter.Send<object>(this, "user-updated");
 
                 // assume we have logged in and pop the page
                 IsBusy = false;

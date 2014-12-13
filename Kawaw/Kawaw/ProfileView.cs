@@ -20,6 +20,9 @@ namespace Kawaw
             };
             changeDetails.SetBinding(Button.CommandProperty, "ChangeDetailsCommand");
 
+            var dob = new Label();
+            dob.SetBinding(Label.TextProperty, "DateOfBirth");
+
             Content = new StackLayout
             {
                 Spacing = 10,
@@ -27,6 +30,15 @@ namespace Kawaw
                 {
                     name,
                     address,
+                    new StackLayout
+                    {
+                        Orientation = StackOrientation.Horizontal,
+                        Children =
+                        {
+                            new Label{Text = "Date of Birth: "},
+                            dob
+                        }
+                    },
                     changeDetails,
                 }
             };
