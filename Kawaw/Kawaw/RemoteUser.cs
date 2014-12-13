@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using Xamarin.Forms;
@@ -47,6 +49,15 @@ namespace Kawaw
         }
         public string PrimaryEmail { get { return _user.PrimaryEmail; } }
 
+        public IEnumerable<Email> Emails
+        {
+            get
+            {
+                var list = from e in _user.Emails select new Email(e);
+                return list.AsEnumerable();
+            }
+        }
+
         public static string OptionalDateTime(DateTime value)
         {
             if (value == new DateTime(0))
@@ -55,6 +66,32 @@ namespace Kawaw
         }
 
     }
+
+    public class Email
+    {
+        private JSON.Email _email;
+        public Email(JSON.Email email)
+        {
+            _email = email;
+        }
+        public bool Verified { get { return _email.Verified; }}
+        public string Address { get { return _email.Address; } }
+        public bool Primary { get { return _email.Primary; } }
+
+        public string Description
+        {
+            get
+            {
+                var result = Verified ? "Verified" : "Unverified";
+                if (Primary)
+                {
+                    result = "Primary, " + result;
+                }
+                return result;
+            }
+        }
+    }
+
 
     class OptionalDateConverter : IValueConverter
     {

@@ -8,6 +8,7 @@ namespace Kawaw
 
         Task<bool> Login(string username, string password);
         Task<JSON.User> GetUserDetails();
+        Task<JSON.User> EmailAction(string action, string address);
         void Logout();
 
         Task<JSON.User> UpdateUserDetails(string firstName, string lastName, string address, DateTime dateOfBirth);

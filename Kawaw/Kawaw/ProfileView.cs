@@ -1,9 +1,27 @@
+using System.Diagnostics;
+using System.Linq;
 using Xamarin.Forms;
 
 namespace Kawaw
 {
     class ProfileView : BaseView
     {
+        class EmailCell : ViewCell
+        {
+            public EmailCell()
+            {
+                var address = new Label();
+                address.SetBinding(Label.TextProperty, "Address");
+
+                var viewLayout = new StackLayout()
+                {
+                    Orientation = StackOrientation.Horizontal,
+                    // Children = { image, nameLayout }
+                };
+                View = viewLayout;
+            }
+        }
+
         public ProfileView()
         {
             Title = "Profile";
@@ -16,12 +34,20 @@ namespace Kawaw
 
             var changeDetails = new Button
             {
-                Text = "Change Details"
+                Text = "Change Details",
+                HorizontalOptions = LayoutOptions.Center,
             };
             changeDetails.SetBinding(Button.CommandProperty, "ChangeDetailsCommand");
 
             var dob = new Label();
             dob.SetBinding(Label.TextProperty, "DateOfBirth");
+
+            var list = new ListView();
+            list.SetBinding(ListView.ItemsSourceProperty, "Emails");
+            list.SetBinding(ListView.SelectedItemProperty, "SelectedItem", BindingMode.TwoWay);
+            list.ItemTemplate = new DataTemplate(typeof(TextCell));
+            list.ItemTemplate.SetBinding(TextCell.TextProperty, "Address");
+            list.ItemTemplate.SetBinding(TextCell.DetailProperty, "Description");
 
             Content = new StackLayout
             {
@@ -40,10 +66,33 @@ namespace Kawaw
                         }
                     },
                     changeDetails,
+                    new Label{Text = "Email Addresses: "},
+                    list,
                 }
             };
 
             ToolbarItems.Add(new ToolbarItem("Logout", null, () => MessagingCenter.Send<object>(this, "logout"), ToolbarItemOrder.Secondary));
+
+            MessagingCenter.Subscribe(this, "alert", async (ProfileViewModel model, Alert alert) =>
+            {
+                await DisplayAlert(alert.Title, alert.Text, "OK");
+            });
+
+            MessagingCenter.Subscribe(this, "show-options", async (ProfileViewModel model, EmailActionOptions options) =>
+            {
+                var textOptions = from tuple in options.Options select tuple.Item2;
+                var action = await DisplayActionSheet("E-mail Action", "Cancel", null, textOptions.ToArray());
+                // action here is the long name, and we want the short one.
+                if (action == "Cancel")
+                    return;
+                var result = from tuple in options.Options where tuple.Item2 == action select tuple.Item1;
+                MessagingCenter.Send((object)this, "email-action", new EmailAction
+                {
+                    Email = options.Email,
+                    Name = result.Single(),
+                });
+            });
+
         }
     }
 }
