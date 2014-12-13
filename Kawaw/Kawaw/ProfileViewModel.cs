@@ -66,10 +66,13 @@ namespace Kawaw
                 SetProperty(ref _selectedItem, value);
                 if (value != null)
                 {
+                    Debug.WriteLine("set selected email: {0}", value.Address);
                     // Look at the email and send a message...
                     if (value.Primary && value.Verified)
                     {
-                        MessagingCenter.Send(this, "alert", new Alert{
+                        Debug.WriteLine("send alert message");
+                        MessagingCenter.Send(this, "alert", new Alert
+                        {
                             Title = "E-mail Action",
                             Text = "You cannot delete your primary email address."});
                     }
@@ -93,6 +96,7 @@ namespace Kawaw
                             options.Options.Add(new Tuple<string, string>("remove", "Remove this e-mail address"));
                         }
 
+                        Debug.WriteLine("send show-options message");
                         MessagingCenter.Send(this, "show-options", options);
                     }
 
@@ -104,8 +108,9 @@ namespace Kawaw
         public ICommand ChangeDetailsCommand{ get; private set; }
 
         public ProfileViewModel(IApp app)
-            : base(app)
+            : base(app, RootViewModel.Profile)
         {
+            Debug.WriteLine("ProfileViewModel ctor");
             UpdateFromUser(app.User);
 
             ChangeDetailsCommand = new Command(async () =>
@@ -122,7 +127,6 @@ namespace Kawaw
                 {
                     var user = await app.Remote.EmailAction(action.Name, action.Email.Address);
                     app.User.UpdateUser(user);
-                    MessagingCenter.Send<object>(this, "user-updated");
                 }
                 catch (Exception e)
                 {

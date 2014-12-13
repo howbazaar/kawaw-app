@@ -3,7 +3,7 @@
     class EventsViewModel : BaseViewModel
     {
         public EventsViewModel(IApp app)
-            : base(app)
+            : base(app, RootViewModel.Events)
         {
             
         }

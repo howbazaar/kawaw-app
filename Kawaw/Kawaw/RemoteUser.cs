@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -34,6 +35,7 @@ namespace Kawaw
         public void UpdateUser(JSON.User user)
         {
             _user = user;
+            MessagingCenter.Send<object>(this, "user-updated");
         }
 
         public string FullName { get { return _user.FullName; }}
@@ -65,6 +67,18 @@ namespace Kawaw
             return value.ToString("dd MMM yyyy");
         }
 
+        public async void Refresh(IRemoteSite remote)
+        {
+            try
+            {
+                var response = await remote.GetUserDetails();
+                UpdateUser(response);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("TODO: handle stale session, site down.");
+            }   
+        }
     }
 
     public class Email

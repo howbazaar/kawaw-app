@@ -29,6 +29,7 @@ namespace Kawaw
             // Look to see if we have a logged in person.
             string csrftoken = null;
             string sessionid = null;
+            string page = RootViewModel.Profile;
             if (Properties.ContainsKey("User"))
             {
                 User = Properties["User"] as RemoteUser;
@@ -36,6 +37,11 @@ namespace Kawaw
                 csrftoken = User.CSRFToken;
                 sessionid = User.SessionId;
             }
+            if (Properties.ContainsKey("Page"))
+            {
+                page = Properties["Page"] as string;
+            }
+
             Remote = new RemoteSite(csrftoken, sessionid);
 
             var rootModel = new RootViewModel(this);
@@ -43,18 +49,26 @@ namespace Kawaw
             {
                 BindingContext = rootModel,
                 Master = ViewModelNavigation.GetPageForViewModel(rootModel.NavigationModel),
-                // Profile for now, should remember the last page.
-                Detail = new NavigationPage(ViewModelNavigation.GetPageForViewModel(rootModel.ProfileModel))
             };
+            rootModel.SetDetails(page);
 
             MainPage = rootView;
 
+            MessagingCenter.Subscribe(this, "show-page", (RootViewModel sender, BaseViewModel model) =>
+            {
+                if (model.Name != "")
+                {
+                    Properties["Page"] = model.Name;
+                }
+            });
 
         }
 
         protected override void OnResume()
         {
             base.OnResume();
+            if (User != null)
+                User.Refresh(Remote);
         }
 
         protected override void OnSleep()

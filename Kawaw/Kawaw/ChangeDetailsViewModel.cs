@@ -77,7 +77,6 @@ namespace Kawaw
             {
                 var jsonUser = await app.Remote.UpdateUserDetails(FirstName, LastName, Address, DateOfBirth);
                 app.User.UpdateUser(jsonUser);
-                MessagingCenter.Send<object>(this, "user-updated");
                 await Navigation.PopAsync();
             });
             ClearDateOfBirthCommand = new Command(() => { DateOfBirth = new DateTime(0);});
