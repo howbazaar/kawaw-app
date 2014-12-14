@@ -69,6 +69,7 @@ namespace Kawaw
 
         public async void Refresh(IRemoteSite remote)
         {
+            Debug.WriteLine("Refreshing user {0}", FullName);
             try
             {
                 var response = await remote.GetUserDetails();

@@ -66,11 +66,9 @@ namespace Kawaw
                 SetProperty(ref _selectedItem, value);
                 if (value != null)
                 {
-                    Debug.WriteLine("set selected email: {0}", value.Address);
                     // Look at the email and send a message...
                     if (value.Primary && value.Verified)
                     {
-                        Debug.WriteLine("send alert message");
                         MessagingCenter.Send(this, "alert", new Alert
                         {
                             Title = "E-mail Action",
@@ -96,7 +94,6 @@ namespace Kawaw
                             options.Options.Add(new Tuple<string, string>("remove", "Remove this e-mail address"));
                         }
 
-                        Debug.WriteLine("send show-options message");
                         MessagingCenter.Send(this, "show-options", options);
                     }
 
@@ -106,16 +103,20 @@ namespace Kawaw
         }
 
         public ICommand ChangeDetailsCommand{ get; private set; }
+        public ICommand AddEmailCommand { get; private set; }
 
         public ProfileViewModel(IApp app)
             : base(app, RootViewModel.Profile)
         {
-            Debug.WriteLine("ProfileViewModel ctor");
             UpdateFromUser(app.User);
 
             ChangeDetailsCommand = new Command(async () =>
             {
                 await Navigation.PushAsync(new ChangeDetailsViewModel(app));
+            });
+            AddEmailCommand = new Command(async () =>
+            {
+                await Navigation.PushAsync(new AddEmailViewModel(app));
             });
             MessagingCenter.Subscribe<object>(this, "user-updated", delegate
             {
@@ -147,7 +148,6 @@ namespace Kawaw
                 from email in user.Emails
                 orderby email.Primary descending, email.Verified descending, email.Address
                 select email);
-            
         }
 
     }

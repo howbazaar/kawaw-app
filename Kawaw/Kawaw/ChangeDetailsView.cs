@@ -33,6 +33,7 @@ namespace Kawaw
             };
         }
     }
+
     class ChangeDetailsView : BaseView
     {
         public ChangeDetailsView()

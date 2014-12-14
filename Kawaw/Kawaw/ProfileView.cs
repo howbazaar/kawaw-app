@@ -49,6 +49,13 @@ namespace Kawaw
             list.ItemTemplate.SetBinding(TextCell.TextProperty, "Address");
             list.ItemTemplate.SetBinding(TextCell.DetailProperty, "Description");
 
+            var addEmail = new Button
+            {
+                Text = "Add E-mail address",
+                HorizontalOptions = LayoutOptions.Center,
+            };
+            addEmail.SetBinding(Button.CommandProperty, "AddEmailCommand");
+
             Content = new StackLayout
             {
                 Spacing = 10,
@@ -68,22 +75,19 @@ namespace Kawaw
                     changeDetails,
                     new Label{Text = "Email Addresses: "},
                     list,
+                    addEmail,
                 }
             };
 
             ToolbarItems.Add(new ToolbarItem("Logout", null, () => MessagingCenter.Send<object>(this, "logout"), ToolbarItemOrder.Secondary));
 
-            Debug.WriteLine("subscribe to alert message {0}", this.Id);
             MessagingCenter.Subscribe(this, "alert", async (ProfileViewModel model, Alert alert) =>
             {
-                Debug.WriteLine("alert {0}", this.Id);
                 await DisplayAlert(alert.Title, alert.Text, "OK");
             });
 
-            Debug.WriteLine("subscribe to show-options message {0}", this.Id);
             MessagingCenter.Subscribe(this, "show-options", async (ProfileViewModel model, EmailActionOptions options) =>
             {
-                Debug.WriteLine("show-options {0}", this.Id);
                 var textOptions = from tuple in options.Options select tuple.Item2;
                 var action = await DisplayActionSheet("E-mail Action", "Cancel", null, textOptions.ToArray());
                 // action here is the long name, and we want the short one.
