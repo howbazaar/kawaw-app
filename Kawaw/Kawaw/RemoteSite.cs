@@ -182,6 +182,36 @@ namespace Kawaw
             public JSON.User User { get; set; }
         }
 
+        public async Task<JSON.User> AddEmail(string address)
+        {
+            var values = new Dictionary<string, string>();
+            values["email"] = address;
+            var response = await Post("+add-email/", values).ConfigureAwait(false);
+            Debug.WriteLine(response.StatusCode);
+            // TODO: on 404 throw site down....
+            //       on 403 unauthorized - need to login again
+            //       on 400 extract json error from content
+            //       on 200 extract user from json
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await readUserFromContent(response).ConfigureAwait(false);
+            }
+
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                // get the message out...
+                // raise a nicer exception
+            }
+            else if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                // raise login required
+            }
+            var content = await response.Content.ReadAsStringAsync();
+            Debug.WriteLine("Response: {0}\nContent: {1}", response.StatusCode, content);
+            throw new Exception("not ok... sort it out");
+            
+        }
+
         public async Task<JSON.User> EmailAction(string action, string address)
         {
             var values = new Dictionary<string, string>();

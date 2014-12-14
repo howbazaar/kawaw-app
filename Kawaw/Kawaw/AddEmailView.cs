@@ -24,27 +24,35 @@ namespace Kawaw
 
             Content = new StackLayout
             {
-                VerticalOptions = LayoutOptions.Center,
-                Spacing = 10,
-                Children =
-                {
-                    new Label
+                Children = {
+                    new Frame
                     {
-                        Text = "Add E-Mail address",
-                        Font = Font.SystemFontOfSize(NamedSize.Large),
-                    },
-                    emailEntry,
-                    new StackLayout
-                    {
-                        // LayoutOptions = LayoutAlignment.End,
-                        Orientation = StackOrientation.Horizontal,
-                        Children =
+                        Content = new StackLayout
+                            {
+                                VerticalOptions = LayoutOptions.Center,
+                                Spacing = 10,
+                                Children =
+                                {
+                        new Label
                         {
-                            cancelButton,
-                            addButton,
-                        }
-                    },
+                            Text = "Add E-Mail address",
+                            Font = Font.SystemFontOfSize(NamedSize.Large),
+                        },
+                        emailEntry,
+                        new StackLayout
+                        {
+                            // LayoutOptions = LayoutAlignment.End,
+                            Orientation = StackOrientation.Horizontal,
+                            Children =
+                            {
+                                cancelButton,
+                                addButton,
+                            }
+                        },
+                    }
                 }
+                    },
+ }
             };
 
 

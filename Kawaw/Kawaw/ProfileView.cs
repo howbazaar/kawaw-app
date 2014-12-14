@@ -80,7 +80,12 @@ namespace Kawaw
             };
 
             ToolbarItems.Add(new ToolbarItem("Logout", null, () => MessagingCenter.Send<object>(this, "logout"), ToolbarItemOrder.Secondary));
+        }
 
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            Debug.WriteLine("appearing, so subscribe {0}", this.Id);
             MessagingCenter.Subscribe(this, "alert", async (ProfileViewModel model, Alert alert) =>
             {
                 await DisplayAlert(alert.Title, alert.Text, "OK");
@@ -100,7 +105,6 @@ namespace Kawaw
                     Name = result.Single(),
                 });
             });
-
         }
 
         protected override void OnDisappearing()

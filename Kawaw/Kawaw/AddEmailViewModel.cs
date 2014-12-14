@@ -22,8 +22,17 @@ namespace Kawaw
         {
             AddCommand = new Command(async () =>
             {
-                Debug.WriteLine("save email...");
-                // await Navigation.PopAsync();
+                try
+                {
+                    // TODO: disable add and cancel while this is running.
+                    var user = await app.Remote.AddEmail(Email);
+                    app.User.UpdateUser(user);
+                    await Navigation.PopAsync();
+                }
+                catch (Exception)
+                {
+                    Debug.WriteLine("oops");
+                }
             });
             CancelCommand = new Command(async () =>
             {
