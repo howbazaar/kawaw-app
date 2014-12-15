@@ -87,6 +87,26 @@ namespace Kawaw
             return objResponse as TResponse;
         }
 
+        private async Task<TResponse[]> readArrayFromResponse<TResponse>(HttpResponseMessage response)
+            where TResponse : class
+        {
+            var jsonSerializer = new DataContractJsonSerializer(typeof(List<TResponse>));
+            var content = await response.Content.ReadAsStringAsync();
+            var stream = await response.Content.ReadAsStreamAsync(); // .ConfigureAwait(false);
+            try
+            {
+                var objResponse = jsonSerializer.ReadObject(stream);
+                var list = objResponse as List<TResponse>;
+                if (list != null) return list.ToArray();
+                return null;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                throw;
+            }
+        }
+
         private async Task<JSON.User> readUserFromContent(HttpResponseMessage response)
         {
             return await readFromResponse<JSON.User>(response).ConfigureAwait(false);
@@ -238,6 +258,18 @@ namespace Kawaw
                 // raise login required
             }
             throw new Exception("not ok... sort it out");
+        }
+
+        public async Task<JSON.Connection[]> GetConnections()
+        {
+            var response = await Get("+connections/").ConfigureAwait(false);
+            // TODO: throw a known error for Forbidden.
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception("not ok... sort it out");
+            }
+            var connections = await readArrayFromResponse<JSON.Connection>(response).ConfigureAwait(false);
+            return connections;
         }
 
     }

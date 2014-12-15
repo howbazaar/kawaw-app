@@ -14,6 +14,8 @@ namespace Kawaw
 
         Task<JSON.User> UpdateUserDetails(string firstName, string lastName, string address, DateTime dateOfBirth);
 
+        Task<JSON.Connection[]> GetConnections();
+
         string CSRFToken { get; }
         string SessionId { get; }
     }

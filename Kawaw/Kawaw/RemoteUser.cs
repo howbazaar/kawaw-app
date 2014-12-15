@@ -23,6 +23,9 @@ namespace Kawaw
         [DataMember(Name = "sessionid")]
         public string SessionId { get; set; }
 
+        [DataMember(Name = "connections")]
+        private JSON.Connection[] _connections;
+
         public RemoteUser()
         {
         }
@@ -36,6 +39,12 @@ namespace Kawaw
         {
             _user = user;
             MessagingCenter.Send<object>(this, "user-updated");
+        }
+
+        public void UpdateConnections(JSON.Connection[] connections)
+        {
+            _connections = connections;
+            MessagingCenter.Send<object>(this, "connections-updated");
         }
 
         public string FullName { get { return _user.FullName; }}
@@ -60,6 +69,15 @@ namespace Kawaw
             }
         }
 
+        public IEnumerable<Connection> Connections
+        {
+            get
+            {
+                var list = from conn in _connections select new Connection(conn); 
+                return list.AsEnumerable();
+            }
+        }
+
         public static string OptionalDateTime(DateTime value)
         {
             if (value == new DateTime(0))
@@ -74,6 +92,8 @@ namespace Kawaw
             {
                 var response = await remote.GetUserDetails();
                 UpdateUser(response);
+                var connections = await remote.GetConnections();
+                UpdateConnections(connections);
             }
             catch (Exception e)
             {
@@ -107,6 +127,23 @@ namespace Kawaw
         }
     }
 
+    public class Connection
+    {
+        private JSON.Connection _connection;
+
+        public Connection(JSON.Connection connection)
+        {
+            _connection = connection;
+        }
+
+        public uint Id { get { return _connection.Id; }}
+        public string Email { get { return _connection.Email; } }
+        public string Type { get { return _connection.Type; } }
+        public string TypeValue { get { return _connection.TypeValue; } }
+        //public Boolean Accepted { get { return _connection.Accepted; } }
+        public string Name { get { return _connection.Name; } }
+        public string Organisation { get { return _connection.Organisation; } }
+    }
 
     class OptionalDateConverter : IValueConverter
     {
