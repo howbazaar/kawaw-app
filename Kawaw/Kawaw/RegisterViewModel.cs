@@ -38,18 +38,46 @@ namespace Kawaw
         public RegisterViewModel(IApp app)
             : base(app)
         {
-            RegisterCommand = new Command(async () =>
+
+            Command registerCommand = null;
+            bool canRegister = true;
+            registerCommand = new Command(async () =>
             {
+
+                canRegister = false;
+                registerCommand.ChangeCanExecute();
+                IsBusy = true;
+                Debug.WriteLine("Name: " + name);
                 Debug.WriteLine("Email: " + email);
                 Debug.WriteLine("Password: {0}", password);
-                IsBusy = true;
-                await Task.Delay(2000);
-                var request = HttpWebRequest.CreateHttp("https://kawaw.com/+login-form");
+                Debug.WriteLine("Password: {0}", password2);
+                
+                var remote = app.Remote;
+                var worked = await remote.Register(email, name, password, password2);
+                Debug.WriteLine(worked);
+                if (!worked)
+                {
+                    IsBusy = false;
+                    // TODO: show error message about bad credentials.
+                    canRegister = true;
+                    registerCommand.ChangeCanExecute();
+                    return;
+                }
+
+                worked = await remote.Login(email, password);
+                var details = await remote.GetUserDetails();
+                var user = new RemoteUser(details);
+                user.CSRFToken = remote.CSRFToken;
+                user.SessionId = remote.SessionId;
+                App.User = user;
+                MessagingCenter.Send<object>(this, "user-updated");
 
                 // assume we have logged in and pop the page
                 IsBusy = false;
                 await Navigation.PopModalAsync();
-            });
+            }, () => canRegister);
+            RegisterCommand = registerCommand;
+
         }
 
     }
