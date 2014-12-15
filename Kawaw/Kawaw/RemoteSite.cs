@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using Kawaw.JSON;
@@ -76,12 +78,18 @@ namespace Kawaw
             return await _client.PostAsync(path, content).ConfigureAwait(false);
         }
 
-        private async Task<JSON.User> readUserFromContent(HttpResponseMessage response)
+        private async Task<TResponse> readFromResponse<TResponse>(HttpResponseMessage response)
+            where TResponse : class
         {
-            var jsonSerializer = new DataContractJsonSerializer(typeof(JSON.User));
+            var jsonSerializer = new DataContractJsonSerializer(typeof(TResponse));
             var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
             var objResponse = jsonSerializer.ReadObject(stream);
-            return objResponse as JSON.User;
+            return objResponse as TResponse;
+        }
+
+        private async Task<JSON.User> readUserFromContent(HttpResponseMessage response)
+        {
+            return await readFromResponse<JSON.User>(response).ConfigureAwait(false);
         }
 
         public async Task<JSON.User> GetUserDetails()
@@ -146,7 +154,14 @@ namespace Kawaw
             values["first_name"] = firstName;
             values["last_name"] = lastName;
             values["address"] = address;
-            values["date_of_birth"] = dateOfBirth.ToString("yyyy-MM-dd");
+            if (dateOfBirth == new DateTime(0))
+            {
+                values["date_of_birth"] = "";
+            }
+            else
+            {
+                values["date_of_birth"] = dateOfBirth.ToString("yyyy-MM-dd");
+            }
             var response = await Post("+update-details/", values).ConfigureAwait(false);
             Debug.WriteLine(response.StatusCode);
             // TODO: on 404 throw site down....
@@ -159,5 +174,71 @@ namespace Kawaw
             }
             return await readUserFromContent(response).ConfigureAwait(false);
         }
+
+        [DataContract]
+        public class EmailActionResponse
+        {
+            [DataMember(Name = "user")]
+            public JSON.User User { get; set; }
+        }
+
+        public async Task<JSON.User> AddEmail(string address)
+        {
+            var values = new Dictionary<string, string>();
+            values["email"] = address;
+            var response = await Post("+add-email/", values).ConfigureAwait(false);
+            Debug.WriteLine(response.StatusCode);
+            // TODO: on 404 throw site down....
+            //       on 403 unauthorized - need to login again
+            //       on 400 extract json error from content
+            //       on 200 extract user from json
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await readUserFromContent(response).ConfigureAwait(false);
+            }
+
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                // get the message out...
+                // raise a nicer exception
+            }
+            else if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                // raise login required
+            }
+            var content = await response.Content.ReadAsStringAsync();
+            Debug.WriteLine("Response: {0}\nContent: {1}", response.StatusCode, content);
+            throw new Exception("not ok... sort it out");
+            
+        }
+
+        public async Task<JSON.User> EmailAction(string action, string address)
+        {
+            var values = new Dictionary<string, string>();
+            values["action"] = action;
+            values["email"] = address;
+            var response = await Post("+email-action/", values).ConfigureAwait(false);
+            Debug.WriteLine(response.StatusCode);
+            // TODO: on 404 throw site down....
+            //       on 403 unauthorized - need to login again
+            //       on 400 extract json error from content
+            //       on 200 extract user from json
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var emailResponse = await readFromResponse<EmailActionResponse>(response).ConfigureAwait(false);
+                return emailResponse.User;
+            }
+
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                // get the message out...
+                // raise a nicer exception
+            } else if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                // raise login required
+            }
+            throw new Exception("not ok... sort it out");
+        }
+
     }
 }

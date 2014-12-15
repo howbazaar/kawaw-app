@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using Xamarin.Forms;
 
@@ -5,6 +6,11 @@ namespace Kawaw
 {
     class RootViewModel : BaseViewModel
     {
+        public const string Events = "Events";
+        public const string Connections = "Connections";
+        public const string Profile = "Profile";
+        public const string Login = "Login";
+
         private ViewModelNavigation _navigation;
 
         public override ViewModelNavigation Navigation
@@ -14,54 +20,62 @@ namespace Kawaw
         }
 
         public NavigationViewModel NavigationModel { get; private set; }
-        public EventsViewModel EventsModel { get; private set; }
-        public ConnectionsViewModel ConnectionsModel { get; private set; }
-        public LoginViewModel LoginModel { get; private set; }
-        public ProfileViewModel ProfileModel { get; private set; }
 
-        private async void Init()
+        private void Init()
         {
             if (App.User == null)
             {
-                await Navigation.PushModalAsync(LoginModel);
+                ShowLogin();
+            }
+            else
+            {
+                IsBusy = true;
+                App.User.Refresh(App.Remote);
+                IsBusy = false;
             }
         }
 
         public RootViewModel(IApp app) : base(app)
         {
             NavigationModel = new NavigationViewModel(app);
-            EventsModel = new EventsViewModel(app);
-            ConnectionsModel = new ConnectionsViewModel(app);
-            LoginModel = new LoginViewModel(app);
-            ProfileModel = new ProfileViewModel(app);
 
             // not logged in so push the login page
-            MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) =>
-            {
-                Debug.WriteLine("show-page: {0}", page);
-                switch (page)
-                {
-                    case "Events":
-                        MessagingCenter.Send<RootViewModel, BaseViewModel>(this, "show-page", EventsModel);
-                        break;
-                    case "Connections":
-                        MessagingCenter.Send<RootViewModel, BaseViewModel>(this, "show-page", ConnectionsModel);
-                        break;
-                    case "Profile":
-                        MessagingCenter.Send<RootViewModel, BaseViewModel>(this, "show-page", ProfileModel);
-                        break;
-                    default:
-                        Debug.WriteLine("Unknown page {0}", page);
-                        break;
-                }
-            });
+            MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) => SetDetails(page));
             MessagingCenter.Subscribe(this, "logout", async (object sender) =>
             {
                 App.Remote.Logout();
                 App.User = null;
-                LoginModel.Reset();
-                await Navigation.PushModalAsync(LoginModel);
+                ShowLogin();
             });
         }
+
+        public void SetDetails(string page)
+        {
+            var viewModel = CreateViewModel(page);
+            MessagingCenter.Send(this, "show-page", viewModel);
+        }
+
+        private async void ShowLogin()
+        {
+            var loginModel = CreateViewModel(Login);
+            await Navigation.PushModalAsync(loginModel);
+        }
+
+        private BaseViewModel CreateViewModel(string name)
+        {
+            switch (name)
+            {
+                case Events:
+                    return new EventsViewModel(App);
+                case Connections:
+                    return new ConnectionsViewModel(App);
+                case Profile:
+                    return new ProfileViewModel(App);
+                case Login:
+                    return new LoginViewModel(App);
+            }
+            throw new Exception("Unknown model name " + name);
+        }
+
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.IO;
+using System.Runtime.Serialization;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -24,17 +26,30 @@ namespace Kawaw
             ViewModelNavigation.Register<ProfileViewModel, ProfileView>();
             ViewModelNavigation.Register<ChangeDetailsViewModel, ChangeDetailsView>();
             ViewModelNavigation.Register<NavigationViewModel, NavigationView>();
+            ViewModelNavigation.Register<DatePopupViewModel, DatePopupView>();
+            ViewModelNavigation.Register<AddEmailViewModel, AddEmailView>();
 
             // Look to see if we have a logged in person.
             string csrftoken = null;
             string sessionid = null;
+            string page = RootViewModel.Profile;
             if (Properties.ContainsKey("User"))
             {
                 User = Properties["User"] as RemoteUser;
-                Debug.WriteLine(User.FullName);
+                Debug.WriteLine("User found in properties: {0}", User.FullName);
                 csrftoken = User.CSRFToken;
                 sessionid = User.SessionId;
             }
+            else
+            {
+                Debug.WriteLine("User not found in properties, login needed");
+            }
+            if (Properties.ContainsKey("Page"))
+            {
+                page = Properties["Page"] as string;
+                Debug.WriteLine("Last page: {0}", page);
+            }
+
             Remote = new RemoteSite(csrftoken, sessionid);
 
             var rootModel = new RootViewModel(this);
@@ -42,17 +57,26 @@ namespace Kawaw
             {
                 BindingContext = rootModel,
                 Master = ViewModelNavigation.GetPageForViewModel(rootModel.NavigationModel),
-                Detail = new NavigationPage(ViewModelNavigation.GetPageForViewModel(rootModel.EventsModel))
             };
+            rootModel.SetDetails(page);
 
             MainPage = rootView;
 
+            MessagingCenter.Subscribe(this, "show-page", (RootViewModel sender, BaseViewModel model) =>
+            {
+                if (model.Name != "")
+                {
+                    Properties["Page"] = model.Name;
+                }
+            });
 
         }
-
+        
         protected override void OnResume()
         {
             base.OnResume();
+            if (User != null)
+                User.Refresh(Remote);
         }
 
         protected override void OnSleep()
@@ -77,6 +101,15 @@ namespace Kawaw
                 if (_user != null)
                 {
                     Properties["User"] = _user;
+#if DEBUG
+                    var x = new DataContractSerializer(typeof(RemoteUser));
+                    var buf = new MemoryStream();
+                    x.WriteObject(buf, _user);
+                    buf.Seek(0, SeekOrigin.Begin);
+                    var obj = x.ReadObject(buf);
+                    var test = obj as RemoteUser;
+                    Debug.WriteLine("Serialisation of user {0} passed", test.FullName);
+#endif
                 }
                 else
                 {
