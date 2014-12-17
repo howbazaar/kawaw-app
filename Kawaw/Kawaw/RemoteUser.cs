@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using Microsoft.VisualBasic.CompilerServices;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -44,6 +45,10 @@ namespace Kawaw
         public void UpdateConnections(JSON.Connection[] connections)
         {
             _connections = connections;
+            if (connections == null)
+                Debug.WriteLine("connections is null");
+            else
+                Debug.WriteLine("connections has {0} items", connections.Length);
             MessagingCenter.Send<object>(this, "connections-updated");
         }
 
@@ -73,6 +78,11 @@ namespace Kawaw
         {
             get
             {
+                if (_connections == null)
+                {
+                    return Enumerable.Empty<Connection>();
+                }
+                //var otherlist = _connections.Select(c => new Connection(c));
                 var list = from conn in _connections select new Connection(conn); 
                 return list.AsEnumerable();
             }
@@ -140,7 +150,16 @@ namespace Kawaw
         public string Email { get { return _connection.Email; } }
         public string Type { get { return _connection.Type; } }
         public string TypeValue { get { return _connection.TypeValue; } }
-        //public Boolean Accepted { get { return _connection.Accepted; } }
+
+        // break up the optional bool into two bools
+        public bool Pending { get { return _connection.Accepted == null; } }
+        // pending are considered not accepted
+        public bool Accepted { get { return _connection.Accepted == true; } }
+        public string Status { get
+        {
+            if (Pending) return "pending";
+            return Accepted ? "accepted" : "rejected";
+        } }
         public string Name { get { return _connection.Name; } }
         public string Organisation { get { return _connection.Organisation; } }
     }
