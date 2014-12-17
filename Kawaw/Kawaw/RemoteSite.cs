@@ -174,7 +174,7 @@ namespace Kawaw
             values["first_name"] = firstName;
             values["last_name"] = lastName;
             values["address"] = address;
-            if (dateOfBirth == new DateTime(0))
+            if (dateOfBirth == new DateTime(0) || dateOfBirth == RemoteUser.MinDateOfBirthValue)
             {
                 values["date_of_birth"] = "";
             }

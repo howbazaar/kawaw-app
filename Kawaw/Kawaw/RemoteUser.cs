@@ -14,6 +14,8 @@ namespace Kawaw
     [DataContract]
     public class RemoteUser
     {
+        static public readonly DateTime MinDateOfBirthValue = new DateTime(1900, 1, 1);
+
         // NOTE: probably want to store the cookies with the user so it gets persisted correctly.
         [DataMember(Name = "user")]
         private JSON.User _user;
@@ -90,7 +92,7 @@ namespace Kawaw
 
         public static string OptionalDateTime(DateTime value)
         {
-            if (value == new DateTime(0))
+            if (value == new DateTime(0) || value == MinDateOfBirthValue)
                 return "not set";
             return value.ToString("dd MMM yyyy");
         }
