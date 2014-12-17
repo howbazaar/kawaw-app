@@ -96,7 +96,7 @@ namespace Kawaw
                 var textOptions = from tuple in options.Options select tuple.Item2;
                 var action = await DisplayActionSheet("E-mail Action", "Cancel", null, textOptions.ToArray());
                 // action here is the long name, and we want the short one.
-                if (action == "Cancel")
+                if (action == null || action == "Cancel")
                     return;
                 var result = from tuple in options.Options where tuple.Item2 == action select tuple.Item1;
                 MessagingCenter.Send((object)this, "email-action", new EmailAction

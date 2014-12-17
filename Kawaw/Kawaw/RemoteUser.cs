@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using Microsoft.VisualBasic.CompilerServices;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -13,6 +14,8 @@ namespace Kawaw
     [DataContract]
     public class RemoteUser
     {
+        static public readonly DateTime MinDateOfBirthValue = new DateTime(1900, 1, 1);
+
         // NOTE: probably want to store the cookies with the user so it gets persisted correctly.
         [DataMember(Name = "user")]
         private JSON.User _user;
@@ -23,13 +26,21 @@ namespace Kawaw
         [DataMember(Name = "sessionid")]
         public string SessionId { get; set; }
 
+        [DataMember(Name = "connections")]
+        private JSON.Connection[] _connections;
+
+        private IRemoteSite _remoteSite;
+
         public RemoteUser()
         {
         }
 
-        public RemoteUser(JSON.User user)
+        public RemoteUser(JSON.User user, IRemoteSite site)
         {
+            _remoteSite = site;
             _user = user;
+            CSRFToken = site.CSRFToken;
+            SessionId = site.SessionId;
         }
 
         public void UpdateUser(JSON.User user)
@@ -37,6 +48,38 @@ namespace Kawaw
             _user = user;
             MessagingCenter.Send<object>(this, "user-updated");
         }
+
+        public void UpdateConnections(JSON.Connection[] connections)
+        {
+            _connections = connections;
+            if (connections == null)
+                Debug.WriteLine("connections is null");
+            else
+                Debug.WriteLine("connections has {0} items", connections.Length);
+            MessagingCenter.Send<object>(this, "connections-updated");
+        }
+
+        public async void ConnectionAction(Connection connection, bool accept)
+        {
+            try
+            {
+                var result = await _remoteSite.ConnectionAction(connection.Id, accept);
+                // Update our connections.
+                foreach (var conn in _connections)
+                {
+                    if (conn.Id == result.Id)
+                    {
+                        conn.Accepted = result.Accepted;
+                    }
+                }
+                MessagingCenter.Send<object>(this, "connections-updated");
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("oops " +e.Message);
+            }
+        }
+
 
         public string FullName { get { return _user.FullName; }}
         public string FirstName { get { return _user.FirstName; } }
@@ -60,20 +103,37 @@ namespace Kawaw
             }
         }
 
+        public IEnumerable<Connection> Connections
+        {
+            get
+            {
+                if (_connections == null)
+                {
+                    return Enumerable.Empty<Connection>();
+                }
+                //var otherlist = _connections.Select(c => new Connection(c));
+                var list = from conn in _connections select new Connection(conn); 
+                return list.AsEnumerable();
+            }
+        }
+
         public static string OptionalDateTime(DateTime value)
         {
-            if (value == new DateTime(0))
+            if (value == new DateTime(0) || value == MinDateOfBirthValue)
                 return "not set";
             return value.ToString("dd MMM yyyy");
         }
 
         public async void Refresh(IRemoteSite remote)
         {
+            _remoteSite = remote;
             Debug.WriteLine("Refreshing user {0}", FullName);
             try
             {
                 var response = await remote.GetUserDetails();
                 UpdateUser(response);
+                var connections = await remote.GetConnections();
+                UpdateConnections(connections);
             }
             catch (Exception e)
             {
@@ -107,6 +167,32 @@ namespace Kawaw
         }
     }
 
+    public class Connection
+    {
+        private JSON.Connection _connection;
+
+        public Connection(JSON.Connection connection)
+        {
+            _connection = connection;
+        }
+
+        public uint Id { get { return _connection.Id; }}
+        public string Email { get { return _connection.Email; } }
+        public string Type { get { return _connection.Type; } }
+        public string TypeValue { get { return _connection.TypeValue; } }
+
+        // break up the optional bool into two bools
+        public bool Pending { get { return _connection.Accepted == null; } }
+        // pending are considered not accepted
+        public bool Accepted { get { return _connection.Accepted == true; } }
+        public string Status { get
+        {
+            if (Pending) return "Pending";
+            return Accepted ? "Accepted" : "Rejected";
+        } }
+        public string Name { get { return _connection.Name; } }
+        public string Organisation { get { return _connection.Organisation; } }
+    }
 
     class OptionalDateConverter : IValueConverter
     {

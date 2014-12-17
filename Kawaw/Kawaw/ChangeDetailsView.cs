@@ -1,38 +1,8 @@
-﻿using Xamarin.Forms;
+﻿using System;
+using Xamarin.Forms;
 
 namespace Kawaw
 {
-    class DatePopupView: BaseView
-    {
-        public DatePopupView()
-        {
-            Label header = new Label
-            {
-                Text = "DatePicker",
-                Font = Font.SystemFontOfSize(50, FontAttributes.Bold),
-                HorizontalOptions = LayoutOptions.Center
-            };
-
-            DatePicker datePicker = new DatePicker
-            {
-                Format = "D",
-                VerticalOptions = LayoutOptions.CenterAndExpand
-            };
-
-            // Accomodate iPhone status bar.
-            this.Padding = new Thickness(10, Device.OnPlatform(20, 0, 0), 10, 5);
-
-            // Build the page.
-            this.Content = new StackLayout
-            {
-                Children = 
-                {
-                    header,
-                    datePicker
-                }
-            };
-        }
-    }
 
     class ChangeDetailsView : BaseView
     {
@@ -41,6 +11,11 @@ namespace Kawaw
             Title = "Change Details";
             Icon = "kawaw.png";
             Padding = new Thickness(20);
+
+            var largeFont = Font.SystemFontOfSize(NamedSize.Large);
+
+            var datepicker = new DatePicker();
+            datepicker.SetBinding(DatePicker.DateProperty, "DateOfBirth");
 
             var firstNameEntry = new Entry
             {
@@ -70,11 +45,6 @@ namespace Kawaw
             };
             saveButton.SetBinding(Button.CommandProperty, "SaveCommand");
 
-            var changeDOB = new Button
-            {
-                Text = "Change"
-            };
-            changeDOB.SetBinding(Button.CommandProperty, "ChangeDateOfBirthCommand");
             var clearDOB = new Button
             {
                 Text = "Clear"
@@ -83,19 +53,20 @@ namespace Kawaw
 
             var dob = new Label
             {
-                VerticalOptions = LayoutOptions.Center,
+                HorizontalOptions= LayoutOptions.StartAndExpand,
+                // FontSize = NamedSize.Large  <--- Why not?
             };
             dob.SetBinding(Label.TextProperty, "DateOfBirth", BindingMode.Default,
                 new OptionalDateConverter());
-
-            Content = new StackLayout
+            var absolute = new AbsoluteLayout();
+            var view = new StackLayout
             {
                 Spacing = 10,
                 Children =
                 {
                     firstNameEntry,
                     lastNameEntry,
-                    new Label {Text = "Address"},
+                    new Label {Text = "Address", FontSize = largeFont.FontSize},
                     addressEdit,
                     new Label{Text = "Date of Birth: "},
                     new StackLayout
@@ -104,7 +75,6 @@ namespace Kawaw
                         Children =
                         {
                             dob,
-                            changeDOB,
                             clearDOB,
                         }
                     },
@@ -112,7 +82,20 @@ namespace Kawaw
                     saveButton
                 }
             };
+            absolute.Children.Add(view, new Rectangle(0,0,1,1), AbsoluteLayoutFlags.All);
+            absolute.Children.Add(datepicker, new Rectangle(-300,-300,100,30));
+            Content = absolute;
 
+            var tap = new TapGestureRecognizer();
+            tap.Tapped += (sender, args) =>
+            {
+                if (datepicker.Date == datepicker.MinimumDate)
+                {
+                    datepicker.Date = DateTime.Today;
+                }
+                datepicker.Focus();
+            };
+            dob.GestureRecognizers.Add(tap);
         }
     }
 }

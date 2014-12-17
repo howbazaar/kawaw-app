@@ -38,13 +38,10 @@ namespace Kawaw
             {
                 canLogin = false;
                 loginCommand.ChangeCanExecute();
-                Debug.WriteLine("Email: " + email);
-                Debug.WriteLine("Password: {0}", password);
                 IsBusy = true;
 
                 var remote = app.Remote;
                 var worked = await remote.Login(email, password);
-                Debug.WriteLine(worked);
                 if (!worked)
                 {
                     IsBusy = false;
@@ -53,10 +50,8 @@ namespace Kawaw
                     loginCommand.ChangeCanExecute();
                     return;
                 }
-                var details= await remote.GetUserDetails();
-                var user = new RemoteUser(details);
-                user.CSRFToken = remote.CSRFToken;
-                user.SessionId = remote.SessionId;
+                var details = await remote.GetUserDetails();
+                var user = new RemoteUser(details, app.Remote);
                 App.User = user;
                 MessagingCenter.Send<object>(this, "user-updated");
 
