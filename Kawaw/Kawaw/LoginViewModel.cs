@@ -50,10 +50,8 @@ namespace Kawaw
                     loginCommand.ChangeCanExecute();
                     return;
                 }
-                var details= await remote.GetUserDetails();
-                var user = new RemoteUser(details);
-                user.CSRFToken = remote.CSRFToken;
-                user.SessionId = remote.SessionId;
+                var details = await remote.GetUserDetails();
+                var user = new RemoteUser(details, app.Remote);
                 App.User = user;
                 MessagingCenter.Send<object>(this, "user-updated");
 

@@ -29,13 +29,18 @@ namespace Kawaw
         [DataMember(Name = "connections")]
         private JSON.Connection[] _connections;
 
+        private IRemoteSite _remoteSite;
+
         public RemoteUser()
         {
         }
 
-        public RemoteUser(JSON.User user)
+        public RemoteUser(JSON.User user, IRemoteSite site)
         {
+            _remoteSite = site;
             _user = user;
+            CSRFToken = site.CSRFToken;
+            SessionId = site.SessionId;
         }
 
         public void UpdateUser(JSON.User user)
@@ -53,6 +58,28 @@ namespace Kawaw
                 Debug.WriteLine("connections has {0} items", connections.Length);
             MessagingCenter.Send<object>(this, "connections-updated");
         }
+
+        public async void ConnectionAction(Connection connection, bool accept)
+        {
+            try
+            {
+                var result = await _remoteSite.ConnectionAction(connection.Id, accept);
+                // Update our connections.
+                foreach (var conn in _connections)
+                {
+                    if (conn.Id == result.Id)
+                    {
+                        conn.Accepted = result.Accepted;
+                    }
+                }
+                MessagingCenter.Send<object>(this, "connections-updated");
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("oops " +e.Message);
+            }
+        }
+
 
         public string FullName { get { return _user.FullName; }}
         public string FirstName { get { return _user.FirstName; } }
@@ -99,6 +126,7 @@ namespace Kawaw
 
         public async void Refresh(IRemoteSite remote)
         {
+            _remoteSite = remote;
             Debug.WriteLine("Refreshing user {0}", FullName);
             try
             {
@@ -159,8 +187,8 @@ namespace Kawaw
         public bool Accepted { get { return _connection.Accepted == true; } }
         public string Status { get
         {
-            if (Pending) return "pending";
-            return Accepted ? "accepted" : "rejected";
+            if (Pending) return "Pending";
+            return Accepted ? "Accepted" : "Rejected";
         } }
         public string Name { get { return _connection.Name; } }
         public string Organisation { get { return _connection.Organisation; } }

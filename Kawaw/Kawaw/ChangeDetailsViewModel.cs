@@ -14,8 +14,6 @@ namespace Kawaw
         private string _address;
         private DateTime _dateOfBirth;
 
-        private DatePopupViewModel _datePicker;
-
         public string FirstName
         {
             get { return _firstName; }
@@ -42,7 +40,6 @@ namespace Kawaw
 
         public ICommand SaveCommand { get; private set; }
         public ICommand ClearDateOfBirthCommand { get; private set; }
-        public ICommand ChangeDateOfBirthCommand { get; private set; }
 
         public ChangeDetailsViewModel(IApp app)
             :base(app)
@@ -59,13 +56,6 @@ namespace Kawaw
                 await Navigation.PopAsync();
             });
             ClearDateOfBirthCommand = new Command(() => { DateOfBirth = new DateTime(0);});
-
-            _datePicker = new DatePopupViewModel(app, app.User.DateOfBirth);
-            ChangeDateOfBirthCommand = new Command(() => Navigation.PushAsync(_datePicker));
-            MessagingCenter.Subscribe(this, "done", (DatePopupViewModel model, DateTime date) =>
-            {
-                Debug.WriteLine("got {0} back", date.ToString());
-            });
         }        
     }
 }

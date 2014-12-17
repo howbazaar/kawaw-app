@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -6,6 +7,18 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
+    struct ConnectionAction
+    {
+        public Connection Connection;
+        public string Name;
+    }
+
+    struct ConnectionActionOptions
+    {
+        public Connection Connection;
+        public List<Tuple<string, string>> Options;
+    }
+
     class ConnectionsViewModel : BaseViewModel
     {
         private IList<Connection> _connections;
@@ -27,6 +40,21 @@ namespace Kawaw
                 {
                     Debug.WriteLine("connection selected {0}", value.Id);
                     SelectedItem = null;
+
+                    var options = new ConnectionActionOptions
+                    {
+                        Connection= value,
+                        Options = new List<Tuple<string, string>>(),
+                    };
+                    if (value.Accepted || value.Pending)
+                    {
+                        options.Options.Add(new Tuple<string, string>("reject", "Reject connection"));
+                    }
+                    if (!value.Accepted || value.Pending)
+                    {
+                        options.Options.Add(new Tuple<string, string>("accept", "Accept connection"));
+                    }
+                    MessagingCenter.Send(this, "show-options", options);
                 }
             }
         }
@@ -39,6 +67,18 @@ namespace Kawaw
             MessagingCenter.Subscribe<object>(this, "connections-updated", delegate
             {
                 UpdateFromUser(app.User);
+            });
+            MessagingCenter.Subscribe<object, ConnectionAction>(this, "connection-action", async (object sender, ConnectionAction action) =>
+            {
+                try
+                {
+                    Debug.WriteLine("{0} for {1}", action.Name, action.Connection.Name);
+                    app.User.ConnectionAction(action.Connection, action.Name == "accept");
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("Oops {0}", e.Message);
+                }
             });
 
         }

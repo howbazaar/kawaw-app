@@ -12,7 +12,7 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
-    class RemoteSite : IRemoteSite
+    public class RemoteSite : IRemoteSite
     {
         public string CSRFToken { get; private set; }
         public string SessionId { get; private set; }
@@ -272,5 +272,33 @@ namespace Kawaw
             return connections;
         }
 
+        public async Task<JSON.Connection> ConnectionAction(uint id, bool accept)
+        {
+            var values = new Dictionary<string, string>();
+            values["accepted"] = accept ? "True" : "False";
+            var url = string.Format("+update-connection/{0}/", id);
+            var response = await Post(url, values).ConfigureAwait(false);
+            Debug.WriteLine(response.StatusCode);
+            // TODO: on 404 throw site down....
+            //       on 403 unauthorized - need to login again
+            //       on 400 extract json error from content
+            //       on 200 extract connection from json
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await readFromResponse<JSON.Connection>(response);
+            }
+
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                // get the message out...
+                // raise a nicer exception
+            }
+            else if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                // raise login required
+            }
+            throw new Exception("not ok... sort it out: rc " + response.StatusCode);
+            
+        }
     }
 }
