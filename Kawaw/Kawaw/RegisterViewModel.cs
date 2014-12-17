@@ -53,7 +53,7 @@ namespace Kawaw
                 Debug.WriteLine("Password: {0}", password2);
                 
                 var remote = app.Remote;
-                var worked = await remote.Register(email, name, password, password2);
+                var worked = await remote.Register(name, email, password, password2);
                 Debug.WriteLine(worked);
                 if (!worked)
                 {
