@@ -38,13 +38,10 @@ namespace Kawaw
             {
                 canLogin = false;
                 loginCommand.ChangeCanExecute();
-                Debug.WriteLine("Email: " + email);
-                Debug.WriteLine("Password: {0}", password);
                 IsBusy = true;
 
                 var remote = app.Remote;
                 var worked = await remote.Login(email, password);
-                Debug.WriteLine(worked);
                 if (!worked)
                 {
                     IsBusy = false;
