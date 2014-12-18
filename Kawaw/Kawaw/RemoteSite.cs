@@ -143,9 +143,7 @@ namespace Kawaw
             try
             {
                 var response = await Post("accounts/signup/", values).ConfigureAwait(false);
-                Debug.WriteLine(response.StatusCode);
                 var content = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine(content);
                 // TODO: handle different error codes.
                 if (response.StatusCode == HttpStatusCode.OK)
                 {

@@ -17,18 +17,19 @@ namespace Kawaw
             nameEntry.SetBinding(Entry.TextProperty, "Name");
             var emailEntry = new Entry
             {
-                Placeholder = "E-mail address"
+                Placeholder = "E-mail address",
+                Keyboard = Keyboard.Email
             };
             emailEntry.SetBinding(Entry.TextProperty, "Email");
             var passwordEntry = new Entry
             {
-                Placeholder = "Password",
+                Placeholder = "Your password",
                 IsPassword = true
             };
             passwordEntry.SetBinding(Entry.TextProperty, "Password");
             var passwordEntry2 = new Entry
             {
-                Placeholder = "Password",
+                Placeholder = "Your password again",
                 IsPassword = true
             };
             passwordEntry2.SetBinding(Entry.TextProperty, "Password2");
@@ -50,6 +51,25 @@ namespace Kawaw
                 }
             };
 
+        }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+           // Debug.WriteLine("appearing, so subscribe {0}", this.Id);
+            MessagingCenter.Subscribe(this, "alert", async (RegisterViewModel model, Alert alert) =>
+            {
+                await DisplayAlert(alert.Title, alert.Text, "OK");
+            });
+
+   
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+           // Debug.WriteLine("disappearing, so unsubscribe {0}", this.Id);
+            MessagingCenter.Unsubscribe<RegisterViewModel, Alert>(this, "alert");     
         }
     }
   
