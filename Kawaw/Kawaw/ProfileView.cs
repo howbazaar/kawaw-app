@@ -26,7 +26,7 @@ namespace Kawaw
         {
             Title = "Profile";
             Icon = "kawaw.png";
-            var size = Device.GetNamedSize(NamedSize.Large, typeof(Label));
+            var size = Device.GetNamedSize(NamedSize.Medium, typeof(Label));
             var name = new Label
             {
                 FontSize = size
