@@ -1,15 +1,17 @@
 ﻿using System;
-
+using System.ComponentModel;
 using Android.App;
 using Android.Content.PM;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
-
+using Java.Interop;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
+using DatePicker = Xamarin.Forms.DatePicker;
 
+[assembly:ExportRenderer(typeof(Kawaw.OptionalDatePicker), typeof(Kawaw.Droid.OptionalDatePickerRenderer))]
 namespace Kawaw.Droid
 {
     [Activity(Label = "Kawaw", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
@@ -22,6 +24,33 @@ namespace Kawaw.Droid
             Forms.Init(this, bundle);
 
             LoadApplication(new App());
+        }
+    }
+    
+    public class OptionalDatePickerRenderer : DatePickerRenderer
+    {
+        protected override void OnElementChanged(ElementChangedEventArgs<DatePicker> e)
+        {
+            base.OnElementChanged(e);
+            this.Control.Hint = "Date of Birth";
+            SetText();
+        }
+
+        protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            base.OnElementPropertyChanged(sender, e);
+            if (e.PropertyName == "Date" || e.PropertyName == DatePicker.FormatProperty.PropertyName)
+            {
+                SetText();
+            }
+        }
+
+        void SetText()
+        {
+            // date currently set on the optional date picker (date known to model)
+            var date = Element.Date;
+            if (date == Element.MinimumDate) 
+                Control.Text = "";
         }
     }
 }
