@@ -143,7 +143,7 @@ namespace Kawaw
 
             FullName = user.FullName;
             Address = user.Address == "" ? "no address set" : user.Address;
-            DateOfBirth = RemoteUser.OptionalDateTime(user.DateOfBirth);
+            DateOfBirth = RemoteUser.OptionalDateTime(user.DateOfBirth, "not set");
             Emails = new ObservableCollection<Email>(
                 from email in user.Emails
                 orderby email.Primary descending, email.Verified descending, email.Address

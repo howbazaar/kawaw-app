@@ -26,10 +26,16 @@ namespace Kawaw
         {
             Title = "Profile";
             Icon = "kawaw.png";
-
-            var name = new Label();
+            var size = Device.GetNamedSize(NamedSize.Large, typeof(Label));
+            var name = new Label
+            {
+                FontSize = size
+            };
             name.SetBinding(Label.TextProperty, "FullName");
-            var address = new Label();
+            var address = new Label
+            {
+                FontSize = size
+            };
             address.SetBinding(Label.TextProperty, "Address");
 
             var changeDetails = new Button
@@ -39,7 +45,10 @@ namespace Kawaw
             };
             changeDetails.SetBinding(Button.CommandProperty, "ChangeDetailsCommand");
 
-            var dob = new Label();
+            var dob = new Label()
+            {
+                FontSize = size
+            };
             dob.SetBinding(Label.TextProperty, "DateOfBirth");
 
             var list = new ListView();
@@ -58,6 +67,7 @@ namespace Kawaw
 
             Content = new StackLayout
             {
+                Padding = 10,
                 Spacing = 10,
                 Children =
                 {
@@ -68,12 +78,12 @@ namespace Kawaw
                         Orientation = StackOrientation.Horizontal,
                         Children =
                         {
-                            new Label{Text = "Date of Birth: "},
+                            new Label{Text = "Date of Birth: ", FontSize = size},
                             dob
                         }
                     },
                     changeDetails,
-                    new Label{Text = "Email Addresses: "},
+                    new Label{Text = "Email Addresses: ", FontSize = size},
                     list,
                     addEmail,
                 }

@@ -117,10 +117,10 @@ namespace Kawaw
             }
         }
 
-        public static string OptionalDateTime(DateTime value)
+        public static string OptionalDateTime(DateTime value, string unsetText = "")
         {
             if (value == new DateTime(0) || value == MinDateOfBirthValue)
-                return "not set";
+                return unsetText;
             return value.ToString("dd MMM yyyy");
         }
 
