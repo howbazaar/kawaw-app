@@ -106,7 +106,10 @@ namespace Kawaw
                     }
                 }
             };
-            Content = view;
+            Content = new ScrollView
+            {
+                Content = view
+            };
         }
     }
 }
