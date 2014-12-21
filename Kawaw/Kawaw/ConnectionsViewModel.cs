@@ -23,6 +23,16 @@ namespace Kawaw
     {
         private IList<Connection> _connections;
         private Connection _selectedItem;
+        private string _emptyText;
+
+        public double EmptyOpacity { get { return Connections.Count == 0 ? 1.0 : 0.0;  } }
+        public double ListOpacity { get { return Connections.Count > 0 ? 1.0 : 0.0; } }
+
+        public string EmptyText
+        {
+            get { return _emptyText; }
+            private set { _emptyText = value; }
+        }
 
         public IList<Connection> Connections
         {
@@ -96,6 +106,21 @@ namespace Kawaw
                 from connection in user.Connections
                 orderby connection.Pending descending, connection.Accepted descending, connection.Organisation, connection.Name
                 select connection);
+
+            if (user.HasVerifiedEmail)
+            {
+                EmptyText =
+                    "No connections yet.\n\n" +
+                    "As your verified email addresses are added as contact email addresses for people in " +
+                    "shools, clubs, or other organisations that use kawaw, connections will show up here.";
+            }
+            else
+            {
+                EmptyText =
+                    "Connections are only made using verified email addreses.\n\n" +
+                    "To see any existing connections you need to verify your email " +
+                    "addresses by clicking on the link in the email sent to that address.";
+            }
         }
 
     }

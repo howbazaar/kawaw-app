@@ -26,8 +26,8 @@ namespace Kawaw
             CSRFToken = token;
             SessionId = sessionId;
 
-            _remote = "https://kawaw.com";
-            /// _remote = "http://192.168.1.7:8080";
+            // _remote = "https://kawaw.com";
+            _remote = "http://192.168.1.7:8080";
             _cookies = new CookieContainer();
             var uri = new Uri(_remote);
             if (!string.IsNullOrEmpty(SessionId))

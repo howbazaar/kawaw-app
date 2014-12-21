@@ -80,6 +80,18 @@ namespace Kawaw
             }
         }
 
+        public bool HasVerifiedEmail
+        {
+            get
+            {
+                foreach (var email in _user.Emails)
+                {
+                    if (email.Verified)
+                        return true;
+                }
+                return false;
+            }
+        }
 
         public string FullName { get { return _user.FullName; }}
         public string FirstName { get { return _user.FirstName; } }
