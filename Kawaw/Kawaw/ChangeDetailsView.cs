@@ -17,12 +17,6 @@ namespace Kawaw
 
             var size = Device.GetNamedSize(NamedSize.Medium, typeof (Label));
 
-            var datepicker = new OptionalDatePicker()
-            {
-                HorizontalOptions = LayoutOptions.FillAndExpand
-            };
-            datepicker.SetBinding(DatePicker.DateProperty, "DateOfBirth");
-
             var firstNameEntry = new Entry
             {
                 Placeholder = "First name"
@@ -58,6 +52,12 @@ namespace Kawaw
             };
             clearDOB.SetBinding(Button.CommandProperty, "ClearDateOfBirthCommand ");
 
+            var datepicker = new OptionalDatePicker()
+            {
+                Format = "dd MMM yyyy",
+                HorizontalOptions = LayoutOptions.FillAndExpand
+            };
+            datepicker.SetBinding(DatePicker.DateProperty, "DateOfBirth");
             datepicker.Focused += (sender, args) =>
             {
                 if (datepicker.Date == datepicker.MinimumDate)

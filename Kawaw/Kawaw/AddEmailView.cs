@@ -10,6 +10,7 @@ namespace Kawaw
             Icon = "kawaw.png";
             Padding = new Thickness(20);
 
+            var size = Device.GetNamedSize(NamedSize.Medium, typeof (Label));
             var emailEntry = new Entry
             {
                 Placeholder = "E-mail address",
@@ -22,39 +23,39 @@ namespace Kawaw
             var cancelButton = new Button { Text = "Cancel" };
             cancelButton.SetBinding(Button.CommandProperty, "CancelCommand");
 
-            Content = new StackLayout
+            Content = new ContentView
             {
-                Children = {
-                    new Frame
+                // Push the frame up slightly to be more visually appealing.
+                Padding = new Thickness(0, 0, 0, 20),
+                Content = new Frame
+                {
+                    VerticalOptions = LayoutOptions.Center,
+                    OutlineColor = Device.OnPlatform(Color.Black, Color.White, Color.Blue),
+                    Content = new StackLayout
                     {
-                        Content = new StackLayout
+                        VerticalOptions = LayoutOptions.Center,
+                        Spacing = 10,
+                        Children =
+                        {
+                            new Label
                             {
-                                VerticalOptions = LayoutOptions.Center,
-                                Spacing = 10,
+                                Text = "Add E-Mail address:",
+                                FontSize = size,
+                            },
+                            emailEntry,
+                            new Grid
+                            {
+                                HorizontalOptions = LayoutOptions.End,
                                 Children =
                                 {
-                        new Label
-                        {
-                            Text = "Add E-Mail address",
-                            Font = Font.SystemFontOfSize(NamedSize.Large),
-                        },
-                        emailEntry,
-                        new StackLayout
-                        {
-                            // LayoutOptions = LayoutAlignment.End,
-                            Orientation = StackOrientation.Horizontal,
-                            Children =
-                            {
-                                cancelButton,
-                                addButton,
-                            }
-                        },
+                                    {cancelButton,0,0},
+                                    {addButton,1,0},
+                                }
+                            },
+                        }
                     }
                 }
-                    },
- }
             };
-
 
         }
 
