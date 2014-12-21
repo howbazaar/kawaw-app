@@ -95,15 +95,31 @@ namespace Kawaw
                 RowHeight = 70,
             };
 
-//var grid = new Grid {
-//Children = { listView, defaultView }
-//listView.Opacity = 0;
+            var emptyText = new Label
+            {
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center
+            };
+            emptyText.SetBinding(Label.TextProperty, "EmptyText");
+
+            var empty = new ContentView
+            {
+                Padding = new Thickness(20, 20, 20, 80),
+                Content = emptyText
+            };
+            empty.SetBinding(OpacityProperty, "EmptyOpacity");
+            list.SetBinding(OpacityProperty, "ListOpacity");
+
+            var grid = new Grid
+            {
+                Children = {list, empty}
+            };
 
             list.SetBinding(ListView.ItemsSourceProperty, "Connections");
             list.SetBinding(ListView.SelectedItemProperty, "SelectedItem", BindingMode.TwoWay);
             list.ItemTemplate = new DataTemplate(typeof(ConnectionCell));
 
-            Content = list;
+            Content = grid;
 
             ToolbarItems.Add(new ToolbarItem("Logout", null, () => MessagingCenter.Send<object>(this, "logout"), ToolbarItemOrder.Secondary));
         }

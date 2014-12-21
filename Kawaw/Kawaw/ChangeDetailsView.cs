@@ -3,7 +3,10 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
+    public class OptionalDatePicker : DatePicker
+    {
 
+    };
     class ChangeDetailsView : BaseView
     {
         public ChangeDetailsView()
@@ -12,10 +15,7 @@ namespace Kawaw
             Icon = "kawaw.png";
             Padding = new Thickness(20);
 
-            var largeFont = Font.SystemFontOfSize(NamedSize.Large);
-
-            var datepicker = new DatePicker();
-            datepicker.SetBinding(DatePicker.DateProperty, "DateOfBirth");
+            var size = Device.GetNamedSize(NamedSize.Medium, typeof (Label));
 
             var firstNameEntry = new Entry
             {
@@ -34,16 +34,17 @@ namespace Kawaw
             };
             addressEdit.SetBinding(Editor.TextProperty, "Address");
 
-            var dobEntry = new DatePicker
-            {
-            };
-            dobEntry.SetBinding(DatePicker.DateProperty, "DateOfBirth");
-
             var saveButton = new Button
             {
                 Text = "Save"
             };
             saveButton.SetBinding(Button.CommandProperty, "SaveCommand");
+
+            var cancelButton = new Button
+            {
+                Text = "Cancel"
+            };
+            cancelButton.Command = new Command(async() => await Navigation.PopAsync());
 
             var clearDOB = new Button
             {
@@ -51,14 +52,27 @@ namespace Kawaw
             };
             clearDOB.SetBinding(Button.CommandProperty, "ClearDateOfBirthCommand ");
 
-            var dob = new Label
+            var datepicker = new OptionalDatePicker()
             {
-                HorizontalOptions= LayoutOptions.StartAndExpand,
-                // FontSize = NamedSize.Large  <--- Why not?
+                Format = "dd MMM yyyy",
+                HorizontalOptions = LayoutOptions.FillAndExpand
             };
-            dob.SetBinding(Label.TextProperty, "DateOfBirth", BindingMode.Default,
-                new OptionalDateConverter());
-            var absolute = new AbsoluteLayout();
+            datepicker.SetBinding(DatePicker.DateProperty, "DateOfBirth");
+            datepicker.Focused += (sender, args) =>
+            {
+                if (datepicker.Date == datepicker.MinimumDate)
+                {
+                    datepicker.Date = DateTime.Today;
+                }
+            };
+            datepicker.Unfocused += (sender, args) =>
+            {
+                if (datepicker.Date == DateTime.Today)
+                {
+                    datepicker.Date = datepicker.MinimumDate;
+                }
+            };
+
             var view = new StackLayout
             {
                 Spacing = 10,
@@ -66,36 +80,34 @@ namespace Kawaw
                 {
                     firstNameEntry,
                     lastNameEntry,
-                    new Label {Text = "Address", FontSize = largeFont.FontSize},
+                    new Label {Text = "Address:", FontSize = size},
                     addressEdit,
-                    new Label{Text = "Date of Birth: "},
+                    new Label{Text = "Date of Birth: ", FontSize = size},
                     new StackLayout
                     {
                         Orientation = StackOrientation.Horizontal,
                         Children =
                         {
-                            dob,
+                            datepicker,
                             clearDOB,
                         }
                     },
 
-                    saveButton
+                    new Grid
+                    {
+                        Padding = new Thickness(0, 15),
+                        Children =
+                        {
+                            {cancelButton,1,0},
+                            {saveButton,2,0},
+                        }
+                    }
                 }
             };
-            absolute.Children.Add(view, new Rectangle(0,0,1,1), AbsoluteLayoutFlags.All);
-            absolute.Children.Add(datepicker, new Rectangle(-300,-300,100,30));
-            Content = absolute;
-
-            var tap = new TapGestureRecognizer();
-            tap.Tapped += (sender, args) =>
+            Content = new ScrollView
             {
-                if (datepicker.Date == datepicker.MinimumDate)
-                {
-                    datepicker.Date = DateTime.Today;
-                }
-                datepicker.Focus();
+                Content = view
             };
-            dob.GestureRecognizers.Add(tap);
         }
     }
 }

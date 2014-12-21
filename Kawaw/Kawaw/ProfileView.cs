@@ -26,10 +26,16 @@ namespace Kawaw
         {
             Title = "Profile";
             Icon = "kawaw.png";
-
-            var name = new Label();
+            var size = Device.GetNamedSize(NamedSize.Medium, typeof(Label));
+            var name = new Label
+            {
+                FontSize = size
+            };
             name.SetBinding(Label.TextProperty, "FullName");
-            var address = new Label();
+            var address = new Label
+            {
+                FontSize = size
+            };
             address.SetBinding(Label.TextProperty, "Address");
 
             var changeDetails = new Button
@@ -39,10 +45,18 @@ namespace Kawaw
             };
             changeDetails.SetBinding(Button.CommandProperty, "ChangeDetailsCommand");
 
-            var dob = new Label();
+            var dob = new Label()
+            {
+                FontSize = size
+            };
             dob.SetBinding(Label.TextProperty, "DateOfBirth");
 
-            var list = new ListView();
+            var list = new ListView
+            {
+                // NOTE: this is a bug, fixed in 1.3 final, will need to change number once we update.
+                RowHeight = 120,
+                VerticalOptions = LayoutOptions.Start
+            };
             list.SetBinding(ListView.ItemsSourceProperty, "Emails");
             list.SetBinding(ListView.SelectedItemProperty, "SelectedItem", BindingMode.TwoWay);
             list.ItemTemplate = new DataTemplate(typeof(TextCell));
@@ -56,8 +70,9 @@ namespace Kawaw
             };
             addEmail.SetBinding(Button.CommandProperty, "AddEmailCommand");
 
-            Content = new StackLayout
+            var view = new StackLayout
             {
+                Padding = 10,
                 Spacing = 10,
                 Children =
                 {
@@ -68,15 +83,20 @@ namespace Kawaw
                         Orientation = StackOrientation.Horizontal,
                         Children =
                         {
-                            new Label{Text = "Date of Birth: "},
+                            new Label{Text = "Date of Birth: ", FontSize = size},
                             dob
                         }
                     },
                     changeDetails,
-                    new Label{Text = "Email Addresses: "},
+                    new Label{Text = "Email Addresses: ", FontSize = size},
                     list,
                     addEmail,
                 }
+            };
+
+            Content = new ScrollView
+            {
+                Content = view
             };
 
             ToolbarItems.Add(new ToolbarItem("Logout", null, () => MessagingCenter.Send<object>(this, "logout"), ToolbarItemOrder.Secondary));

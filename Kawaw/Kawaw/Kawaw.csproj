@@ -54,7 +54,6 @@
     <Compile Include="NavigationConverter.cs" />
     <Compile Include="NavigationView.cs" />
     <Compile Include="NavigationViewModel.cs" />
-    <Compile Include="Profile.cs" />
     <Compile Include="ProfileView.cs" />
     <Compile Include="ProfileViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
