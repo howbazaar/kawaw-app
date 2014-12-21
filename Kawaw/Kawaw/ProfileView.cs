@@ -4,7 +4,7 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
-    class ProfileView : BaseView
+    class ProfileView : BaseLogoutView
     {
         class EmailCell : ViewCell
         {
@@ -25,7 +25,6 @@ namespace Kawaw
         public ProfileView()
         {
             Title = "Profile";
-            Icon = "kawaw.png";
             var size = Device.GetNamedSize(NamedSize.Medium, typeof(Label));
             var name = new Label
             {
@@ -99,7 +98,6 @@ namespace Kawaw
                 Content = view
             };
 
-            ToolbarItems.Add(new ToolbarItem("Logout", null, () => MessagingCenter.Send<object>(this, "logout"), ToolbarItemOrder.Secondary));
         }
 
         protected override void OnAppearing()
