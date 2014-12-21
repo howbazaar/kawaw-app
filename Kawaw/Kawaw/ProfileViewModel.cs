@@ -63,41 +63,40 @@ namespace Kawaw
             get { return _selectedItem; }
             set
             {
-                SetProperty(ref _selectedItem, value);
-                if (value != null)
+                var changed = SetProperty(ref _selectedItem, value);
+                if (value == null || !changed) return;
+
+                SelectedItem = null;
+
+                // Look at the email and send a message...
+                if (value.Primary && value.Verified)
                 {
-                    // Look at the email and send a message...
-                    if (value.Primary && value.Verified)
+                    MessagingCenter.Send(this, "alert", new Alert
                     {
-                        MessagingCenter.Send(this, "alert", new Alert
-                        {
-                            Title = "E-mail Action",
-                            Text = "You cannot delete your primary email address."});
+                        Title = "E-mail Action",
+                        Text = "You cannot delete your primary email address."});
+                }
+                else
+                {
+                    var options = new EmailActionOptions
+                    {
+                        Email = value,
+                        Options = new List<Tuple<string, string>>(),
+                    };
+                    if (value.Verified)
+                    {
+                        options.Options.Add(new Tuple<string, string>("primary", "Set as primary e-mail"));
                     }
                     else
                     {
-                        var options = new EmailActionOptions
-                        {
-                            Email = value,
-                            Options = new List<Tuple<string, string>>(),
-                        };
-                        if (value.Verified)
-                        {
-                            options.Options.Add(new Tuple<string, string>("primary", "Set as primary e-mail"));
-                        }
-                        else
-                        {
-                            options.Options.Add(new Tuple<string, string>("send", "Resend verification e-mail"));
-                        }
-                        if (!value.Primary)
-                        {
-                            options.Options.Add(new Tuple<string, string>("remove", "Remove this e-mail address"));
-                        }
-
-                        MessagingCenter.Send(this, "show-options", options);
+                        options.Options.Add(new Tuple<string, string>("send", "Resend verification e-mail"));
+                    }
+                    if (!value.Primary)
+                    {
+                        options.Options.Add(new Tuple<string, string>("remove", "Remove this e-mail address"));
                     }
 
-                    SelectedItem = null;
+                    MessagingCenter.Send(this, "show-options", options);
                 }
             }
         }

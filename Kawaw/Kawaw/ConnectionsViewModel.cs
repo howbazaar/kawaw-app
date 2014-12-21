@@ -45,27 +45,25 @@ namespace Kawaw
             get { return _selectedItem; }
             set
             {
-                SetProperty(ref _selectedItem, value);
-                if (value != null)
-                {
-                    Debug.WriteLine("connection selected {0}", value.Id);
-                    SelectedItem = null;
+                var changed = SetProperty(ref _selectedItem, value);
+                if (value == null || !changed) return;
 
-                    var options = new ConnectionActionOptions
-                    {
-                        Connection= value,
-                        Options = new List<Tuple<string, string>>(),
-                    };
-                    if (value.Accepted || value.Pending)
-                    {
-                        options.Options.Add(new Tuple<string, string>("reject", "Reject connection"));
-                    }
-                    if (!value.Accepted || value.Pending)
-                    {
-                        options.Options.Add(new Tuple<string, string>("accept", "Accept connection"));
-                    }
-                    MessagingCenter.Send(this, "show-options", options);
+                SelectedItem = null;
+
+                var options = new ConnectionActionOptions
+                {
+                    Connection= value,
+                    Options = new List<Tuple<string, string>>(),
+                };
+                if (value.Accepted || value.Pending)
+                {
+                    options.Options.Add(new Tuple<string, string>("reject", "Reject connection"));
                 }
+                if (!value.Accepted || value.Pending)
+                {
+                    options.Options.Add(new Tuple<string, string>("accept", "Accept connection"));
+                }
+                MessagingCenter.Send(this, "show-options", options);
             }
         }
 

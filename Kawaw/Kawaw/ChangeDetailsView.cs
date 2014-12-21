@@ -93,15 +93,13 @@ namespace Kawaw
                         }
                     },
 
-                    new StackLayout
+                    new Grid
                     {
                         Padding = new Thickness(0, 15),
-                        Orientation = StackOrientation.Horizontal,
-                        HorizontalOptions = LayoutOptions.CenterAndExpand,
                         Children =
                         {
-                            cancelButton,
-                            saveButton
+                            {cancelButton,1,0},
+                            {saveButton,2,0},
                         }
                     }
                 }
