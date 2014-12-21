@@ -6,7 +6,7 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
-    class ConnectionsView : BaseView
+    class ConnectionsView : BaseLogoutView
     {
         class StatusColor : IValueConverter
         {
@@ -87,7 +87,6 @@ namespace Kawaw
         public ConnectionsView()
         {
             Title = "Connections";
-            Icon = "kawaw.png";
 
             var list = new ListView()
             {
@@ -120,8 +119,6 @@ namespace Kawaw
             list.ItemTemplate = new DataTemplate(typeof(ConnectionCell));
 
             Content = grid;
-
-            ToolbarItems.Add(new ToolbarItem("Logout", null, () => MessagingCenter.Send<object>(this, "logout"), ToolbarItemOrder.Secondary));
         }
 
         protected override void OnAppearing()
