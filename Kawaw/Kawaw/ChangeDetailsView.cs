@@ -1,39 +1,12 @@
-﻿using Xamarin.Forms;
+﻿using System;
+using Xamarin.Forms;
 
 namespace Kawaw
 {
-    class DatePopupView: BaseView
+    public class OptionalDatePicker : DatePicker
     {
-        public DatePopupView()
-        {
-            Label header = new Label
-            {
-                Text = "DatePicker",
-                Font = Font.SystemFontOfSize(50, FontAttributes.Bold),
-                HorizontalOptions = LayoutOptions.Center
-            };
 
-            DatePicker datePicker = new DatePicker
-            {
-                Format = "D",
-                VerticalOptions = LayoutOptions.CenterAndExpand
-            };
-
-            // Accomodate iPhone status bar.
-            this.Padding = new Thickness(10, Device.OnPlatform(20, 0, 0), 10, 5);
-
-            // Build the page.
-            this.Content = new StackLayout
-            {
-                Children = 
-                {
-                    header,
-                    datePicker
-                }
-            };
-        }
-    }
-
+    };
     class ChangeDetailsView : BaseView
     {
         public ChangeDetailsView()
@@ -41,6 +14,8 @@ namespace Kawaw
             Title = "Change Details";
             Icon = "kawaw.png";
             Padding = new Thickness(20);
+
+            var size = Device.GetNamedSize(NamedSize.Medium, typeof (Label));
 
             var firstNameEntry = new Entry
             {
@@ -59,60 +34,80 @@ namespace Kawaw
             };
             addressEdit.SetBinding(Editor.TextProperty, "Address");
 
-            var dobEntry = new DatePicker
-            {
-            };
-            dobEntry.SetBinding(DatePicker.DateProperty, "DateOfBirth");
-
             var saveButton = new Button
             {
                 Text = "Save"
             };
             saveButton.SetBinding(Button.CommandProperty, "SaveCommand");
 
-            var changeDOB = new Button
+            var cancelButton = new Button
             {
-                Text = "Change"
+                Text = "Cancel"
             };
-            changeDOB.SetBinding(Button.CommandProperty, "ChangeDateOfBirthCommand");
+            cancelButton.Command = new Command(async() => await Navigation.PopAsync());
+
             var clearDOB = new Button
             {
                 Text = "Clear"
             };
             clearDOB.SetBinding(Button.CommandProperty, "ClearDateOfBirthCommand ");
 
-            var dob = new Label
+            var datepicker = new OptionalDatePicker()
             {
-                VerticalOptions = LayoutOptions.Center,
+                Format = "dd MMM yyyy",
+                HorizontalOptions = LayoutOptions.FillAndExpand
             };
-            dob.SetBinding(Label.TextProperty, "DateOfBirth", BindingMode.Default,
-                new OptionalDateConverter());
+            datepicker.SetBinding(DatePicker.DateProperty, "DateOfBirth");
+            datepicker.Focused += (sender, args) =>
+            {
+                if (datepicker.Date == datepicker.MinimumDate)
+                {
+                    datepicker.Date = DateTime.Today;
+                }
+            };
+            datepicker.Unfocused += (sender, args) =>
+            {
+                if (datepicker.Date == DateTime.Today)
+                {
+                    datepicker.Date = datepicker.MinimumDate;
+                }
+            };
 
-            Content = new StackLayout
+            var view = new StackLayout
             {
                 Spacing = 10,
                 Children =
                 {
                     firstNameEntry,
                     lastNameEntry,
-                    new Label {Text = "Address"},
+                    new Label {Text = "Address:", FontSize = size},
                     addressEdit,
-                    new Label{Text = "Date of Birth: "},
+                    new Label{Text = "Date of Birth: ", FontSize = size},
                     new StackLayout
                     {
                         Orientation = StackOrientation.Horizontal,
                         Children =
                         {
-                            dob,
-                            changeDOB,
+                            datepicker,
                             clearDOB,
                         }
                     },
 
-                    saveButton
+                    new Grid
+                    {
+                        Padding = new Thickness(0, 15),
+                        Children =
+                        {
+                            {cancelButton,1,0},
+                            {saveButton,2,0},
+                        }
+                    }
                 }
             };
-
+            Content = new ScrollView
+            {
+                Content = view
+            };
         }
     }
 }

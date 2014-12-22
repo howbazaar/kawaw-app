@@ -47,14 +47,19 @@ namespace Kawaw
                 canRegister = false;
                 registerCommand.ChangeCanExecute();
                 IsBusy = true;
-                Debug.WriteLine("Name: " + name);
-                Debug.WriteLine("Email: " + email);
-                Debug.WriteLine("Password: {0}", password);
-                Debug.WriteLine("Password: {0}", password2);
+
+                // Check that the passowrds match...
+                if (password != password2)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Password Action",
+                        Text = "Your passwords must match."
+                    });
+                }
                 
                 var remote = app.Remote;
                 var worked = await remote.Register(name, email, password, password2);
-                Debug.WriteLine(worked);
                 if (!worked)
                 {
                     IsBusy = false;
@@ -66,10 +71,7 @@ namespace Kawaw
 
                 worked = await remote.Login(email, password);
                 var details = await remote.GetUserDetails();
-                var user = new RemoteUser(details);
-                user.CSRFToken = remote.CSRFToken;
-                user.SessionId = remote.SessionId;
-                App.User = user;
+                App.User = new RemoteUser(details, remote);
                 MessagingCenter.Send<object>(this, "user-updated");
 
                 // assume we have logged in and pop the page
