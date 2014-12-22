@@ -12,7 +12,8 @@ namespace Kawaw
 
             var emailEntry = new Entry
             {
-                Placeholder = "E-mail address"
+                Placeholder = "E-mail address",
+                Keyboard = Keyboard.Email
             };
             emailEntry.SetBinding(Entry.TextProperty, "Email");
             var passwordEntry = new Entry

@@ -26,7 +26,6 @@ namespace Kawaw
             ViewModelNavigation.Register<ProfileViewModel, ProfileView>();
             ViewModelNavigation.Register<ChangeDetailsViewModel, ChangeDetailsView>();
             ViewModelNavigation.Register<NavigationViewModel, NavigationView>();
-            ViewModelNavigation.Register<DatePopupViewModel, DatePopupView>();
             ViewModelNavigation.Register<AddEmailViewModel, AddEmailView>();
 
             // Look to see if we have a logged in person.

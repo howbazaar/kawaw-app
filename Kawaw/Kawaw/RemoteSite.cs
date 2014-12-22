@@ -12,7 +12,7 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
-    class RemoteSite : IRemoteSite
+    public class RemoteSite : IRemoteSite
     {
         public string CSRFToken { get; private set; }
         public string SessionId { get; private set; }
@@ -85,6 +85,26 @@ namespace Kawaw
             var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
             var objResponse = jsonSerializer.ReadObject(stream);
             return objResponse as TResponse;
+        }
+
+        private async Task<TResponse[]> readArrayFromResponse<TResponse>(HttpResponseMessage response)
+            where TResponse : class
+        {
+            var jsonSerializer = new DataContractJsonSerializer(typeof(List<TResponse>));
+            var content = await response.Content.ReadAsStringAsync();
+            var stream = await response.Content.ReadAsStreamAsync(); // .ConfigureAwait(false);
+            try
+            {
+                var objResponse = jsonSerializer.ReadObject(stream);
+                var list = objResponse as List<TResponse>;
+                if (list != null) return list.ToArray();
+                return null;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                throw;
+            }
         }
 
         private async Task<JSON.User> readUserFromContent(HttpResponseMessage response)
@@ -182,7 +202,7 @@ namespace Kawaw
             values["first_name"] = firstName;
             values["last_name"] = lastName;
             values["address"] = address;
-            if (dateOfBirth == new DateTime(0))
+            if (dateOfBirth == new DateTime(0) || dateOfBirth == RemoteUser.MinDateOfBirthValue)
             {
                 values["date_of_birth"] = "";
             }
@@ -268,5 +288,45 @@ namespace Kawaw
             throw new Exception("not ok... sort it out");
         }
 
+        public async Task<JSON.Connection[]> GetConnections()
+        {
+            var response = await Get("+connections/").ConfigureAwait(false);
+            // TODO: throw a known error for Forbidden.
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception("not ok... sort it out");
+            }
+            var connections = await readArrayFromResponse<JSON.Connection>(response).ConfigureAwait(false);
+            return connections;
+        }
+
+        public async Task<JSON.Connection> ConnectionAction(uint id, bool accept)
+        {
+            var values = new Dictionary<string, string>();
+            values["accepted"] = accept ? "True" : "False";
+            var url = string.Format("+update-connection/{0}/", id);
+            var response = await Post(url, values).ConfigureAwait(false);
+            Debug.WriteLine(response.StatusCode);
+            // TODO: on 404 throw site down....
+            //       on 403 unauthorized - need to login again
+            //       on 400 extract json error from content
+            //       on 200 extract connection from json
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await readFromResponse<JSON.Connection>(response);
+            }
+
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                // get the message out...
+                // raise a nicer exception
+            }
+            else if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                // raise login required
+            }
+            throw new Exception("not ok... sort it out: rc " + response.StatusCode);
+            
+        }
     }
 }
