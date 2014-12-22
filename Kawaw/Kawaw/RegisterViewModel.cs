@@ -38,18 +38,49 @@ namespace Kawaw
         public RegisterViewModel(IApp app)
             : base(app)
         {
-            RegisterCommand = new Command(async () =>
+
+            Command registerCommand = null;
+            bool canRegister = true;
+            registerCommand = new Command(async () =>
             {
-                Debug.WriteLine("Email: " + email);
-                Debug.WriteLine("Password: {0}", password);
+
+                // Check that the passwords match...
+                if (password != password2)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Password Action",
+                        Text = "Your passwords must match."
+                    });
+                    return;
+                }
+
+                canRegister = false;
+                registerCommand.ChangeCanExecute();
                 IsBusy = true;
-                await Task.Delay(2000);
-                var request = HttpWebRequest.CreateHttp("https://kawaw.com/+login-form");
+                
+                var remote = app.Remote;
+                var worked = await remote.Register(name, email, password, password2);
+                if (!worked)
+                {
+                    IsBusy = false;
+                    // TODO: show error message about bad credentials.
+                    canRegister = true;
+                    registerCommand.ChangeCanExecute();
+                    return;
+                }
+
+                worked = await remote.Login(email, password);
+                var details = await remote.GetUserDetails();
+                App.User = new RemoteUser(details, remote);
+                MessagingCenter.Send<object>(this, "user-updated");
 
                 // assume we have logged in and pop the page
                 IsBusy = false;
                 await Navigation.PopModalAsync();
-            });
+            }, () => canRegister);
+            RegisterCommand = registerCommand;
+
         }
 
     }

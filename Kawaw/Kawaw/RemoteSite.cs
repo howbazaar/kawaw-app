@@ -196,6 +196,32 @@ namespace Kawaw
             return false;
         }
 
+        public async Task<bool> Register(string username, string email, string password, string password2)
+        {
+            CSRFToken = await GetCSRFToken();
+            var values = new Dictionary<string, string>();
+            //values["name"] = username;
+            values["email"] = email;
+            values["password1"] = password;
+            values["password2"] = password2;
+            try
+            {
+                var response = await Post("accounts/signup/", values).ConfigureAwait(false);
+                var content = await response.Content.ReadAsStringAsync();
+                // TODO: handle different error codes.
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    SetValuesFromCookies();
+                }
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+            }
+            return false;
+        }
+
         public async void Logout()
         {
             var response = await Post("accounts/logout/").ConfigureAwait(false);
