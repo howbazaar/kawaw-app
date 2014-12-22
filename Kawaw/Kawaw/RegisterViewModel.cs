@@ -44,11 +44,7 @@ namespace Kawaw
             registerCommand = new Command(async () =>
             {
 
-                canRegister = false;
-                registerCommand.ChangeCanExecute();
-                IsBusy = true;
-
-                // Check that the passowrds match...
+                // Check that the passwords match...
                 if (password != password2)
                 {
                     MessagingCenter.Send(this, "alert", new Alert
@@ -56,7 +52,12 @@ namespace Kawaw
                         Title = "Password Action",
                         Text = "Your passwords must match."
                     });
+                    return;
                 }
+
+                canRegister = false;
+                registerCommand.ChangeCanExecute();
+                IsBusy = true;
                 
                 var remote = app.Remote;
                 var worked = await remote.Register(name, email, password, password2);
