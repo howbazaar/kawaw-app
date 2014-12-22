@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
-using Microsoft.VisualBasic;
 using Xamarin.Forms;
 
 namespace Kawaw

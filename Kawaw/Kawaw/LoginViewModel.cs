@@ -8,20 +8,28 @@ namespace Kawaw
 {
     class LoginViewModel : BaseViewModel
     {
-        private string email;
-        private string password;
+        private string _email;
+        private string _password;
+        private string _remoteUrl;
 
         public string Email
         {
-            get { return email; }
-            set { SetProperty(ref email, value); }
+            get { return _email; }
+            set { SetProperty(ref _email, value); }
         }
 
         public string Password
         {
-            get { return password; }
-            set { SetProperty(ref password, value); }
+            get { return _password; }
+            set { SetProperty(ref _password, value); }
         }
+
+        public string RemoteUrl
+        {
+            get { return _remoteUrl; }
+            set { SetProperty(ref _remoteUrl, value); }
+        }
+
         // autoproperty magic, c# rubbish
         public ICommand LoginCommand { get; private set; }
         public ICommand RegisterCommand { get; private set; }
@@ -33,6 +41,7 @@ namespace Kawaw
                 await Navigation.PushAsync(new RegisterViewModel(App));
             });
             Command loginCommand = null;
+            RemoteUrl = App.Remote.BaseUrl;
             bool canLogin = true;
             loginCommand = new Command(async () =>
             {
@@ -41,7 +50,7 @@ namespace Kawaw
                 IsBusy = true;
 
                 var remote = app.Remote;
-                var worked = await remote.Login(email, password);
+                var worked = await remote.Login(_email, _password);
                 if (!worked)
                 {
                     IsBusy = false;
@@ -69,7 +78,8 @@ namespace Kawaw
             MessagingCenter.Subscribe<object, string>(this, "set-remote-site", (object sender, string url) =>
             {
                 Debug.WriteLine("Setting remote site to {0}", url);
-                App.Remote.SetBaseUrl(url);
+                App.Remote.BaseUrl = url;
+                RemoteUrl = url;
             });
 
         }

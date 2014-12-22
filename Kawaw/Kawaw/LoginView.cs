@@ -33,6 +33,9 @@ namespace Kawaw
             };
             registerButton.SetBinding(Button.CommandProperty, "RegisterCommand");
 
+            var remoteUrl = new Label();
+            remoteUrl.SetBinding(Label.TextProperty, "RemoteUrl");
+
             Content = new StackLayout
             {
                 Spacing = 10,
@@ -40,7 +43,10 @@ namespace Kawaw
                     emailEntry,
                     passwordEntry,
                     loginButton,
-                    registerButton
+                    registerButton,
+#if DEBUG
+                    remoteUrl,
+#endif
                 }
             };
 

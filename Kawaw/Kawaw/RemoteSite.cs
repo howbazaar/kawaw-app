@@ -26,7 +26,13 @@ namespace Kawaw
         public string BaseUrl
         {
             get { return _baseUrl; }
-            private set { SetProperty(ref _baseUrl, value); }
+            set
+            {
+                if (!SetProperty(ref _baseUrl, value)) return;
+                CSRFToken = null;
+                SessionId = null;
+                CreateClient();
+            }
         }
 
         private HttpClient _client;
@@ -40,17 +46,6 @@ namespace Kawaw
             BaseUrl = baseUrl;
             CSRFToken = token;
             SessionId = sessionId;
-
-            // _remote = "https://kawaw.com";
-            // _remote = "http://192.168.1.7:8080";
-            CreateClient();
-        }
-
-        public void SetBaseUrl(string baseUrl)
-        {
-            BaseUrl = baseUrl;
-            CSRFToken = null;
-            SessionId = null;
             CreateClient();
         }
 
@@ -198,9 +193,7 @@ namespace Kawaw
 
         public async Task<bool> Register(string username, string email, string password, string password2)
         {
-            CSRFToken = await GetCSRFToken();
             var values = new Dictionary<string, string>();
-            //values["name"] = username;
             values["email"] = email;
             values["password1"] = password;
             values["password2"] = password2;
