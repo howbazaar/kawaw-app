@@ -127,7 +127,7 @@ namespace Kawaw
             where TResponse : class
         {
             var jsonSerializer = new DataContractJsonSerializer(typeof(List<TResponse>));
-            var content = await response.Content.ReadAsStringAsync();
+            // var content = await response.Content.ReadAsStringAsync();
             var stream = await response.Content.ReadAsStreamAsync(); // .ConfigureAwait(false);
             try
             {
@@ -143,7 +143,7 @@ namespace Kawaw
             }
         }
 
-        private async Task<JSON.User> readUserFromContent(HttpResponseMessage response)
+        private async Task<JSON.User> ReadUserFromContent(HttpResponseMessage response)
         {
             return await readFromResponse<JSON.User>(response).ConfigureAwait(false);
         }
@@ -156,7 +156,7 @@ namespace Kawaw
             {
                 throw new Exception("not ok... sort it out");
             }
-            return await readUserFromContent(response).ConfigureAwait(false);
+            return await ReadUserFromContent(response).ConfigureAwait(false);
         }
 
         private void SetValuesFromCookies()
@@ -207,7 +207,7 @@ namespace Kawaw
             try
             {
                 var response = await Post("accounts/signup/", values).ConfigureAwait(false);
-                var content = await response.Content.ReadAsStringAsync();
+                // var content = await response.Content.ReadAsStringAsync();
                 // TODO: handle different error codes.
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -226,7 +226,7 @@ namespace Kawaw
         {
             var response = await Post("accounts/logout/").ConfigureAwait(false);
             Debug.WriteLine(response.StatusCode);
-            var content = await response.Content.ReadAsStringAsync();
+            // var content = await response.Content.ReadAsStringAsync();
             Debug.WriteLine(response.IsSuccessStatusCode);
             SessionId = null;
             CSRFToken = null;
@@ -262,7 +262,7 @@ namespace Kawaw
             {
                 throw new Exception("not ok... sort it out");
             }
-            return await readUserFromContent(response).ConfigureAwait(false);
+            return await ReadUserFromContent(response).ConfigureAwait(false);
         }
 
         [DataContract]
@@ -284,7 +284,7 @@ namespace Kawaw
             //       on 200 extract user from json
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                return await readUserFromContent(response).ConfigureAwait(false);
+                return await ReadUserFromContent(response).ConfigureAwait(false);
             }
 
             if (response.StatusCode == HttpStatusCode.BadRequest)

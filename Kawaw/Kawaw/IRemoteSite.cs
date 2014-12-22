@@ -5,6 +5,8 @@ namespace Kawaw
 {
     public interface IRemoteSite
     {
+        void SetBaseUrl(string baseUrl);
+
         Task<bool> Login(string username, string password);
         Task<bool> Register(string email, string name, string password, string password2);
         Task<JSON.User> GetUserDetails();

@@ -65,6 +65,13 @@ namespace Kawaw
                 // set canLogin back to true if something fucked up.
             }, () => canLogin);
             LoginCommand = loginCommand;
+
+            MessagingCenter.Subscribe<object, string>(this, "set-remote-site", (object sender, string url) =>
+            {
+                Debug.WriteLine("Setting remote site to {0}", url);
+                App.Remote.SetBaseUrl(url);
+            });
+
         }
 
         public void Reset()

@@ -37,6 +37,7 @@
     <Compile Include="AddEmailView.cs" />
     <Compile Include="AddEmailViewModel.cs" />
     <Compile Include="App.cs" />
+    <Compile Include="BaseLogoutView.cs" />
     <Compile Include="BaseProperties.cs" />
     <Compile Include="BaseView.cs" />
     <Compile Include="BaseViewModel.cs" />
