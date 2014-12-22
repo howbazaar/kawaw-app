@@ -28,16 +28,13 @@ namespace Kawaw
             ViewModelNavigation.Register<NavigationViewModel, NavigationView>();
             ViewModelNavigation.Register<AddEmailViewModel, AddEmailView>();
 
+            Remote = CreateRemoteSite();
             // Look to see if we have a logged in person.
-            string csrftoken = null;
-            string sessionid = null;
             string page = RootViewModel.Profile;
             if (Properties.ContainsKey("User"))
             {
                 User = Properties["User"] as RemoteUser;
                 Debug.WriteLine("User found in properties: {0}", User.FullName);
-                csrftoken = User.CSRFToken;
-                sessionid = User.SessionId;
             }
             else
             {
@@ -48,8 +45,6 @@ namespace Kawaw
                 page = Properties["Page"] as string;
                 Debug.WriteLine("Last page: {0}", page);
             }
-
-            Remote = new RemoteSite(csrftoken, sessionid);
 
             var rootModel = new RootViewModel(this);
             var rootView = new RootView
@@ -63,29 +58,71 @@ namespace Kawaw
 
             MessagingCenter.Subscribe(this, "show-page", (RootViewModel sender, BaseViewModel model) =>
             {
-                if (model.Name != "")
+                if (!string.IsNullOrEmpty(model.Name))
                 {
                     Properties["Page"] = model.Name;
                 }
             });
 
         }
-        
+
+        private RemoteSite CreateRemoteSite()
+        {
+            string csrftoken = null;
+            string sessionid = null;
+            string baseurl = null;
+            if (Properties.ContainsKey("CSRFToken"))
+                csrftoken = Properties["CSRFToken"] as string;
+            if (Properties.ContainsKey("SessionId"))
+                sessionid = Properties["SessionId"] as string;
+            if (Properties.ContainsKey("BaseUrl"))
+                baseurl = Properties["BaseUrl"] as string;
+
+            if (string.IsNullOrEmpty(baseurl))
+            {
+                baseurl = "https://kawaw.com";
+            }
+            Debug.WriteLine("BaseUrl = '{0}', CSRFTkoen = '{1}', SessionID = '{2}'", baseurl, csrftoken, sessionid);
+            var remote = new RemoteSite(baseurl, csrftoken, sessionid);
+
+            remote.PropertyChanged += (sender, args) =>
+            {
+                switch (args.PropertyName)
+                {
+                    case "BaseUrl":
+                        SetProperty("BaseUrl", remote.BaseUrl);
+                        break;
+                    case "CSRFToken":
+                        SetProperty("CSRFToken", remote.CSRFToken);
+                        break;
+                    case "SessionId":
+                        SetProperty("SessionId", remote.SessionId);
+                        break;
+                }
+            };
+
+            return remote;
+        }
+
+        private void SetProperty(string name, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                Debug.WriteLine("Removing property {0}", name);
+                Properties.Remove(name);
+            }
+            else
+            {
+                Debug.WriteLine("Setting property {0}: '{1}'", name, value);
+                Properties[name] = value;
+            }
+        }
+
         protected override void OnResume()
         {
             base.OnResume();
             if (User != null)
                 User.Refresh(Remote);
-        }
-
-        protected override void OnSleep()
-        {
-            base.OnSleep();
-        }
-
-        protected override void OnStart()
-        {
-            base.OnStart();
         }
 
         public IRemoteSite Remote { get; private set; }

@@ -5,6 +5,7 @@ namespace Kawaw
 {
     public interface IRemoteSite
     {
+        string BaseUrl { get; set; }
 
         Task<bool> Login(string username, string password);
         Task<bool> Register(string email, string name, string password, string password2);
@@ -17,8 +18,5 @@ namespace Kawaw
 
         Task<JSON.Connection[]> GetConnections();
         Task<JSON.Connection> ConnectionAction(uint id, bool accept);
-
-        string CSRFToken { get; }
-        string SessionId { get; }
     }
 }

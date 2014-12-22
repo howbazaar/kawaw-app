@@ -11,21 +11,4 @@ namespace Kawaw
             this.SetBinding(IsBusyProperty, "IsBusy");
         }
     }
-
-    class BaseLogoutView : BaseView
-    {
-        public BaseLogoutView()
-        {
-            Icon = "kawaw.png";
-            ToolbarItems.Add(new ToolbarItem("Logout", null, async () =>
-            {
-                var logout = await DisplayAlert("Logout", "Are you sure you want to logout?", "Yes", "No");
-                if (logout)
-                {
-                    MessagingCenter.Send<object>(this, "logout");
-                }
-            }, ToolbarItemOrder.Secondary));
-        }
-
-    }
 }

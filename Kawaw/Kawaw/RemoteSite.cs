@@ -3,41 +3,64 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
-using Kawaw.JSON;
-using Xamarin.Forms;
 
 namespace Kawaw
 {
-    public class RemoteSite : IRemoteSite
+    public class RemoteSite : BaseProperties, IRemoteSite
     {
-        public string CSRFToken { get; private set; }
-        public string SessionId { get; private set; }
+        public string CSRFToken
+        {
+            get { return _csrfToken; }
+            private set { SetProperty(ref _csrfToken, value); }
+        }
 
-        private string _remote;
+        public string SessionId
+        {
+            get { return _sessionId; }
+            private set { SetProperty(ref _sessionId, value); }
+        }
+
+        public string BaseUrl
+        {
+            get { return _baseUrl; }
+            set
+            {
+                if (!SetProperty(ref _baseUrl, value)) return;
+                CSRFToken = null;
+                SessionId = null;
+                CreateClient();
+            }
+        }
+
         private HttpClient _client;
         private CookieContainer _cookies;
+        private string _csrfToken;
+        private string _sessionId;
+        private string _baseUrl;
 
-        public RemoteSite(string token, string sessionId)
+        public RemoteSite(string baseUrl, string token, string sessionId)
         {
+            BaseUrl = baseUrl;
             CSRFToken = token;
             SessionId = sessionId;
+            CreateClient();
+        }
 
-            _remote = "https://kawaw.com";
-            //_remote = "http://192.168.1.7:8080";
+        private void CreateClient()
+        {
             _cookies = new CookieContainer();
-            var uri = new Uri(_remote);
+            var uri = new Uri(BaseUrl);
             if (!string.IsNullOrEmpty(SessionId))
             {
                 _cookies.Add(uri, new Cookie("csrftoken", CSRFToken));
                 _cookies.Add(uri, new Cookie("sessionid", SessionId));
             }
 
-            var handler = new HttpClientHandler {CookieContainer = _cookies};
-            _client = new HttpClient(handler) {BaseAddress = uri};
+            var handler = new HttpClientHandler { CookieContainer = _cookies };
+            _client = new HttpClient(handler) { BaseAddress = uri };
             // Fake it for the all auth plugin.
             _client.DefaultRequestHeaders.Add("X-REQUESTED-WITH", "XMLHttpRequest");
         }
@@ -45,7 +68,7 @@ namespace Kawaw
         private async Task<string> GetCSRFToken()
         {
             await Get("+login-form/").ConfigureAwait(false);
-            var cookie = _cookies.GetCookies(new Uri(_remote))["csrftoken"];
+            var cookie = _cookies.GetCookies(new Uri(BaseUrl))["csrftoken"];
             return cookie.Value;
         }
 
@@ -56,6 +79,10 @@ namespace Kawaw
 
         private async Task<HttpResponseMessage> Post(string path)
         {
+            if (string.IsNullOrEmpty(CSRFToken))
+            {
+                CSRFToken = await GetCSRFToken();
+            }
             // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
             // this it will come back to the thread that initially called await, which will always be the ui thread
             var content = new ByteArrayContent(new byte[0]);
@@ -65,9 +92,13 @@ namespace Kawaw
 
         private async Task<HttpResponseMessage> Post(string path, Dictionary<string, string> formAttributes)
         {
+            if (string.IsNullOrEmpty(CSRFToken))
+            {
+                CSRFToken = await GetCSRFToken();
+            }
             // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
             // this it will come back to the thread that initially called await, which will always be the ui thread
-            var cookies = _cookies.GetCookies(new Uri(_remote));
+            var cookies = _cookies.GetCookies(new Uri(BaseUrl));
             foreach (Cookie cookie in cookies)
             {
                 Debug.WriteLine(cookie.ToString());
@@ -91,7 +122,7 @@ namespace Kawaw
             where TResponse : class
         {
             var jsonSerializer = new DataContractJsonSerializer(typeof(List<TResponse>));
-            var content = await response.Content.ReadAsStringAsync();
+            // var content = await response.Content.ReadAsStringAsync();
             var stream = await response.Content.ReadAsStreamAsync(); // .ConfigureAwait(false);
             try
             {
@@ -107,7 +138,7 @@ namespace Kawaw
             }
         }
 
-        private async Task<JSON.User> readUserFromContent(HttpResponseMessage response)
+        private async Task<JSON.User> ReadUserFromContent(HttpResponseMessage response)
         {
             return await readFromResponse<JSON.User>(response).ConfigureAwait(false);
         }
@@ -120,12 +151,22 @@ namespace Kawaw
             {
                 throw new Exception("not ok... sort it out");
             }
-            return await readUserFromContent(response).ConfigureAwait(false);
+            return await ReadUserFromContent(response).ConfigureAwait(false);
+        }
+
+        private void SetValuesFromCookies()
+        {
+            var cookies = _cookies.GetCookies(new Uri(BaseUrl));
+            foreach (Cookie cookie in cookies)
+            {
+                Debug.WriteLine("{0}: '{1}'", cookie.Name, cookie.Value);
+            }
+            CSRFToken = cookies["csrftoken"].Value;
+            SessionId = cookies["sessionid"].Value;
         }
 
         public async Task<bool> Login(string username, string password)
         {
-            CSRFToken = await GetCSRFToken();
             var values = new Dictionary<string, string>();
             values["login"] = username;
             values["password"] = password;
@@ -139,9 +180,7 @@ namespace Kawaw
                 // TODO: handle different error codes.
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    var cookies = _cookies.GetCookies(new Uri(_remote));
-                    CSRFToken = cookies["csrftoken"].Value;
-                    SessionId = cookies["sessionid"].Value;
+                    SetValuesFromCookies();
                 }
                 return response.IsSuccessStatusCode;
             }
@@ -154,22 +193,18 @@ namespace Kawaw
 
         public async Task<bool> Register(string username, string email, string password, string password2)
         {
-            CSRFToken = await GetCSRFToken();
             var values = new Dictionary<string, string>();
-            //values["name"] = username;
             values["email"] = email;
             values["password1"] = password;
             values["password2"] = password2;
             try
             {
                 var response = await Post("accounts/signup/", values).ConfigureAwait(false);
-                var content = await response.Content.ReadAsStringAsync();
+                // var content = await response.Content.ReadAsStringAsync();
                 // TODO: handle different error codes.
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    var cookies = _cookies.GetCookies(new Uri(_remote));
-                    CSRFToken = cookies["csrftoken"].Value;
-                    SessionId = cookies["sessionid"].Value;
+                    SetValuesFromCookies();
                 }
                 return response.IsSuccessStatusCode;
             }
@@ -184,18 +219,18 @@ namespace Kawaw
         {
             var response = await Post("accounts/logout/").ConfigureAwait(false);
             Debug.WriteLine(response.StatusCode);
-            var content = await response.Content.ReadAsStringAsync();
+            // var content = await response.Content.ReadAsStringAsync();
             Debug.WriteLine(response.IsSuccessStatusCode);
             SessionId = null;
             CSRFToken = null;
-            var cookies = _cookies.GetCookies(new Uri(_remote));
+            var cookies = _cookies.GetCookies(new Uri(BaseUrl));
             foreach (Cookie cookie in cookies)
             {
                 cookie.Expired = true;
             }
         }
 
-        public async Task<User> UpdateUserDetails(string firstName, string lastName, string address,
+        public async Task<JSON.User> UpdateUserDetails(string firstName, string lastName, string address,
             DateTime dateOfBirth)
         {
             var values = new Dictionary<string, string>();
@@ -220,7 +255,7 @@ namespace Kawaw
             {
                 throw new Exception("not ok... sort it out");
             }
-            return await readUserFromContent(response).ConfigureAwait(false);
+            return await ReadUserFromContent(response).ConfigureAwait(false);
         }
 
         [DataContract]
@@ -242,7 +277,7 @@ namespace Kawaw
             //       on 200 extract user from json
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                return await readUserFromContent(response).ConfigureAwait(false);
+                return await ReadUserFromContent(response).ConfigureAwait(false);
             }
 
             if (response.StatusCode == HttpStatusCode.BadRequest)

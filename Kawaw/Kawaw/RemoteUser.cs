@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using Microsoft.VisualBasic.CompilerServices;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -16,15 +13,8 @@ namespace Kawaw
     {
         static public readonly DateTime MinDateOfBirthValue = new DateTime(1900, 1, 1);
 
-        // NOTE: probably want to store the cookies with the user so it gets persisted correctly.
         [DataMember(Name = "user")]
         private JSON.User _user;
-
-        [DataMember(Name = "csrftoken")]
-        public string CSRFToken { get; set; }
-
-        [DataMember(Name = "sessionid")]
-        public string SessionId { get; set; }
 
         [DataMember(Name = "connections")]
         private JSON.Connection[] _connections;
@@ -39,8 +29,6 @@ namespace Kawaw
         {
             _remoteSite = site;
             _user = user;
-            CSRFToken = site.CSRFToken;
-            SessionId = site.SessionId;
         }
 
         public void UpdateUser(JSON.User user)
