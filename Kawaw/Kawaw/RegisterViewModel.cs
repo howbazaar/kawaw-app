@@ -48,7 +48,7 @@ namespace Kawaw
                 registerCommand.ChangeCanExecute();
                 IsBusy = true;
 
-                // Look at the email and send a message...
+                // Check that the passowrds match...
                 if (password != password2)
                 {
                     MessagingCenter.Send(this, "alert", new Alert
@@ -71,10 +71,7 @@ namespace Kawaw
 
                 worked = await remote.Login(email, password);
                 var details = await remote.GetUserDetails();
-                var user = new RemoteUser(details);
-                user.CSRFToken = remote.CSRFToken;
-                user.SessionId = remote.SessionId;
-                App.User = user;
+                App.User = new RemoteUser(details, remote);
                 MessagingCenter.Send<object>(this, "user-updated");
 
                 // assume we have logged in and pop the page
