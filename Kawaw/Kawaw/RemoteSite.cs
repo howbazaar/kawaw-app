@@ -26,8 +26,8 @@ namespace Kawaw
             CSRFToken = token;
             SessionId = sessionId;
 
-            // _remote = "https://kawaw.com";
-            _remote = "http://192.168.1.7:8080";
+            _remote = "https://kawaw.com";
+            //_remote = "http://192.168.1.7:8080";
             _cookies = new CookieContainer();
             var uri = new Uri(_remote);
             if (!string.IsNullOrEmpty(SessionId))
@@ -136,6 +136,34 @@ namespace Kawaw
                 Debug.WriteLine(response.StatusCode);
                 var content = await response.Content.ReadAsStringAsync();
                 Debug.WriteLine(content);
+                // TODO: handle different error codes.
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    var cookies = _cookies.GetCookies(new Uri(_remote));
+                    CSRFToken = cookies["csrftoken"].Value;
+                    SessionId = cookies["sessionid"].Value;
+                }
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+            }
+            return false;
+        }
+
+        public async Task<bool> Register(string username, string email, string password, string password2)
+        {
+            CSRFToken = await GetCSRFToken();
+            var values = new Dictionary<string, string>();
+            //values["name"] = username;
+            values["email"] = email;
+            values["password1"] = password;
+            values["password2"] = password2;
+            try
+            {
+                var response = await Post("accounts/signup/", values).ConfigureAwait(false);
+                var content = await response.Content.ReadAsStringAsync();
                 // TODO: handle different error codes.
                 if (response.StatusCode == HttpStatusCode.OK)
                 {

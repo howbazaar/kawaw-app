@@ -7,6 +7,7 @@ namespace Kawaw
     {
 
         Task<bool> Login(string username, string password);
+        Task<bool> Register(string email, string name, string password, string password2);
         Task<JSON.User> GetUserDetails();
         Task<JSON.User> AddEmail(string address);
         Task<JSON.User> EmailAction(string action, string address);
