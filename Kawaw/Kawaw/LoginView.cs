@@ -1,4 +1,6 @@
-﻿using Xamarin.Forms;
+﻿using System.Diagnostics;
+using System.Linq;
+using Xamarin.Forms;
 
 namespace Kawaw
 {
@@ -74,5 +76,23 @@ namespace Kawaw
             // and let me know what to do.
             return true;
         }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            Debug.WriteLine("appearing, so subscribe {0}", this.Id);
+            MessagingCenter.Subscribe(this, "alert", async (LoginViewModel model, Alert alert) =>
+            {
+                await DisplayAlert(alert.Title, alert.Text, "OK");
+            });
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            Debug.WriteLine("disappearing, so unsubscribe {0}", this.Id);
+            MessagingCenter.Unsubscribe<LoginViewModel, Alert>(this, "alert");
+        }
+    
     }
 }

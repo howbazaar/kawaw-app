@@ -25,10 +25,9 @@ namespace Kawaw
         {
         }
 
-        public RemoteUser(JSON.User user, IRemoteSite site)
+        public RemoteUser(IRemoteSite site)
         {
-            _remoteSite = site;
-            _user = user;
+            Refresh(site);
         }
 
         public void UpdateUser(JSON.User user)

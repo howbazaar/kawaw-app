@@ -7,7 +7,7 @@ namespace Kawaw
     {
         string BaseUrl { get; set; }
 
-        Task<bool> Login(string username, string password);
+        Task<RemoteUser> Login(string username, string password);
         Task<bool> Register(string email, string name, string password, string password2);
         Task<JSON.User> GetUserDetails();
         Task<JSON.User> AddEmail(string address);

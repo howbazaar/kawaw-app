@@ -70,10 +70,10 @@ namespace Kawaw
                     return;
                 }
 
-                worked = await remote.Login(email, password);
-                var details = await remote.GetUserDetails();
-                App.User = new RemoteUser(details, remote);
-                MessagingCenter.Send<object>(this, "user-updated");
+                //worked = await remote.Login(email, password);
+                //var details = await remote.GetUserDetails();
+                //App.User = new RemoteUser(details, remote);
+                //MessagingCenter.Send<object>(this, "user-updated");
 
                 // assume we have logged in and pop the page
                 IsBusy = false;
