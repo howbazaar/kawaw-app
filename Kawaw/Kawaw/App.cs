@@ -30,7 +30,6 @@ namespace Kawaw
 
             Remote = CreateRemoteSite();
             // Look to see if we have a logged in person.
-            string page = RootViewModel.Profile;
             if (Properties.ContainsKey("User"))
             {
                 User = Properties["User"] as RemoteUser;
@@ -40,7 +39,8 @@ namespace Kawaw
             {
                 Debug.WriteLine("User not found in properties, login needed");
             }
-            if (Properties.ContainsKey("Page"))
+            var page = RootViewModel.Profile;
+            if (Properties.ContainsKey("Page") && User != null)
             {
                 page = Properties["Page"] as string;
                 Debug.WriteLine("Last page: {0}", page);

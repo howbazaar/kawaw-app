@@ -93,8 +93,7 @@ namespace Kawaw
 
         private void UpdateFromUser(RemoteUser user)
         {
-            if (user == null) return;
-            if (user.Connections == null)
+            if (user == null || user.Connections == null)
             {
                 // empty
                 Connections = new ObservableCollection<Connection>();

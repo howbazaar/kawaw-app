@@ -1,6 +1,5 @@
-﻿using System.Diagnostics;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System;
+using System.Diagnostics;
 using System.Windows.Input;
 using Xamarin.Forms;
 
@@ -8,79 +7,108 @@ namespace Kawaw
 {
     class RegisterViewModel : BaseViewModel
     {
-        private string email;
-        private string password;
-        private string password2;
-        private string name;
+        private bool _buttonsActive;
+        private string _email;
+        private string _password;
+        private string _password2;
+        private readonly Command _registerCommand;
 
         public string Email
         {
-            get { return email; }
-            set { SetProperty(ref email, value); }
-        }
-        public string Name
-        {
-            get { return name; }
-            set { SetProperty(ref name, value); }
+            get { return _email; }
+            set { SetProperty(ref _email, value); }
         }
 
         public string Password
         {
-            get { return password; }
-            set { SetProperty(ref password, value); }
+            get { return _password; }
+            set { SetProperty(ref _password, value); }
         }
+
         public string Password2
         {
-            get { return password2; }
-            set { SetProperty(ref password2, value); }
+            get { return _password2; }
+            set { SetProperty(ref _password2, value); }
         }
-        public ICommand RegisterCommand { get; private set; }
+
+        public ICommand RegisterCommand
+        {
+            get { return _registerCommand; }
+        }
+
         public RegisterViewModel(IApp app)
             : base(app)
         {
-
-            Command registerCommand = null;
-            bool canRegister = true;
-            registerCommand = new Command(async () =>
+            _buttonsActive = true;
+            _registerCommand = new Command(async () =>
             {
+                if (!Validate()) return;
 
-                // Check that the passwords match...
-                if (password != password2)
+                UpdateButtonsActive(false);
+
+                try
+                {
+                    App.User = await app.Remote.Register(_email, _password);
+                    await Navigation.PopModalAsync();
+                }
+                catch (FormErrorsException e)
                 {
                     MessagingCenter.Send(this, "alert", new Alert
                     {
-                        Title = "Password Action",
-                        Text = "Your passwords must match."
+                        Title = "Registration Failed",
+                        Text = e.Message
                     });
-                    return;
                 }
-
-                canRegister = false;
-                registerCommand.ChangeCanExecute();
-                IsBusy = true;
-                
-                var remote = app.Remote;
-                var worked = await remote.Register(name, email, password, password2);
-                if (!worked)
+                catch (Exception e)
                 {
-                    IsBusy = false;
-                    // TODO: show error message about bad credentials.
-                    canRegister = true;
-                    registerCommand.ChangeCanExecute();
-                    return;
+                    Debug.WriteLine("oops, some error {0}", e.Message);
                 }
 
-                //worked = await remote.Login(email, password);
-                //var details = await remote.GetUserDetails();
-                //App.User = new RemoteUser(details, remote);
-                //MessagingCenter.Send<object>(this, "user-updated");
+                UpdateButtonsActive(true);
 
-                // assume we have logged in and pop the page
-                IsBusy = false;
-                await Navigation.PopModalAsync();
-            }, () => canRegister);
-            RegisterCommand = registerCommand;
+            }, () => _buttonsActive);
+        }
 
+        private void UpdateButtonsActive(bool active)
+        {
+            _buttonsActive = active;
+            IsBusy = !active;
+            _registerCommand.ChangeCanExecute();
+        }
+
+        private bool Validate()
+        {
+            if (string.IsNullOrEmpty(Email))
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Missing e-mail address",
+                    Text = "You must enter your email address."
+                });
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(Password))
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Missing password",
+                    Text = "You must enter a password."
+                });
+                return false;
+            }
+
+            if (Password != Password2)
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Mismatching passwords",
+                    Text = "Your passwords must match."
+                });
+                return false;
+            }
+            
+            return true;
         }
 
     }

@@ -177,16 +177,14 @@ namespace Kawaw
             values["password"] = password;
             values["remember"] = "True";
 
-            var response = await Post("accounts/login/", values).ConfigureAwait(false);
-            Debug.WriteLine(response.StatusCode);
-            var content = await response.Content.ReadAsStringAsync();
-            Debug.WriteLine(content);
+            var response = await Post("accounts/login/", values);
             // TODO: handle different error codes.
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 SetValuesFromCookies();
                 return new RemoteUser(this);
             }
+            var content = await response.Content.ReadAsStringAsync();
             if (response.StatusCode == HttpStatusCode.BadRequest)
             {
                 var parsed = JObject.Parse(content);
@@ -201,28 +199,32 @@ namespace Kawaw
             throw new Exception("Login failed.");
         }
 
-        public async Task<bool> Register(string username, string email, string password, string password2)
+        public async Task<RemoteUser> Register(string email, string password)
         {
             var values = new Dictionary<string, string>();
             values["email"] = email;
             values["password1"] = password;
-            values["password2"] = password2;
-            try
+            values["password2"] = password;
+            var response = await Post("accounts/signup/", values);
+            // TODO: handle different error codes.
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Post("accounts/signup/", values).ConfigureAwait(false);
-                // var content = await response.Content.ReadAsStringAsync();
-                // TODO: handle different error codes.
-                if (response.StatusCode == HttpStatusCode.OK)
+                SetValuesFromCookies();
+                return new RemoteUser(this);
+            }
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                var parsed = JObject.Parse(content);
+                var errors = parsed["form_errors"];
+                if (errors != null)
                 {
-                    SetValuesFromCookies();
+                    throw new FormErrorsException(errors.Value<JObject>());
                 }
-                return response.IsSuccessStatusCode;
+                throw new UnexpectedException();
             }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.Message);
-            }
-            return false;
+            // actually throw exceptions...
+            throw new Exception("Login failed.");
         }
 
         public async void Logout()

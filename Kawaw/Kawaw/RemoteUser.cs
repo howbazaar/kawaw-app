@@ -80,14 +80,15 @@ namespace Kawaw
             }
         }
 
-        public string FullName { get { return _user.FullName; }}
-        public string FirstName { get { return _user.FirstName; } }
-        public string LastName { get { return _user.LastName; } }
-        public string Address { get { return _user.Address; } }
+        public string FullName { get { return _user == null ? "<null user>" : _user.FullName; }}
+        public string FirstName { get { return _user == null ? "<null user>" : _user.FirstName; } }
+        public string LastName { get { return _user == null ? "<null user>" : _user.LastName; } }
+        public string Address { get { return _user == null ? "<null user>" : _user.Address; } }
         public DateTime DateOfBirth
         {
             get
             {
+                if (_user == null) return new DateTime(0);
                 return string.IsNullOrEmpty(_user.DateOfBirth) ? new DateTime(0) : DateTime.Parse(_user.DateOfBirth);
             }
         }
