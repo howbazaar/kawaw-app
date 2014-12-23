@@ -57,6 +57,7 @@ namespace Kawaw
 
         private async void ShowLogin()
         {
+            SetDetails(Profile);
             var loginModel = CreateViewModel(Login);
             await Navigation.PushModalAsync(loginModel);
         }

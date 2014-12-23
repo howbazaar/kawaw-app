@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
+using Microsoft.VisualBasic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Xamarin.Forms;
 
 namespace Kawaw
 {
@@ -165,54 +170,61 @@ namespace Kawaw
             SessionId = cookies["sessionid"].Value;
         }
 
-        public async Task<bool> Login(string username, string password)
+        public async Task<RemoteUser> Login(string username, string password)
         {
             var values = new Dictionary<string, string>();
             values["login"] = username;
             values["password"] = password;
             values["remember"] = "True";
-            try
+
+            var response = await Post("accounts/login/", values);
+            // TODO: handle different error codes.
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Post("accounts/login/", values).ConfigureAwait(false);
-                Debug.WriteLine(response.StatusCode);
-                var content = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine(content);
-                // TODO: handle different error codes.
-                if (response.StatusCode == HttpStatusCode.OK)
+                SetValuesFromCookies();
+                return new RemoteUser(this);
+            }
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                var parsed = JObject.Parse(content);
+                var errors = parsed["form_errors"];
+                if (errors != null)
                 {
-                    SetValuesFromCookies();
+                    throw new FormErrorsException(errors.Value<JObject>());
                 }
-                return response.IsSuccessStatusCode;
+                throw new UnexpectedException();
             }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.Message);
-            }
-            return false;
+            // actually throw exceptions...
+            throw new Exception("Login failed.");
         }
 
-        public async Task<bool> Register(string username, string email, string password, string password2)
+        public async Task<RemoteUser> Register(string email, string password)
         {
             var values = new Dictionary<string, string>();
             values["email"] = email;
             values["password1"] = password;
-            values["password2"] = password2;
-            try
+            values["password2"] = password;
+            var response = await Post("accounts/signup/", values);
+            // TODO: handle different error codes.
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Post("accounts/signup/", values).ConfigureAwait(false);
-                // var content = await response.Content.ReadAsStringAsync();
-                // TODO: handle different error codes.
-                if (response.StatusCode == HttpStatusCode.OK)
+                SetValuesFromCookies();
+                return new RemoteUser(this);
+            }
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                var parsed = JObject.Parse(content);
+                var errors = parsed["form_errors"];
+                if (errors != null)
                 {
-                    SetValuesFromCookies();
+                    throw new FormErrorsException(errors.Value<JObject>());
                 }
-                return response.IsSuccessStatusCode;
+                throw new UnexpectedException();
             }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.Message);
-            }
-            return false;
+            // actually throw exceptions...
+            throw new Exception("Login failed.");
         }
 
         public async void Logout()
@@ -363,5 +375,38 @@ namespace Kawaw
             throw new Exception("not ok... sort it out: rc " + response.StatusCode);
             
         }
+    }
+
+    public class UnexpectedException : Exception
+    {
+        public UnexpectedException()
+            : base("An unexpected error occurred.")
+        {
+        }
+    }
+
+    public class FormErrorsException : Exception
+    {
+        private readonly string _message;
+
+        public FormErrorsException(JObject parsed, bool fieldPrefix = false)
+        {
+            var errors = new List<string>();
+
+            foreach (var field in parsed)
+            {
+                string prefix = "";
+                if (field.Key != "__all__" && fieldPrefix)
+                {
+                    prefix = field.Key + ": ";
+                }
+                var values = field.Value.Select(m => m.ToObject<string>()).ToList();
+                var msg = string.Join(", ", values);
+                errors.Add(prefix + msg);
+            }
+            _message = string.Join("\n", errors);
+        }
+
+        public override string Message { get { return _message; }}
     }
 }
