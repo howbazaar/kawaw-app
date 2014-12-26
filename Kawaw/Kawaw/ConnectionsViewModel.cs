@@ -76,7 +76,7 @@ namespace Kawaw
             {
                 UpdateFromUser(app.User);
             });
-            MessagingCenter.Subscribe<object, ConnectionAction>(this, "connection-action", async (object sender, ConnectionAction action) =>
+            MessagingCenter.Subscribe<object, ConnectionAction>(this, "connection-action", (object sender, ConnectionAction action) =>
             {
                 try
                 {

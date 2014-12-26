@@ -135,7 +135,7 @@ namespace Kawaw
                 var connections = await remote.GetConnections();
                 UpdateConnections(connections);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Debug.WriteLine("TODO: handle stale session, site down.");
             }   
