@@ -41,7 +41,7 @@ namespace Kawaw
 
             // not logged in so push the login page
             MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) => SetDetails(page));
-            MessagingCenter.Subscribe(this, "logout", async (object sender) =>
+            MessagingCenter.Subscribe(this, "logout", (object sender) =>
             {
                 App.Remote.Logout();
                 App.User = null;

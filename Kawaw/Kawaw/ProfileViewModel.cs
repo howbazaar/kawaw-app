@@ -147,6 +147,7 @@ namespace Kawaw
                 from email in user.Emails
                 orderby email.Primary descending, email.Verified descending, email.Address
                 select email);
+            MessagingCenter.Send(this, "emails-updated");
         }
 
     }

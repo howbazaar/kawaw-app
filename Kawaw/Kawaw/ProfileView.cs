@@ -50,17 +50,16 @@ namespace Kawaw
             };
             dob.SetBinding(Label.TextProperty, "DateOfBirth");
 
-            var list = new ListView
+            var emailList = new ListView
             {
-                // NOTE: this is a bug, fixed in 1.3 final, will need to change number once we update.
-                RowHeight = 120,
+                RowHeight = 60,
                 VerticalOptions = LayoutOptions.Start
             };
-            list.SetBinding(ListView.ItemsSourceProperty, "Emails");
-            list.SetBinding(ListView.SelectedItemProperty, "SelectedItem", BindingMode.TwoWay);
-            list.ItemTemplate = new DataTemplate(typeof(TextCell));
-            list.ItemTemplate.SetBinding(TextCell.TextProperty, "Address");
-            list.ItemTemplate.SetBinding(TextCell.DetailProperty, "Description");
+            emailList.SetBinding(ListView.ItemsSourceProperty, "Emails");
+            emailList.SetBinding(ListView.SelectedItemProperty, "SelectedItem", BindingMode.TwoWay);
+            emailList.ItemTemplate = new DataTemplate(typeof(TextCell));
+            emailList.ItemTemplate.SetBinding(TextCell.TextProperty, "Address");
+            emailList.ItemTemplate.SetBinding(TextCell.DetailProperty, "Description");
 
             var addEmail = new Button
             {
@@ -88,7 +87,7 @@ namespace Kawaw
                     },
                     changeDetails,
                     new Label{Text = "Email Addresses: ", FontSize = size},
-                    list,
+                    emailList,
                     addEmail,
                 }
             };
@@ -108,7 +107,7 @@ namespace Kawaw
             {
                 await DisplayAlert(alert.Title, alert.Text, "OK");
             });
-
+            MessagingCenter.Subscribe(this, "emails-updated", (ProfileViewModel model) => ForceLayout());
             MessagingCenter.Subscribe(this, "show-options", async (ProfileViewModel model, EmailActionOptions options) =>
             {
                 var textOptions = from tuple in options.Options select tuple.Item2;
@@ -129,6 +128,7 @@ namespace Kawaw
         {
             base.OnDisappearing();
             Debug.WriteLine("disappearing, so unsubscribe {0}", this.Id);
+            MessagingCenter.Unsubscribe<ProfileViewModel>(this, "emails-updated");
             MessagingCenter.Unsubscribe<ProfileViewModel, Alert>(this, "alert");
             MessagingCenter.Unsubscribe<ProfileViewModel, EmailActionOptions>(this, "show-options");
         }

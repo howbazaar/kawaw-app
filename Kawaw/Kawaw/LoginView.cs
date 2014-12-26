@@ -59,14 +59,8 @@ namespace Kawaw
 
         private void AddSiteToolbarOptions()
         {
-            ToolbarItems.Add(new ToolbarItem("Production", null, async () =>
-            {
-                MessagingCenter.Send<object, string>(this, "set-remote-site", "https://kawaw.com");
-            }, ToolbarItemOrder.Secondary));
-            ToolbarItems.Add(new ToolbarItem("Tim's Laptop", null, async () =>
-            {
-                MessagingCenter.Send<object, string>(this, "set-remote-site", "http://192.168.1.7:8080");
-            }, ToolbarItemOrder.Secondary));
+            ToolbarItems.Add(new ToolbarItem("Production", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "https://kawaw.com"), ToolbarItemOrder.Secondary));
+            ToolbarItems.Add(new ToolbarItem("Tim's Laptop", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "http://192.168.1.7:8080"), ToolbarItemOrder.Secondary));
         }
 
         protected override bool OnBackButtonPressed()
