@@ -68,6 +68,7 @@ namespace Kawaw
             _client = new HttpClient(handler) { BaseAddress = uri };
             // Fake it for the all auth plugin.
             _client.DefaultRequestHeaders.Add("X-REQUESTED-WITH", "XMLHttpRequest");
+            _client.DefaultRequestHeaders.Add("REFERER", BaseUrl);
         }
 
         private async Task<string> GetCSRFToken()
