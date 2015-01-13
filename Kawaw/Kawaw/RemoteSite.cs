@@ -230,10 +230,15 @@ namespace Kawaw
 
         public async void Logout()
         {
-            var response = await Post("accounts/logout/").ConfigureAwait(false);
-            Debug.WriteLine(response.StatusCode);
-            // var content = await response.Content.ReadAsStringAsync();
-            Debug.WriteLine(response.IsSuccessStatusCode);
+            // Try to logout and clear the session, but if it doesn't work, no biggie.
+            try
+            {
+                await Post("accounts/logout/").ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                // swallow the exception, there is not much we can do here.
+            }
             SessionId = null;
             CSRFToken = null;
             var cookies = _cookies.GetCookies(new Uri(BaseUrl));

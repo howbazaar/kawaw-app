@@ -21,7 +21,7 @@ namespace Kawaw
 
         public NavigationViewModel NavigationModel { get; private set; }
 
-        private void Init()
+        private async void Init()
         {
             if (App.User == null)
             {
@@ -30,7 +30,7 @@ namespace Kawaw
             else
             {
                 IsBusy = true;
-                App.User.Refresh(App.Remote);
+                await App.User.Refresh(App.Remote);
                 IsBusy = false;
             }
         }

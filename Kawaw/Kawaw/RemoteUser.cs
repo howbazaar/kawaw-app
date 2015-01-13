@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -124,7 +125,7 @@ namespace Kawaw
             return value.ToString("dd MMM yyyy");
         }
 
-        public async void Refresh(IRemoteSite remote)
+        public async Task Refresh(IRemoteSite remote)
         {
             _remoteSite = remote;
             Debug.WriteLine("Refreshing user {0}", FullName);
