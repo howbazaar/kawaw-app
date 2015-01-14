@@ -19,5 +19,7 @@ namespace Kawaw
 
         Task<JSON.Connection[]> GetConnections();
         Task<JSON.Connection> ConnectionAction(uint id, bool accept);
+
+        Task<JSON.Event[]> GetEvents();
     }
 }

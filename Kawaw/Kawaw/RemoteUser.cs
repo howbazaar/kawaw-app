@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Kawaw.Models;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -19,6 +20,9 @@ namespace Kawaw
 
         [DataMember(Name = "connections")]
         private JSON.Connection[] _connections;
+
+        [DataMember(Name = "events")]
+        private JSON.Event[] _events;
 
         private IRemoteSite _remoteSite;
 
@@ -45,6 +49,16 @@ namespace Kawaw
             else
                 Debug.WriteLine("connections has {0} items", connections.Length);
             MessagingCenter.Send<object>(this, "connections-updated");
+        }
+
+        public void UpdateEvents(JSON.Event[] events)
+        {
+            _events = events;
+            if (events == null)
+                Debug.WriteLine("events is null");
+            else
+                Debug.WriteLine("events has {0} items", events.Length);
+            MessagingCenter.Send<object>(this, "events-updated");
         }
 
         public async void ConnectionAction(Connection connection, bool accept)
@@ -118,6 +132,20 @@ namespace Kawaw
             }
         }
 
+        public IEnumerable<Event> Events
+        {
+            get
+            {
+                if (_events == null)
+                {
+                    return Enumerable.Empty<Event>();
+                }
+                //var otherlist = _connections.Select(c => new Connection(c));
+                var list = from ev in _events select new Event(ev);
+                return list.AsEnumerable();
+            }
+        }
+
         public static string OptionalDateTime(DateTime value, string unsetText = "")
         {
             if (value == new DateTime(0) || value == MinDateOfBirthValue)
@@ -135,6 +163,8 @@ namespace Kawaw
                 UpdateUser(response);
                 var connections = await remote.GetConnections();
                 UpdateConnections(connections);
+                var events = await remote.GetEvents();
+                UpdateEvents(events);
             }
             catch (Exception)
             {
