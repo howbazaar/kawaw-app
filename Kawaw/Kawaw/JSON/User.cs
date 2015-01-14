@@ -14,9 +14,6 @@ namespace Kawaw.JSON
         [DataMember(Name = "last_name")]
         public string LastName { get; set; }
 
-        [DataMember(Name = "token")]
-        public string CSRFToken { get; set; }
-
         [DataMember(Name = "full_name")]
         public string FullName { get; set; }
 
