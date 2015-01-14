@@ -12,6 +12,7 @@ namespace Kawaw
         public const string Login = "Login";
 
         private ViewModelNavigation _navigation;
+        private BaseViewModel _contentModel;
 
         public override ViewModelNavigation Navigation
         {
@@ -21,7 +22,7 @@ namespace Kawaw
 
         public NavigationViewModel NavigationModel { get; private set; }
 
-        private async void Init()
+        private void Init()
         {
             if (App.User == null)
             {
@@ -29,9 +30,7 @@ namespace Kawaw
             }
             else
             {
-                IsBusy = true;
-                await App.User.Refresh(App.Remote);
-                IsBusy = false;
+                RefreshUser();
             }
         }
 
@@ -47,12 +46,28 @@ namespace Kawaw
                 App.User = null;
                 ShowLogin();
             });
+            MessagingCenter.Subscribe(this, "refresh", (object sender) =>
+            {
+                RefreshUser();
+            });
+        }
+
+        private async void RefreshUser()
+        {
+            IsBusy = true;
+            if (_contentModel != null)
+                _contentModel.IsBusy = true;
+            await App.User.Refresh(App.Remote);
+            IsBusy = false;
+            if (_contentModel != null)
+                _contentModel.IsBusy = false;
         }
 
         public void SetDetails(string page)
         {
-            var viewModel = CreateViewModel(page);
-            MessagingCenter.Send(this, "show-page", viewModel);
+            _contentModel = CreateViewModel(page);
+            _contentModel.IsBusy = IsBusy;
+            MessagingCenter.Send(this, "show-page", _contentModel);
         }
 
         private async void ShowLogin()

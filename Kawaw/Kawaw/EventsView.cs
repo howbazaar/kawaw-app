@@ -32,7 +32,10 @@ namespace Kawaw
         {
             public EventCell()
             {
-                var time = new Label();
+                var time = new Label
+                {
+                    TextColor = Color.White
+                };
                 time.SetBinding(Label.TextProperty, "DateAndTime");
                 var type = new Label
                 {
