@@ -128,7 +128,7 @@ namespace Kawaw
             where TResponse : class
         {
             var jsonSerializer = new DataContractJsonSerializer(typeof(List<TResponse>));
-            // var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
             var stream = await response.Content.ReadAsStreamAsync(); // .ConfigureAwait(false);
             try
             {
@@ -334,6 +334,18 @@ namespace Kawaw
                 // raise login required
             }
             throw new Exception("not ok... sort it out");
+        }
+
+        public async Task<JSON.Event[]> GetEvents()
+        {
+            var response = await Get("+events/").ConfigureAwait(false);
+            // TODO: throw a known error for Forbidden.
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception("not ok... sort it out");
+            }
+            var events = await readArrayFromResponse<JSON.Event>(response).ConfigureAwait(false);
+            return events;
         }
 
         public async Task<JSON.Connection[]> GetConnections()

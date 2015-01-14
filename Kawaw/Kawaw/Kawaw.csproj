@@ -45,6 +45,7 @@
     <Compile Include="ChangeDetailsViewModel.cs" />
     <Compile Include="ConnectionsView.cs" />
     <Compile Include="ConnectionsViewModel.cs" />
+    <Compile Include="Controls\RepeaterView.cs" />
     <Compile Include="EventsView.cs" />
     <Compile Include="EventsViewModel.cs" />
     <Compile Include="GlobalSettingsView.cs" />
@@ -52,9 +53,17 @@
     <Compile Include="IRemoteSite.cs" />
     <Compile Include="JSON\Connection.cs" />
     <Compile Include="JSON\Email.cs" />
+    <Compile Include="JSON\Event.cs" />
+    <Compile Include="JSON\Link.cs" />
+    <Compile Include="JSON\Reference.cs" />
     <Compile Include="JSON\User.cs" />
+    <Compile Include="JSON\Venue.cs" />
     <Compile Include="LoginView.cs" />
     <Compile Include="LoginViewModel.cs" />
+    <Compile Include="Models\Event.cs" />
+    <Compile Include="Models\Link.cs" />
+    <Compile Include="Models\Reference.cs" />
+    <Compile Include="Models\Venue.cs" />
     <Compile Include="NavigationConverter.cs" />
     <Compile Include="NavigationView.cs" />
     <Compile Include="NavigationViewModel.cs" />
