@@ -156,20 +156,12 @@ namespace Kawaw
         public async Task Refresh(IRemoteSite remote)
         {
             _remoteSite = remote;
-            Debug.WriteLine("Refreshing user {0}", FullName);
-            try
-            {
-                var response = await remote.GetUserDetails();
-                UpdateUser(response);
-                var connections = await remote.GetConnections();
-                UpdateConnections(connections);
-                var events = await remote.GetEvents();
-                UpdateEvents(events);
-            }
-            catch (Exception)
-            {
-                Debug.WriteLine("TODO: handle stale session, site down.");
-            }   
+            var response = await remote.GetUserDetails();
+            UpdateUser(response);
+            var connections = await remote.GetConnections();
+            UpdateConnections(connections);
+            var events = await remote.GetEvents();
+            UpdateEvents(events);
         }
     }
 

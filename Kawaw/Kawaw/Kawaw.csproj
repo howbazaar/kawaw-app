@@ -37,7 +37,7 @@
     <Compile Include="AddEmailView.cs" />
     <Compile Include="AddEmailViewModel.cs" />
     <Compile Include="App.cs" />
-    <Compile Include="BaseLogoutView.cs" />
+    <Compile Include="PrimaryView.cs" />
     <Compile Include="BaseProperties.cs" />
     <Compile Include="BaseView.cs" />
     <Compile Include="BaseViewModel.cs" />
@@ -48,6 +48,11 @@
     <Compile Include="Controls\RepeaterView.cs" />
     <Compile Include="EventsView.cs" />
     <Compile Include="EventsViewModel.cs" />
+    <Compile Include="Exceptions\FormErrorsException.cs" />
+    <Compile Include="Exceptions\NetworkDownException.cs" />
+    <Compile Include="Exceptions\SessionExpiredException.cs" />
+    <Compile Include="Exceptions\UnexpectedException.cs" />
+    <Compile Include="Exceptions\UnexpectedStatusException.cs" />
     <Compile Include="GlobalSettingsView.cs" />
     <Compile Include="GlobalSettingsViewModel.cs" />
     <Compile Include="IRemoteSite.cs" />

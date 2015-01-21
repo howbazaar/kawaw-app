@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Windows.Input;
+using Kawaw.Exceptions;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -73,9 +74,21 @@ namespace Kawaw
                         Text = e.Message
                     });
                 }
-                catch (Exception e)
+                catch (NetworkDownException e)
                 {
-                    Debug.WriteLine("oops, some error {0}", e.Message);
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Login Failed",
+                        Text = e.Message
+                    });
+                }
+                catch (Exception)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Login Failed",
+                        Text = "Something went wrong, please try again later"
+                    });
                 }
 
                 UpdateButtonsActive(true);

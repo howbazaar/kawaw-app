@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using Kawaw.Exceptions;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -30,7 +32,21 @@ namespace Kawaw
             }
             else
             {
-                RefreshUser();
+                try
+                {
+                    RefreshUserInternal();
+                }
+                catch (SessionExpiredException)
+                {
+                    App.Remote.Logout();
+                    App.User = null;
+                    ShowLogin();
+                }
+                // ReSharper disable once EmptyGeneralCatchClause
+                catch (Exception)
+                {
+                    // swallow any exceptions here
+                }
             }
         }
 
@@ -46,21 +62,52 @@ namespace Kawaw
                 App.User = null;
                 ShowLogin();
             });
-            MessagingCenter.Subscribe(this, "refresh", (object sender) =>
-            {
-                RefreshUser();
-            });
+            MessagingCenter.Subscribe(this, "refresh", (object sender) => RefreshUser());
         }
 
-        private async void RefreshUser()
+        public void RefreshUser()
         {
-            IsBusy = true;
-            if (_contentModel != null)
-                _contentModel.IsBusy = true;
-            await App.User.Refresh(App.Remote);
-            IsBusy = false;
-            if (_contentModel != null)
-                _contentModel.IsBusy = false;
+            try
+            {
+                RefreshUserInternal();
+            }
+            catch (NetworkDownException e)
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Refresh Failed",
+                    Text = e.Message
+                });
+            }
+            catch (Exception e)
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Refresh Failed",
+#if DEBUG
+                    Text = e.Message
+#else
+                    Text = "Something went wrong, please try again later"
+#endif
+                });
+            }            
+        }
+
+        private async void RefreshUserInternal()
+        {
+            try
+            {
+                IsBusy = true;
+                if (_contentModel != null)
+                    _contentModel.IsBusy = true;
+                await App.User.Refresh(App.Remote);
+            }
+            finally
+            {
+                IsBusy = false;
+                if (_contentModel != null)
+                    _contentModel.IsBusy = false;
+            }
         }
 
         public void SetDetails(string page)
