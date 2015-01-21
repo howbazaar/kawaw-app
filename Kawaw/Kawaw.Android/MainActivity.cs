@@ -1,12 +1,7 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Android.App;
 using Android.Content.PM;
-using Android.Runtime;
-using Android.Views;
-using Android.Widget;
 using Android.OS;
-using Java.Interop;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 using DatePicker = Xamarin.Forms.DatePicker;
