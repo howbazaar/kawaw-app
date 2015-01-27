@@ -23,20 +23,5 @@ namespace Kawaw
                 ToolbarItemOrder.Secondary));
         }
 
-        protected override void OnAppearing()
-        {
-            base.OnAppearing();
-            MessagingCenter.Subscribe(this, "alert", async (RootViewModel model, Alert alert) =>
-            {
-                await DisplayAlert(alert.Title, alert.Text, "OK");
-            });
-        }
-
-        protected override void OnDisappearing()
-        {
-            base.OnDisappearing();
-            MessagingCenter.Unsubscribe<RootViewModel, Alert>(this, "alert");
-        }
-
     }
 }

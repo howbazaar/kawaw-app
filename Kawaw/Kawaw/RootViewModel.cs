@@ -1,6 +1,4 @@
 using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using Kawaw.Exceptions;
 using Xamarin.Forms;
 
@@ -32,21 +30,7 @@ namespace Kawaw
             }
             else
             {
-                try
-                {
-                    RefreshUserInternal();
-                }
-                catch (SessionExpiredException)
-                {
-                    App.Remote.Logout();
-                    App.User = null;
-                    ShowLogin();
-                }
-                // ReSharper disable once EmptyGeneralCatchClause
-                catch (Exception)
-                {
-                    // swallow any exceptions here
-                }
+                RefreshUser(true);
             }
         }
 
@@ -63,21 +47,51 @@ namespace Kawaw
                 ShowLogin();
             });
             MessagingCenter.Subscribe(this, "refresh", (object sender) => RefreshUser());
+            MessagingCenter.Subscribe(this, "action-started", (object sender) =>
+            {
+                IsBusy = true;
+                if (_contentModel != null)
+                    _contentModel.IsBusy = true;
+            });
+            MessagingCenter.Subscribe(this, "action-stopped", (object sender) =>
+            {
+                IsBusy = false;
+                if (_contentModel != null)
+                    _contentModel.IsBusy = false;
+            });
+            MessagingCenter.Subscribe(this, "session-expired", (object sender) =>
+            {
+                    App.Remote.Logout();
+                    App.User = null;
+                    ShowLogin();
+            });
         }
 
-        public void RefreshUser()
+        public async void RefreshUser(bool silent = false)
         {
             try
             {
-                RefreshUserInternal();
+                await App.User.Refresh(App.Remote);
             }
-            catch (NetworkDownException e)
+            catch (SessionExpiredException)
             {
                 MessagingCenter.Send(this, "alert", new Alert
                 {
-                    Title = "Refresh Failed",
-                    Text = e.Message
+                    Title = "Session Expired",
+                    Text = "Your session has expired. Please log in again.",
+                    Callback = new Command(() => MessagingCenter.Send((object)this, "session-expired")),
                 });
+            }
+            catch (NetworkDownException e)
+            {
+                if (!silent)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Refresh Failed",
+                        Text = e.Message
+                    });
+                }
             }
             catch (Exception e)
             {
@@ -93,22 +107,6 @@ namespace Kawaw
             }            
         }
 
-        private async void RefreshUserInternal()
-        {
-            try
-            {
-                IsBusy = true;
-                if (_contentModel != null)
-                    _contentModel.IsBusy = true;
-                await App.User.Refresh(App.Remote);
-            }
-            finally
-            {
-                IsBusy = false;
-                if (_contentModel != null)
-                    _contentModel.IsBusy = false;
-            }
-        }
 
         public void SetDetails(string page)
         {

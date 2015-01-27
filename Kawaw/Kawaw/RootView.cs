@@ -16,7 +16,27 @@ namespace Kawaw
                 Detail = new NavigationPage(ViewModelNavigation.GetPageForViewModel(model));
                 IsPresented = false;
             });
+        }
 
+        protected override void OnAppearing()
+        {
+            Debug.WriteLine("subscribe to root view model alert {0}", this);
+            base.OnAppearing();
+            MessagingCenter.Subscribe(this, "alert", async (RootViewModel model, Alert alert) =>
+            {
+                await DisplayAlert(alert.Title, alert.Text, "OK");
+                if (alert.Callback != null)
+                {
+                    alert.Callback.Execute(this);
+                }
+            });
+        }
+
+        protected override void OnDisappearing()
+        {
+            Debug.WriteLine("unsubscribe to root view model alert {}", this);
+            base.OnDisappearing();
+            MessagingCenter.Unsubscribe<RootViewModel, Alert>(this, "alert");
         }
     }
 }

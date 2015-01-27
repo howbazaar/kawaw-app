@@ -155,13 +155,21 @@ namespace Kawaw
 
         public async Task Refresh(IRemoteSite remote)
         {
-            _remoteSite = remote;
-            var response = await remote.GetUserDetails();
-            UpdateUser(response);
-            var connections = await remote.GetConnections();
-            UpdateConnections(connections);
-            var events = await remote.GetEvents();
-            UpdateEvents(events);
+            try
+            {
+                MessagingCenter.Send((object)this, "action-started");
+                _remoteSite = remote;
+                var response = await remote.GetUserDetails();
+                UpdateUser(response);
+                var connections = await remote.GetConnections();
+                UpdateConnections(connections);
+                var events = await remote.GetEvents();
+                UpdateEvents(events);
+            }
+            finally
+            {
+                MessagingCenter.Send((object)this, "action-stopped");
+            }
         }
     }
 
