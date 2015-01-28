@@ -94,7 +94,7 @@ namespace Kawaw
                 UpdateButtonsActive(true);
             }, () => _buttonsActive);
 
-            MessagingCenter.Subscribe<object, string>(this, "set-remote-site", (object sender, string url) =>
+            MessagingCenter.Subscribe(this, "set-remote-site", (object sender, string url) =>
             {
                 Debug.WriteLine("Setting remote site to {0}", url);
                 App.Remote.BaseUrl = url;

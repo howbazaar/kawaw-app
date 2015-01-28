@@ -12,7 +12,7 @@ namespace Kawaw
 
             MessagingCenter.Subscribe(this, "show-page", (RootViewModel sender, BaseViewModel model) =>
             {
-                Debug.WriteLine("root view show model {0}", model.ToString());
+                Debug.WriteLine("root view show model {0}", model);
                 Detail = new NavigationPage(ViewModelNavigation.GetPageForViewModel(model));
                 IsPresented = false;
             });
@@ -34,7 +34,7 @@ namespace Kawaw
 
         protected override void OnDisappearing()
         {
-            Debug.WriteLine("unsubscribe to root view model alert {}", this);
+            Debug.WriteLine("unsubscribe to root view model alert {0}", this);
             base.OnDisappearing();
             MessagingCenter.Unsubscribe<RootViewModel, Alert>(this, "alert");
         }
