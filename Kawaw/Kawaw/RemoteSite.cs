@@ -165,11 +165,34 @@ namespace Kawaw
                 return await ReadUserFromContent(response).ConfigureAwait(false);
             }
             if (response.StatusCode == HttpStatusCode.Forbidden)
-            {
                 throw new SessionExpiredException();
-            }
             throw new UnexpectedStatusException(response.StatusCode);
         }
+
+        private async Task<TResponse[]> GetArrayType<TResponse>(string url)
+            where TResponse : class
+        {
+            var response = await Get(url).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await ReadArrayFromResponse<TResponse>(response).ConfigureAwait(false);
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+            throw new UnexpectedStatusException(response.StatusCode);
+        }
+
+        public Task<Event[]> GetEvents()
+        {
+            return GetArrayType<Event>("+events/");
+        }
+
+        public Task<JSON.Connection[]> GetConnections()
+        {
+            return GetArrayType<JSON.Connection>("+connections/");
+        }
+
 
         private void SetValuesFromCookies()
         {
@@ -330,30 +353,6 @@ namespace Kawaw
                 // raise login required
             }
             throw new Exception("not ok... sort it out");
-        }
-
-        public async Task<JSON.Event[]> GetEvents()
-        {
-            var response = await Get("+events/").ConfigureAwait(false);
-            // TODO: throw a known error for Forbidden.
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new Exception("not ok... sort it out");
-            }
-            var events = await ReadArrayFromResponse<Event>(response).ConfigureAwait(false);
-            return events;
-        }
-
-        public async Task<JSON.Connection[]> GetConnections()
-        {
-            var response = await Get("+connections/").ConfigureAwait(false);
-            // TODO: throw a known error for Forbidden.
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new Exception("not ok... sort it out");
-            }
-            var connections = await ReadArrayFromResponse<JSON.Connection>(response).ConfigureAwait(false);
-            return connections;
         }
 
         public async Task<JSON.Connection> ConnectionAction(uint id, bool accept)
