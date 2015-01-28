@@ -277,16 +277,14 @@ namespace Kawaw
                 values["date_of_birth"] = dateOfBirth.ToString("yyyy-MM-dd");
             }
             var response = await Post("+update-details/", values).ConfigureAwait(false);
-            Debug.WriteLine(response.StatusCode);
-            // TODO: on 404 throw site down....
-            //       on 403 unauthorized - need to login again
-            //       on 400 extract json error from content
-            //       on 200 extract user from json
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new Exception("not ok... sort it out");
-            }
-            return await ReadUserFromContent(response).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
+                return await ReadUserFromContent(response).ConfigureAwait(false);
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         [DataContract]
