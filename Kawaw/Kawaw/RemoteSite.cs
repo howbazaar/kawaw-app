@@ -384,28 +384,35 @@ namespace Kawaw
             var values = new Dictionary<string, string>();
             values["accepted"] = accept ? "True" : "False";
             var url = string.Format("+update-connection/{0}/", id);
-            var response = await Post(url, values).ConfigureAwait(false);
-            Debug.WriteLine(response.StatusCode);
-            // TODO: on 404 throw site down....
-            //       on 403 unauthorized - need to login again
-            //       on 400 extract json error from content
-            //       on 200 extract connection from json
-            if (response.StatusCode == HttpStatusCode.OK)
+            try
             {
-                return await ReadFromResponse<JSON.Connection>(response);
-            }
+                var response = await Post(url, values).ConfigureAwait(false);
+                Debug.WriteLine(response.StatusCode);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    return await ReadFromResponse<JSON.Connection>(response);
+                }
 
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                // get the message out...
-                // raise a nicer exception
+                if (response.StatusCode == HttpStatusCode.Forbidden)
+                    throw new InconsistentStateException();
+
+                if (response.StatusCode != HttpStatusCode.BadRequest)
+                    throw new UnexpectedStatusException(response.StatusCode);
+
+                var content = await response.Content.ReadAsStringAsync();
+                var parsed = JObject.Parse(content);
+                var errors = parsed["form_errors"];
+                if (errors != null)
+                {
+                    throw new FormErrorsException(errors.Value<JObject>());
+                }
+                throw new UnexpectedException(content);
+
             }
-            else if (response.StatusCode == HttpStatusCode.Forbidden)
+            catch (WebException)
             {
-                // raise login required
+                throw new NetworkDownException();
             }
-            throw new Exception("not ok... sort it out: rc " + response.StatusCode);
-            
         }
     }
 }
