@@ -196,17 +196,8 @@ namespace Kawaw
                 SetValuesFromCookies();
                 return new RemoteUser(this);
             }
-            if (response.StatusCode != HttpStatusCode.BadRequest)
-                throw new UnexpectedStatusException(response.StatusCode);
-
-            var content = await response.Content.ReadAsStringAsync();
-            var parsed = JObject.Parse(content);
-            var errors = parsed["form_errors"];
-            if (errors != null)
-            {
-                throw new FormErrorsException(errors.Value<JObject>());
-            }
-            throw new UnexpectedException(content);
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         public async Task<RemoteUser> Register(string email, string password)
@@ -221,17 +212,9 @@ namespace Kawaw
                 SetValuesFromCookies();
                 return new RemoteUser(this);
             }
-            if (response.StatusCode != HttpStatusCode.BadRequest)
-                throw new UnexpectedStatusException(response.StatusCode);
 
-            var content = await response.Content.ReadAsStringAsync();
-            var parsed = JObject.Parse(content);
-            var errors = parsed["form_errors"];
-            if (errors != null)
-            {
-                throw new FormErrorsException(errors.Value<JObject>());
-            }
-            throw new UnexpectedException(content);
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         public async void Logout()
