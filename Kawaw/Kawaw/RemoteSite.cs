@@ -78,22 +78,36 @@ namespace Kawaw
             return cookie.Value;
         }
 
-        private Task<HttpResponseMessage> Get(string path)
+        private async Task<HttpResponseMessage> Get(string path)
         {
-            return _client.GetAsync(path);
+            try
+            {
+                return await _client.GetAsync(path).ConfigureAwait(false);
+            }
+            catch (WebException)
+            {
+                throw new NetworkDownException();
+            }
         }
 
         private async Task<HttpResponseMessage> Post(string path)
         {
-            if (string.IsNullOrEmpty(CSRFToken))
+            try
             {
-                CSRFToken = await GetCSRFToken();
+                if (string.IsNullOrEmpty(CSRFToken))
+                {
+                    CSRFToken = await GetCSRFToken();
+                }
+                // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
+                // this it will come back to the thread that initially called await, which will always be the ui thread
+                var content = new ByteArrayContent(new byte[0]);
+                content.Headers.Add("X-CSRFToken", CSRFToken);
+                return await _client.PostAsync(path, content).ConfigureAwait(false);
             }
-            // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
-            // this it will come back to the thread that initially called await, which will always be the ui thread
-            var content = new ByteArrayContent(new byte[0]);
-            content.Headers.Add("X-CSRFToken", CSRFToken);
-            return await _client.PostAsync(path, content).ConfigureAwait(false);
+            catch (WebException)
+            {
+                throw new NetworkDownException();
+            }
         }
 
         private async Task<HttpResponseMessage> Post(string path, Dictionary<string, string> formAttributes)
@@ -127,7 +141,7 @@ namespace Kawaw
         private static async Task<TResponse[]> ReadArrayFromResponse<TResponse>(HttpResponseMessage response)
             where TResponse : class
         {
-            var jsonSerializer = new DataContractJsonSerializer(typeof (List<TResponse>));
+            var jsonSerializer = new DataContractJsonSerializer(typeof(List<TResponse>));
 #if DEBUG
             // ReSharper disable once UnusedVariable
             var content = await response.Content.ReadAsStringAsync();
@@ -145,23 +159,16 @@ namespace Kawaw
 
         public async Task<User> GetUserDetails()
         {
-            try
+            var response = await Get("+user/").ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Get("+user/").ConfigureAwait(false);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    return await ReadUserFromContent(response).ConfigureAwait(false);
-                }
-                if (response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    throw new SessionExpiredException();
-                }
-                throw new UnexpectedStatusException(response.StatusCode);
+                return await ReadUserFromContent(response).ConfigureAwait(false);
             }
-            catch (WebException)
+            if (response.StatusCode == HttpStatusCode.Forbidden)
             {
-                throw new NetworkDownException();
+                throw new SessionExpiredException();
             }
+            throw new UnexpectedStatusException(response.StatusCode);
         }
 
         private void SetValuesFromCookies()
@@ -183,30 +190,23 @@ namespace Kawaw
             values["login"] = username;
             values["password"] = password;
             values["remember"] = "True";
-            try
+            var response = await Post("accounts/login/", values);
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Post("accounts/login/", values);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    SetValuesFromCookies();
-                    return new RemoteUser(this);
-                }
-                if (response.StatusCode != HttpStatusCode.BadRequest)
-                    throw new UnexpectedStatusException(response.StatusCode);
+                SetValuesFromCookies();
+                return new RemoteUser(this);
+            }
+            if (response.StatusCode != HttpStatusCode.BadRequest)
+                throw new UnexpectedStatusException(response.StatusCode);
 
-                var content = await response.Content.ReadAsStringAsync();
-                var parsed = JObject.Parse(content);
-                var errors = parsed["form_errors"];
-                if (errors != null)
-                {
-                    throw new FormErrorsException(errors.Value<JObject>());
-                }
-                throw new UnexpectedException(content);
-            }
-            catch (WebException)
+            var content = await response.Content.ReadAsStringAsync();
+            var parsed = JObject.Parse(content);
+            var errors = parsed["form_errors"];
+            if (errors != null)
             {
-                throw new NetworkDownException();
+                throw new FormErrorsException(errors.Value<JObject>());
             }
+            throw new UnexpectedException(content);
         }
 
         public async Task<RemoteUser> Register(string email, string password)
@@ -215,30 +215,23 @@ namespace Kawaw
             values["email"] = email;
             values["password1"] = password;
             values["password2"] = password;
-            try
+            var response = await Post("accounts/signup/", values);
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Post("accounts/signup/", values);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    SetValuesFromCookies();
-                    return new RemoteUser(this);
-                }
-                if (response.StatusCode != HttpStatusCode.BadRequest)
-                    throw new UnexpectedStatusException(response.StatusCode);
+                SetValuesFromCookies();
+                return new RemoteUser(this);
+            }
+            if (response.StatusCode != HttpStatusCode.BadRequest)
+                throw new UnexpectedStatusException(response.StatusCode);
 
-                var content = await response.Content.ReadAsStringAsync();
-                var parsed = JObject.Parse(content);
-                var errors = parsed["form_errors"];
-                if (errors != null)
-                {
-                    throw new FormErrorsException(errors.Value<JObject>());
-                }
-                throw new UnexpectedException(content);
-            }
-            catch (WebException)
+            var content = await response.Content.ReadAsStringAsync();
+            var parsed = JObject.Parse(content);
+            var errors = parsed["form_errors"];
+            if (errors != null)
             {
-                throw new NetworkDownException();
+                throw new FormErrorsException(errors.Value<JObject>());
             }
+            throw new UnexpectedException(content);
         }
 
         public async void Logout()
@@ -324,7 +317,7 @@ namespace Kawaw
             var content = await response.Content.ReadAsStringAsync();
             Debug.WriteLine("Response: {0}\nContent: {1}", response.StatusCode, content);
             throw new Exception("not ok... sort it out");
-            
+
         }
 
         public async Task<JSON.User> EmailAction(string action, string address)
@@ -348,7 +341,8 @@ namespace Kawaw
             {
                 // get the message out...
                 // raise a nicer exception
-            } else if (response.StatusCode == HttpStatusCode.Forbidden)
+            }
+            else if (response.StatusCode == HttpStatusCode.Forbidden)
             {
                 // raise login required
             }
@@ -384,35 +378,33 @@ namespace Kawaw
             var values = new Dictionary<string, string>();
             values["accepted"] = accept ? "True" : "False";
             var url = string.Format("+update-connection/{0}/", id);
-            try
+            var response = await Post(url, values).ConfigureAwait(false);
+            Debug.WriteLine(response.StatusCode);
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Post(url, values).ConfigureAwait(false);
-                Debug.WriteLine(response.StatusCode);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    return await ReadFromResponse<JSON.Connection>(response);
-                }
-
-                if (response.StatusCode == HttpStatusCode.Forbidden)
-                    throw new InconsistentStateException();
-
-                if (response.StatusCode != HttpStatusCode.BadRequest)
-                    throw new UnexpectedStatusException(response.StatusCode);
-
-                var content = await response.Content.ReadAsStringAsync();
-                var parsed = JObject.Parse(content);
-                var errors = parsed["form_errors"];
-                if (errors != null)
-                {
-                    throw new FormErrorsException(errors.Value<JObject>());
-                }
-                throw new UnexpectedException(content);
-
+                return await ReadFromResponse<JSON.Connection>(response);
             }
-            catch (WebException)
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new InconsistentStateException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
+        }
+
+        private static async Task ProcessFormError(HttpResponseMessage response)
+        {
+            if (response.StatusCode != HttpStatusCode.BadRequest)
+                throw new UnexpectedStatusException(response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            var parsed = JObject.Parse(content);
+            var errors = parsed["form_errors"];
+            if (errors != null)
             {
-                throw new NetworkDownException();
+                throw new FormErrorsException(errors.Value<JObject>());
             }
+            throw new UnexpectedException(content);
         }
     }
 }
