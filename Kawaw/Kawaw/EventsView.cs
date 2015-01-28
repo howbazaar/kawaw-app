@@ -1,11 +1,9 @@
-﻿using System.Diagnostics;
-using Kawaw.Controls;
-using Kawaw.Models;
+﻿using Kawaw.Controls;
 using Xamarin.Forms;
 
 namespace Kawaw
 {
-    class EventsView : BaseLogoutView
+    class EventsView : PrimaryView
     {
         class LinkCell : ViewCell
         {
@@ -32,7 +30,10 @@ namespace Kawaw
         {
             public EventCell()
             {
-                var time = new Label();
+                var time = new Label
+                {
+                    TextColor = Color.White
+                };
                 time.SetBinding(Label.TextProperty, "DateAndTime");
                 var type = new Label
                 {

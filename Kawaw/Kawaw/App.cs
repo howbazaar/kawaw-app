@@ -14,6 +14,7 @@ namespace Kawaw
     public class App : Application, IApp
     {
         private RemoteUser _user;
+        private readonly RootViewModel _rootViewModel;
 
         // chevron is the rootview.master.icon
         // android is the page icon
@@ -33,6 +34,7 @@ namespace Kawaw
             if (Properties.ContainsKey("User"))
             {
                 User = Properties["User"] as RemoteUser;
+                // ReSharper disable once PossibleNullReferenceException
                 Debug.WriteLine("User found in properties: {0}", User.FullName);
             }
             else
@@ -46,13 +48,13 @@ namespace Kawaw
                 Debug.WriteLine("Last page: {0}", page);
             }
 
-            var rootModel = new RootViewModel(this);
+            _rootViewModel = new RootViewModel(this);
             var rootView = new RootView
             {
-                BindingContext = rootModel,
-                Master = ViewModelNavigation.GetPageForViewModel(rootModel.NavigationModel),
+                BindingContext = _rootViewModel,
+                Master = ViewModelNavigation.GetPageForViewModel(_rootViewModel.NavigationModel),
             };
-            rootModel.SetDetails(page);
+            _rootViewModel.SetDetails(page);
 
             MainPage = rootView;
 
@@ -122,7 +124,7 @@ namespace Kawaw
         {
             base.OnResume();
             if (User != null)
-                User.Refresh(Remote);
+                _rootViewModel.RefreshUser(true);
         }
 
         public IRemoteSite Remote { get; private set; }

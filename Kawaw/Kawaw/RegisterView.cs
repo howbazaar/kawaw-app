@@ -10,11 +10,6 @@ namespace Kawaw
             Icon = "kawaw.png";
             Padding = new Thickness(20);
 
-            var nameEntry = new Entry
-            {
-                Placeholder = "Name"
-            };
-            nameEntry.SetBinding(Entry.TextProperty, "Name");
             var emailEntry = new Entry
             {
                 Placeholder = "E-mail address",
@@ -43,32 +38,26 @@ namespace Kawaw
             {
                 Spacing = 10,
                 Children = {
-                    nameEntry,
                     emailEntry,
                     passwordEntry,
                     passwordEntry2,
                     registerButton
                 }
             };
-
         }
 
         protected override void OnAppearing()
         {
             base.OnAppearing();
-           // Debug.WriteLine("appearing, so subscribe {0}", this.Id);
             MessagingCenter.Subscribe(this, "alert", async (RegisterViewModel model, Alert alert) =>
             {
                 await DisplayAlert(alert.Title, alert.Text, "OK");
             });
-
-   
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-           // Debug.WriteLine("disappearing, so unsubscribe {0}", this.Id);
             MessagingCenter.Unsubscribe<RegisterViewModel, Alert>(this, "alert");     
         }
     }

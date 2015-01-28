@@ -1,5 +1,5 @@
 using System;
-using System.Diagnostics;
+using Kawaw.Exceptions;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -12,6 +12,7 @@ namespace Kawaw
         public const string Login = "Login";
 
         private ViewModelNavigation _navigation;
+        private BaseViewModel _contentModel;
 
         public override ViewModelNavigation Navigation
         {
@@ -29,9 +30,7 @@ namespace Kawaw
             }
             else
             {
-                IsBusy = true;
-                App.User.Refresh(App.Remote);
-                IsBusy = false;
+                RefreshUser(true);
             }
         }
 
@@ -47,12 +46,73 @@ namespace Kawaw
                 App.User = null;
                 ShowLogin();
             });
+            MessagingCenter.Subscribe(this, "refresh", (object sender) => RefreshUser());
+            MessagingCenter.Subscribe(this, "action-started", (object sender) =>
+            {
+                IsBusy = true;
+                if (_contentModel != null)
+                    _contentModel.IsBusy = true;
+            });
+            MessagingCenter.Subscribe(this, "action-stopped", (object sender) =>
+            {
+                IsBusy = false;
+                if (_contentModel != null)
+                    _contentModel.IsBusy = false;
+            });
+            MessagingCenter.Subscribe(this, "session-expired", (object sender) =>
+            {
+                    App.Remote.Logout();
+                    App.User = null;
+                    ShowLogin();
+            });
         }
+
+        public async void RefreshUser(bool silent = false)
+        {
+            try
+            {
+                await App.User.Refresh(App.Remote);
+            }
+            catch (SessionExpiredException)
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Session Expired",
+                    Text = "Your session has expired. Please log in again.",
+                    Callback = new Command(() => MessagingCenter.Send((object)this, "session-expired")),
+                });
+            }
+            catch (NetworkDownException e)
+            {
+                if (!silent)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Refresh Failed",
+                        Text = e.Message
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Refresh Failed",
+#if DEBUG
+                    Text = e.Message
+#else
+                    Text = "Something went wrong, please try again later"
+#endif
+                });
+            }            
+        }
+
 
         public void SetDetails(string page)
         {
-            var viewModel = CreateViewModel(page);
-            MessagingCenter.Send(this, "show-page", viewModel);
+            _contentModel = CreateViewModel(page);
+            _contentModel.IsBusy = IsBusy;
+            MessagingCenter.Send(this, "show-page", _contentModel);
         }
 
         private async void ShowLogin()

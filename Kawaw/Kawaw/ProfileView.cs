@@ -4,7 +4,7 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
-    class ProfileView : BaseLogoutView
+    class ProfileView : PrimaryView
     {
         class EmailCell : ViewCell
         {

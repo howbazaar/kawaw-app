@@ -36,7 +36,7 @@ namespace Kawaw
 
     class EventViewModel : BaseProperties
     {
-        private Event _event;
+        private readonly Event _event;
 
         public EventViewModel(Event e)
         {

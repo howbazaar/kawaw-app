@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Kawaw.Models;
 using Xamarin.Forms;
 
@@ -152,12 +153,12 @@ namespace Kawaw
             return value.ToString("dd MMM yyyy");
         }
 
-        public async void Refresh(IRemoteSite remote)
+        public async Task Refresh(IRemoteSite remote)
         {
-            _remoteSite = remote;
-            Debug.WriteLine("Refreshing user {0}", FullName);
             try
             {
+                MessagingCenter.Send((object)this, "action-started");
+                _remoteSite = remote;
                 var response = await remote.GetUserDetails();
                 UpdateUser(response);
                 var connections = await remote.GetConnections();
@@ -165,10 +166,10 @@ namespace Kawaw
                 var events = await remote.GetEvents();
                 UpdateEvents(events);
             }
-            catch (Exception)
+            finally
             {
-                Debug.WriteLine("TODO: handle stale session, site down.");
-            }   
+                MessagingCenter.Send((object)this, "action-stopped");
+            }
         }
     }
 

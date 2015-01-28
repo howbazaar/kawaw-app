@@ -33,8 +33,8 @@ namespace Kawaw
         {
             Items = new ObservableCollection<object>
             {
-                new NavigationItem{Name="Events", Description="events description"},
-                new NavigationItem{Name="Connections", Description="connections description"},
+                new NavigationItem{Name="Events", Description="Your upcoming events"},
+                new NavigationItem{Name="Connections", Description="Your connections to schools, clubs or businesses"},
                 new NavigationItem{Name="Profile", Description="View or change your details"},
             };
 

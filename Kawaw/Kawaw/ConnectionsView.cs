@@ -6,7 +6,7 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
-    class ConnectionsView : BaseLogoutView
+    class ConnectionsView : PrimaryView
     {
         class StatusColor : IValueConverter
         {
