@@ -302,28 +302,16 @@ namespace Kawaw
             values["email"] = address;
             var response = await Post("+add-email/", values).ConfigureAwait(false);
             Debug.WriteLine(response.StatusCode);
-            // TODO: on 404 throw site down....
-            //       on 403 unauthorized - need to login again
-            //       on 400 extract json error from content
-            //       on 200 extract user from json
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 return await ReadUserFromContent(response).ConfigureAwait(false);
             }
 
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                // get the message out...
-                // raise a nicer exception
-            }
-            else if (response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                // raise login required
-            }
-            var content = await response.Content.ReadAsStringAsync();
-            Debug.WriteLine("Response: {0}\nContent: {1}", response.StatusCode, content);
-            throw new Exception("not ok... sort it out");
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
 
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         public async Task<JSON.User> EmailAction(string action, string address)
@@ -332,27 +320,17 @@ namespace Kawaw
             values["action"] = action;
             values["email"] = address;
             var response = await Post("+email-action/", values).ConfigureAwait(false);
-            Debug.WriteLine(response.StatusCode);
-            // TODO: on 404 throw site down....
-            //       on 403 unauthorized - need to login again
-            //       on 400 extract json error from content
-            //       on 200 extract user from json
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 var emailResponse = await ReadFromResponse<EmailActionResponse>(response).ConfigureAwait(false);
                 return emailResponse.User;
             }
 
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                // get the message out...
-                // raise a nicer exception
-            }
-            else if (response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                // raise login required
-            }
-            throw new Exception("not ok... sort it out");
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         public async Task<JSON.Connection> ConnectionAction(uint id, bool accept)
