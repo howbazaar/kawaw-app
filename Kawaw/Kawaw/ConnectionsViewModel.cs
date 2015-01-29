@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.ServiceModel.Channels;
+using Kawaw.Exceptions;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -76,19 +78,26 @@ namespace Kawaw
             {
                 UpdateFromUser(app.User);
             });
-            MessagingCenter.Subscribe<object, ConnectionAction>(this, "connection-action", (object sender, ConnectionAction action) =>
+            MessagingCenter.Subscribe(this, "connection-action", async (object sender, ConnectionAction action) =>
             {
                 try
                 {
                     Debug.WriteLine("{0} for {1}", action.Name, action.Connection.Name);
-                    app.User.ConnectionAction(action.Connection, action.Name == "accept");
+                    await app.User.ConnectionAction(action.Connection, action.Name == "accept");
+                }
+                catch (InconsistentStateException)
+                {
+                    MessagingCenter.Send((object) this, "refresh");
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine("Oops {0}", e.Message);
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Update Failed",
+                        Text = e.Message
+                    });
                 }
             });
-
         }
 
         private void UpdateFromUser(RemoteUser user)

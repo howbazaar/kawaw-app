@@ -78,22 +78,36 @@ namespace Kawaw
             return cookie.Value;
         }
 
-        private Task<HttpResponseMessage> Get(string path)
+        private async Task<HttpResponseMessage> Get(string path)
         {
-            return _client.GetAsync(path);
+            try
+            {
+                return await _client.GetAsync(path).ConfigureAwait(false);
+            }
+            catch (WebException)
+            {
+                throw new NetworkDownException();
+            }
         }
 
         private async Task<HttpResponseMessage> Post(string path)
         {
-            if (string.IsNullOrEmpty(CSRFToken))
+            try
             {
-                CSRFToken = await GetCSRFToken();
+                if (string.IsNullOrEmpty(CSRFToken))
+                {
+                    CSRFToken = await GetCSRFToken();
+                }
+                // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
+                // this it will come back to the thread that initially called await, which will always be the ui thread
+                var content = new ByteArrayContent(new byte[0]);
+                content.Headers.Add("X-CSRFToken", CSRFToken);
+                return await _client.PostAsync(path, content).ConfigureAwait(false);
             }
-            // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
-            // this it will come back to the thread that initially called await, which will always be the ui thread
-            var content = new ByteArrayContent(new byte[0]);
-            content.Headers.Add("X-CSRFToken", CSRFToken);
-            return await _client.PostAsync(path, content).ConfigureAwait(false);
+            catch (WebException)
+            {
+                throw new NetworkDownException();
+            }
         }
 
         private async Task<HttpResponseMessage> Post(string path, Dictionary<string, string> formAttributes)
@@ -127,7 +141,7 @@ namespace Kawaw
         private static async Task<TResponse[]> ReadArrayFromResponse<TResponse>(HttpResponseMessage response)
             where TResponse : class
         {
-            var jsonSerializer = new DataContractJsonSerializer(typeof (List<TResponse>));
+            var jsonSerializer = new DataContractJsonSerializer(typeof(List<TResponse>));
 #if DEBUG
             // ReSharper disable once UnusedVariable
             var content = await response.Content.ReadAsStringAsync();
@@ -145,24 +159,40 @@ namespace Kawaw
 
         public async Task<User> GetUserDetails()
         {
-            try
+            var response = await Get("+user/").ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Get("+user/").ConfigureAwait(false);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    return await ReadUserFromContent(response).ConfigureAwait(false);
-                }
-                if (response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    throw new SessionExpiredException();
-                }
-                throw new UnexpectedStatusException(response.StatusCode);
+                return await ReadUserFromContent(response).ConfigureAwait(false);
             }
-            catch (WebException)
-            {
-                throw new NetworkDownException();
-            }
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+            throw new UnexpectedStatusException(response.StatusCode);
         }
+
+        private async Task<TResponse[]> GetArrayType<TResponse>(string url)
+            where TResponse : class
+        {
+            var response = await Get(url).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await ReadArrayFromResponse<TResponse>(response).ConfigureAwait(false);
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+            throw new UnexpectedStatusException(response.StatusCode);
+        }
+
+        public Task<Event[]> GetEvents()
+        {
+            return GetArrayType<Event>("+events/");
+        }
+
+        public Task<JSON.Connection[]> GetConnections()
+        {
+            return GetArrayType<JSON.Connection>("+connections/");
+        }
+
 
         private void SetValuesFromCookies()
         {
@@ -183,30 +213,14 @@ namespace Kawaw
             values["login"] = username;
             values["password"] = password;
             values["remember"] = "True";
-            try
+            var response = await Post("accounts/login/", values);
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Post("accounts/login/", values);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    SetValuesFromCookies();
-                    return new RemoteUser(this);
-                }
-                if (response.StatusCode != HttpStatusCode.BadRequest)
-                    throw new UnexpectedStatusException(response.StatusCode);
-
-                var content = await response.Content.ReadAsStringAsync();
-                var parsed = JObject.Parse(content);
-                var errors = parsed["form_errors"];
-                if (errors != null)
-                {
-                    throw new FormErrorsException(errors.Value<JObject>());
-                }
-                throw new UnexpectedException(content);
+                SetValuesFromCookies();
+                return new RemoteUser(this);
             }
-            catch (WebException)
-            {
-                throw new NetworkDownException();
-            }
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         public async Task<RemoteUser> Register(string email, string password)
@@ -215,30 +229,15 @@ namespace Kawaw
             values["email"] = email;
             values["password1"] = password;
             values["password2"] = password;
-            try
+            var response = await Post("accounts/signup/", values);
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Post("accounts/signup/", values);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    SetValuesFromCookies();
-                    return new RemoteUser(this);
-                }
-                if (response.StatusCode != HttpStatusCode.BadRequest)
-                    throw new UnexpectedStatusException(response.StatusCode);
+                SetValuesFromCookies();
+                return new RemoteUser(this);
+            }
 
-                var content = await response.Content.ReadAsStringAsync();
-                var parsed = JObject.Parse(content);
-                var errors = parsed["form_errors"];
-                if (errors != null)
-                {
-                    throw new FormErrorsException(errors.Value<JObject>());
-                }
-                throw new UnexpectedException(content);
-            }
-            catch (WebException)
-            {
-                throw new NetworkDownException();
-            }
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         public async void Logout()
@@ -278,16 +277,14 @@ namespace Kawaw
                 values["date_of_birth"] = dateOfBirth.ToString("yyyy-MM-dd");
             }
             var response = await Post("+update-details/", values).ConfigureAwait(false);
-            Debug.WriteLine(response.StatusCode);
-            // TODO: on 404 throw site down....
-            //       on 403 unauthorized - need to login again
-            //       on 400 extract json error from content
-            //       on 200 extract user from json
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new Exception("not ok... sort it out");
-            }
-            return await ReadUserFromContent(response).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
+                return await ReadUserFromContent(response).ConfigureAwait(false);
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         [DataContract]
@@ -303,28 +300,16 @@ namespace Kawaw
             values["email"] = address;
             var response = await Post("+add-email/", values).ConfigureAwait(false);
             Debug.WriteLine(response.StatusCode);
-            // TODO: on 404 throw site down....
-            //       on 403 unauthorized - need to login again
-            //       on 400 extract json error from content
-            //       on 200 extract user from json
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 return await ReadUserFromContent(response).ConfigureAwait(false);
             }
 
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                // get the message out...
-                // raise a nicer exception
-            }
-            else if (response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                // raise login required
-            }
-            var content = await response.Content.ReadAsStringAsync();
-            Debug.WriteLine("Response: {0}\nContent: {1}", response.StatusCode, content);
-            throw new Exception("not ok... sort it out");
-            
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         public async Task<JSON.User> EmailAction(string action, string address)
@@ -333,50 +318,17 @@ namespace Kawaw
             values["action"] = action;
             values["email"] = address;
             var response = await Post("+email-action/", values).ConfigureAwait(false);
-            Debug.WriteLine(response.StatusCode);
-            // TODO: on 404 throw site down....
-            //       on 403 unauthorized - need to login again
-            //       on 400 extract json error from content
-            //       on 200 extract user from json
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 var emailResponse = await ReadFromResponse<EmailActionResponse>(response).ConfigureAwait(false);
                 return emailResponse.User;
             }
 
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                // get the message out...
-                // raise a nicer exception
-            } else if (response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                // raise login required
-            }
-            throw new Exception("not ok... sort it out");
-        }
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
 
-        public async Task<JSON.Event[]> GetEvents()
-        {
-            var response = await Get("+events/").ConfigureAwait(false);
-            // TODO: throw a known error for Forbidden.
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new Exception("not ok... sort it out");
-            }
-            var events = await ReadArrayFromResponse<Event>(response).ConfigureAwait(false);
-            return events;
-        }
-
-        public async Task<JSON.Connection[]> GetConnections()
-        {
-            var response = await Get("+connections/").ConfigureAwait(false);
-            // TODO: throw a known error for Forbidden.
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                throw new Exception("not ok... sort it out");
-            }
-            var connections = await ReadArrayFromResponse<JSON.Connection>(response).ConfigureAwait(false);
-            return connections;
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         public async Task<JSON.Connection> ConnectionAction(uint id, bool accept)
@@ -386,26 +338,31 @@ namespace Kawaw
             var url = string.Format("+update-connection/{0}/", id);
             var response = await Post(url, values).ConfigureAwait(false);
             Debug.WriteLine(response.StatusCode);
-            // TODO: on 404 throw site down....
-            //       on 403 unauthorized - need to login again
-            //       on 400 extract json error from content
-            //       on 200 extract connection from json
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 return await ReadFromResponse<JSON.Connection>(response);
             }
 
-            if (response.StatusCode == HttpStatusCode.BadRequest)
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new InconsistentStateException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
+        }
+
+        private static async Task ProcessFormError(HttpResponseMessage response)
+        {
+            if (response.StatusCode != HttpStatusCode.BadRequest)
+                throw new UnexpectedStatusException(response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            var parsed = JObject.Parse(content);
+            var errors = parsed["form_errors"];
+            if (errors != null)
             {
-                // get the message out...
-                // raise a nicer exception
+                throw new FormErrorsException(errors.Value<JObject>());
             }
-            else if (response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                // raise login required
-            }
-            throw new Exception("not ok... sort it out: rc " + response.StatusCode);
-            
+            throw new UnexpectedException(content);
         }
     }
 }

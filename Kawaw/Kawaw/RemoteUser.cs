@@ -61,39 +61,18 @@ namespace Kawaw
             MessagingCenter.Send<object>(this, "events-updated");
         }
 
-        public async void ConnectionAction(Connection connection, bool accept)
+        public async Task ConnectionAction(Connection connection, bool accept)
         {
-            try
+            var result = await _remoteSite.ConnectionAction(connection.Id, accept);
+            // Update our connections.
+            foreach (var conn in _connections.Where(conn => conn.Id == result.Id))
             {
-                var result = await _remoteSite.ConnectionAction(connection.Id, accept);
-                // Update our connections.
-                foreach (var conn in _connections)
-                {
-                    if (conn.Id == result.Id)
-                    {
-                        conn.Accepted = result.Accepted;
-                    }
-                }
-                MessagingCenter.Send<object>(this, "connections-updated");
+                conn.Accepted = result.Accepted;
             }
-            catch (Exception e)
-            {
-                Debug.WriteLine("oops " +e.Message);
-            }
+            MessagingCenter.Send<object>(this, "connections-updated");
         }
 
-        public bool HasVerifiedEmail
-        {
-            get
-            {
-                foreach (var email in _user.Emails)
-                {
-                    if (email.Verified)
-                        return true;
-                }
-                return false;
-            }
-        }
+        public bool HasVerifiedEmail { get { return _user.Emails.Any(email => email.Verified); }}
 
         public string FullName { get { return _user == null ? "<null user>" : _user.FullName; }}
         public string FirstName { get { return _user == null ? "<null user>" : _user.FirstName; } }
