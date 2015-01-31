@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
+using Kawaw.Exceptions;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -74,7 +75,8 @@ namespace Kawaw
                     MessagingCenter.Send(this, "alert", new Alert
                     {
                         Title = "E-mail Action",
-                        Text = "You cannot delete your primary email address."});
+                        Text = "You cannot delete your primary email address.",
+                    });
                 }
                 else
                 {
@@ -101,7 +103,7 @@ namespace Kawaw
             }
         }
 
-        public ICommand ChangeDetailsCommand{ get; private set; }
+        public ICommand ChangeDetailsCommand { get; private set; }
         public ICommand AddEmailCommand { get; private set; }
 
         public ProfileViewModel(IApp app)
@@ -121,16 +123,29 @@ namespace Kawaw
             {
                 UpdateFromUser(app.User);
             });
-            MessagingCenter.Subscribe<object, EmailAction>(this, "email-action", async (object sender, EmailAction action) =>
+            MessagingCenter.Subscribe(this, "email-action", async (object sender, EmailAction action) =>
             {
                 try
                 {
                     var user = await app.Remote.EmailAction(action.Name, action.Email.Address);
                     app.User.UpdateUser(user);
                 }
+                catch (SessionExpiredException)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Session Expired",
+                        Text = "Your session has expired. Please log in again.",
+                        Callback = new Command(() => MessagingCenter.Send((object)this, "session-expired")),
+                    });
+                }
                 catch (Exception e)
                 {
-                    Debug.WriteLine("Oops {0}", e.Message);  
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Add Email Failed",
+                        Text = e.Message
+                    });
                 }
             });
 

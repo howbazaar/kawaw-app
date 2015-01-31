@@ -102,11 +102,7 @@ namespace Kawaw
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            Debug.WriteLine("appearing, so subscribe {0}", this.Id);
-            MessagingCenter.Subscribe(this, "alert", async (ProfileViewModel model, Alert alert) =>
-            {
-                await DisplayAlert(alert.Title, alert.Text, "OK");
-            });
+            SubscribeAlert<ProfileViewModel>();
             MessagingCenter.Subscribe(this, "emails-updated", (ProfileViewModel model) => ForceLayout());
             MessagingCenter.Subscribe(this, "show-options", async (ProfileViewModel model, EmailActionOptions options) =>
             {
@@ -127,9 +123,8 @@ namespace Kawaw
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            Debug.WriteLine("disappearing, so unsubscribe {0}", this.Id);
+            UnsubscribeAlert<ProfileViewModel>();
             MessagingCenter.Unsubscribe<ProfileViewModel>(this, "emails-updated");
-            MessagingCenter.Unsubscribe<ProfileViewModel, Alert>(this, "alert");
             MessagingCenter.Unsubscribe<ProfileViewModel, EmailActionOptions>(this, "show-options");
         }
     }
