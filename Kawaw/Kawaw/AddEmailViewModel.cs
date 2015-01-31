@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Windows.Input;
+using Kawaw.Exceptions;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -29,9 +30,26 @@ namespace Kawaw
                     app.User.UpdateUser(user);
                     await Navigation.PopAsync();
                 }
-                catch (Exception)
+                catch (SessionExpiredException)
                 {
-                    Debug.WriteLine("oops");
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Session Expired",
+                        Text = "Your session has expired. Please log in again.",
+                        Callback = new Command(async () =>
+                        {
+                            await Navigation.PopAsync();
+                            MessagingCenter.Send((object) this, "session-expired");
+                        }),
+                    });
+                }
+                catch (Exception e)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Add Email Failed",
+                        Text = e.Message
+                    });
                 }
             });
             CancelCommand = new Command(async () =>

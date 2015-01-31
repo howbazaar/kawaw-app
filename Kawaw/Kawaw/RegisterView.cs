@@ -49,17 +49,14 @@ namespace Kawaw
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            MessagingCenter.Subscribe(this, "alert", async (RegisterViewModel model, Alert alert) =>
-            {
-                await DisplayAlert(alert.Title, alert.Text, "OK");
-            });
+            SubscribeAlert<RegisterViewModel>();
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            MessagingCenter.Unsubscribe<RegisterViewModel, Alert>(this, "alert");     
+            UnsubscribeAlert<RegisterViewModel>();
         }
+
     }
-  
 }

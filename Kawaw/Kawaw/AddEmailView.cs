@@ -57,7 +57,18 @@ namespace Kawaw
                     }
                 }
             };
+        }
 
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            SubscribeAlert<AddEmailViewModel>();
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            UnsubscribeAlert<AddEmailViewModel>();
         }
 
     }

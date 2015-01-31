@@ -109,5 +109,18 @@ namespace Kawaw
                 Content = view
             };
         }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            SubscribeAlert<ChangeDetailsViewModel>();
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            UnsubscribeAlert<ChangeDetailsViewModel>();
+        }
+
     }
 }

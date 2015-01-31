@@ -87,7 +87,7 @@ namespace Kawaw
                 }
                 catch (InconsistentStateException)
                 {
-                    MessagingCenter.Send((object) this, "refresh");
+                    MessagingCenter.Send((object)this, "refresh");
                 }
                 catch (Exception e)
                 {

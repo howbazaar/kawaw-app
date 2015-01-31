@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows.Input;
+using Kawaw.Exceptions;
 using Kawaw.JSON;
 using Xamarin.Forms;
 
@@ -42,7 +43,7 @@ namespace Kawaw
         public ICommand ClearDateOfBirthCommand { get; private set; }
 
         public ChangeDetailsViewModel(IApp app)
-            :base(app)
+            : base(app)
         {
             FirstName = app.User.FirstName;
             LastName = app.User.LastName;
@@ -51,11 +52,35 @@ namespace Kawaw
 
             SaveCommand = new Command(async () =>
             {
-                var jsonUser = await app.Remote.UpdateUserDetails(FirstName, LastName, Address, DateOfBirth);
-                app.User.UpdateUser(jsonUser);
-                await Navigation.PopAsync();
+                try
+                {
+                    var jsonUser = await app.Remote.UpdateUserDetails(FirstName, LastName, Address, DateOfBirth);
+                    app.User.UpdateUser(jsonUser);
+                    await Navigation.PopAsync();
+                }
+                catch (SessionExpiredException)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Session Expired",
+                        Text = "Your session has expired. Please log in again.",
+                        Callback = new Command(async () =>
+                        {
+                            await Navigation.PopAsync();
+                            MessagingCenter.Send((object) this, "session-expired");
+                        }),
+                    });
+                }
+                catch (Exception e)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Add Email Failed",
+                        Text = e.Message
+                    });
+                }
             });
-            ClearDateOfBirthCommand = new Command(() => { DateOfBirth = new DateTime(0);});
-        }        
+            ClearDateOfBirthCommand = new Command(() => { DateOfBirth = new DateTime(0); });
+        }
     }
 }

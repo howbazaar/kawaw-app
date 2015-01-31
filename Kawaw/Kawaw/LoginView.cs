@@ -74,18 +74,13 @@ namespace Kawaw
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            Debug.WriteLine("appearing, so subscribe {0}", this.Id);
-            MessagingCenter.Subscribe(this, "alert", async (LoginViewModel model, Alert alert) =>
-            {
-                await DisplayAlert(alert.Title, alert.Text, "OK");
-            });
+            SubscribeAlert<LoginViewModel>();
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            Debug.WriteLine("disappearing, so unsubscribe {0}", this.Id);
-            MessagingCenter.Unsubscribe<LoginViewModel, Alert>(this, "alert");
+            UnsubscribeAlert<LoginViewModel>();
         }
     
     }
