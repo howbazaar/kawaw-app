@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Kawaw.Framework;
 using Kawaw.Models;
 using Xamarin.Forms;
 using System.Linq;
@@ -130,7 +131,7 @@ namespace Kawaw
                 UpdateFromUser(app.User);
             });
         }
-        private void UpdateFromUser(RemoteUser user)
+        private void UpdateFromUser(User user)
         {
             if (user == null || user.Events == null)
             {

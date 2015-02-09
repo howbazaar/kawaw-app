@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Windows.Input;
 using Kawaw.Exceptions;
+using Kawaw.Framework;
 using Kawaw.JSON;
 using Xamarin.Forms;
 

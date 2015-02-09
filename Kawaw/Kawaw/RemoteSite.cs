@@ -7,8 +7,9 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using Kawaw.Exceptions;
-using Kawaw.JSON;
+using Kawaw.Framework;
 using Newtonsoft.Json.Linq;
+using User = Kawaw.Models.User;
 
 namespace Kawaw
 {
@@ -152,12 +153,12 @@ namespace Kawaw
             return list != null ? list.ToArray() : null;
         }
 
-        private static async Task<User> ReadUserFromContent(HttpResponseMessage response)
+        private static async Task<JSON.User> ReadUserFromContent(HttpResponseMessage response)
         {
-            return await ReadFromResponse<User>(response).ConfigureAwait(false);
+            return await ReadFromResponse<JSON.User>(response).ConfigureAwait(false);
         }
 
-        public async Task<User> GetUserDetails()
+        public async Task<JSON.User> GetUserDetails()
         {
             var response = await Get("+user/").ConfigureAwait(false);
             if (response.StatusCode == HttpStatusCode.OK)
@@ -183,9 +184,9 @@ namespace Kawaw
             throw new UnexpectedStatusException(response.StatusCode);
         }
 
-        public Task<Event[]> GetEvents()
+        public Task<JSON.Event[]> GetEvents()
         {
-            return GetArrayType<Event>("+events/");
+            return GetArrayType<JSON.Event>("+events/");
         }
 
         public Task<JSON.Connection[]> GetConnections()
@@ -193,6 +194,10 @@ namespace Kawaw
             return GetArrayType<JSON.Connection>("+connections/");
         }
 
+        public Task<JSON.Notification[]> GetNotifications()
+        {
+            return GetArrayType<JSON.Notification>("+notifications/");
+        }
 
         private void SetValuesFromCookies()
         {
@@ -207,7 +212,7 @@ namespace Kawaw
             SessionId = cookies["sessionid"].Value;
         }
 
-        public async Task<RemoteUser> Login(string username, string password)
+        public async Task<User> Login(string username, string password)
         {
             var values = new Dictionary<string, string>();
             values["login"] = username;
@@ -217,13 +222,16 @@ namespace Kawaw
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 SetValuesFromCookies();
-                return new RemoteUser(this);
+                return new User
+                {
+                    Remote = this
+                };
             }
             await ProcessFormError(response);
             throw new UnexpectedException("unreachable");
         }
 
-        public async Task<RemoteUser> Register(string email, string password)
+        public async Task<User> Register(string email, string password)
         {
             var values = new Dictionary<string, string>();
             values["email"] = email;
@@ -233,7 +241,10 @@ namespace Kawaw
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 SetValuesFromCookies();
-                return new RemoteUser(this);
+                return new User
+                {
+                    Remote = this
+                };
             }
 
             await ProcessFormError(response);
@@ -268,7 +279,7 @@ namespace Kawaw
             values["first_name"] = firstName;
             values["last_name"] = lastName;
             values["address"] = address;
-            if (dateOfBirth == new DateTime(0) || dateOfBirth == RemoteUser.MinDateOfBirthValue)
+            if (dateOfBirth == new DateTime(0) || dateOfBirth == User.MinDateOfBirthValue)
             {
                 values["date_of_birth"] = "";
             }
@@ -326,6 +337,25 @@ namespace Kawaw
 
             if (response.StatusCode == HttpStatusCode.Forbidden)
                 throw new SessionExpiredException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
+        }
+
+        public async Task NotificationAction(uint notificationId, uint memberId, bool accepted)
+        {
+            var values = new Dictionary<string, string>();
+            values["id"] = memberId.ToString();
+            values["accepted"] = accepted ? "True" : "False";
+            var url = "+registration-response/" + notificationId + "/";
+            var response = await Post(url, values).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return;
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new InconsistentStateException();
 
             await ProcessFormError(response);
             throw new UnexpectedException("unreachable");

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Windows.Input;
 using Kawaw.Exceptions;
+using Kawaw.Framework;
 using Xamarin.Forms;
 
 namespace Kawaw

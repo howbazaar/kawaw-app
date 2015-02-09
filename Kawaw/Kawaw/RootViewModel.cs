@@ -1,5 +1,6 @@
 using System;
 using Kawaw.Exceptions;
+using Kawaw.Framework;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -8,6 +9,7 @@ namespace Kawaw
     {
         public const string Events = "Events";
         public const string Connections = "Connections";
+        public const string Notifications = "Notifications";
         public const string Profile = "Profile";
         public const string Login = "Login";
 
@@ -71,7 +73,8 @@ namespace Kawaw
         {
             try
             {
-                await App.User.Refresh(App.Remote);
+                App.User.Remote = App.Remote;
+                await App.User.Refresh();
             }
             catch (SessionExpiredException)
             {
@@ -82,14 +85,14 @@ namespace Kawaw
                     Callback = new Command(() => MessagingCenter.Send((object)this, "session-expired")),
                 });
             }
-            catch (NetworkDownException e)
+            catch (NetworkDownException ne)
             {
                 if (!silent)
                 {
                     MessagingCenter.Send(this, "alert", new Alert
                     {
                         Title = "Refresh Failed",
-                        Text = e.Message
+                        Text = ne.Message
                     });
                 }
             }
@@ -130,12 +133,15 @@ namespace Kawaw
                     return new EventsViewModel(App);
                 case Connections:
                     return new ConnectionsViewModel(App);
+                //case Notifications:
+                //    return new NotificationsViewModel(App);
                 case Profile:
                     return new ProfileViewModel(App);
                 case Login:
                     return new LoginViewModel(App);
             }
-            throw new Exception("Unknown model name " + name);
+            return new ProfileViewModel(App);
+            // throw new Exception("Unknown model name " + name);
         }
 
     }

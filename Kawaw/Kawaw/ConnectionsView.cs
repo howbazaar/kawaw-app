@@ -151,6 +151,5 @@ namespace Kawaw
             UnsubscribeAlert<ConnectionsViewModel>();
             MessagingCenter.Unsubscribe<ConnectionsViewModel, ConnectionActionOptions>(this, "show-options");
         }
- 
     }
 }

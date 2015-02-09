@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
+using Kawaw.Framework;
+using Kawaw.Models;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -8,12 +10,12 @@ namespace Kawaw
     interface IApp
     {
         IRemoteSite Remote { get; }
-        RemoteUser User { get; set; }
+        User User { get; set; }
     }
 
     public class App : Application, IApp
     {
-        private RemoteUser _user;
+        private User _user;
         private readonly RootViewModel _rootViewModel;
 
         // chevron is the rootview.master.icon
@@ -24,6 +26,7 @@ namespace Kawaw
             ViewModelNavigation.Register<RegisterViewModel, RegisterView>();
             ViewModelNavigation.Register<EventsViewModel, EventsView>();
             ViewModelNavigation.Register<ConnectionsViewModel, ConnectionsView>();
+            //ViewModelNavigation.Register<NotificationsViewModel, NotificationsView>();
             ViewModelNavigation.Register<ProfileViewModel, ProfileView>();
             ViewModelNavigation.Register<ChangeDetailsViewModel, ChangeDetailsView>();
             ViewModelNavigation.Register<NavigationViewModel, NavigationView>();
@@ -33,7 +36,7 @@ namespace Kawaw
             // Look to see if we have a logged in person.
             if (Properties.ContainsKey("User"))
             {
-                User = Properties["User"] as RemoteUser;
+                User = Properties["User"] as User;
                 // ReSharper disable once PossibleNullReferenceException
                 Debug.WriteLine("User found in properties: {0}", User.FullName);
             }
@@ -129,7 +132,7 @@ namespace Kawaw
 
         public IRemoteSite Remote { get; private set; }
 
-        public RemoteUser User
+        public User User
         {
             get { return _user; }
             set
@@ -139,15 +142,6 @@ namespace Kawaw
                 if (_user != null)
                 {
                     Properties["User"] = _user;
-#if DEBUG
-                    var x = new DataContractSerializer(typeof(RemoteUser));
-                    var buf = new MemoryStream();
-                    x.WriteObject(buf, _user);
-                    buf.Seek(0, SeekOrigin.Begin);
-                    var obj = x.ReadObject(buf);
-                    var test = obj as RemoteUser;
-                    Debug.WriteLine("Serialisation of user {0} passed", test.FullName);
-#endif
                 }
                 else
                 {

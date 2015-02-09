@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Kawaw.Framework;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -8,7 +9,7 @@ namespace Kawaw
         public RootView()
         {
             this.SetBinding(NavigationProperty, new Binding("Navigation", converter: new NavigationConverter()));
-            this.SetBinding(IsBusyProperty, "IsBusy");
+            //this.SetBinding(IsBusyProperty, "IsBusy");
 
             MessagingCenter.Subscribe(this, "show-page", (RootViewModel sender, BaseViewModel model) =>
             {
