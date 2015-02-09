@@ -10,15 +10,12 @@ namespace Kawaw.Droid
     using Android.OS;
     using Android.Content.PM;
 
-    [Activity(Theme = "@style/Theme.Splash", MainLauncher = true, NoHistory = true , ScreenOrientation = ScreenOrientation.Portrait)]
+    [Activity(Theme = "@style/Theme.Splash", MainLauncher = true, NoHistory = true) ]
     public class SplashActivity : Activity
     {
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
-
-            // Wait for 2 seconds
-            Thread.Sleep(30000);
 
             //Moving to next activity
             StartActivity(typeof(MainActivity));
