@@ -128,7 +128,10 @@ namespace Kawaw
 
             MessagingCenter.Subscribe<object>(this, "events-updated", delegate
             {
-                UpdateFromUser(app.User);
+                if (IsPageVisible)
+                {
+                    UpdateFromUser(app.User);
+                }
             });
         }
         private void UpdateFromUser(User user)

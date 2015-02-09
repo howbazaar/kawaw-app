@@ -150,7 +150,10 @@ namespace Kawaw
 
             MessagingCenter.Subscribe<object>(this, "notifications-updated", delegate
             {
-                UpdateFromUser(app.User);
+                if (IsPageVisible)
+                {
+                    UpdateFromUser(app.User);
+                }
             });
             MessagingCenter.Subscribe(this, "notification-action", async (object sender, NotificationResponseAction action) =>
             {
