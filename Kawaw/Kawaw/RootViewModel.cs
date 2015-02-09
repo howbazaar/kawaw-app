@@ -133,8 +133,8 @@ namespace Kawaw
                     return new EventsViewModel(App);
                 case Connections:
                     return new ConnectionsViewModel(App);
-                //case Notifications:
-                //    return new NotificationsViewModel(App);
+                case Notifications:
+                    return new NotificationsViewModel(App);
                 case Profile:
                     return new ProfileViewModel(App);
                 case Login:

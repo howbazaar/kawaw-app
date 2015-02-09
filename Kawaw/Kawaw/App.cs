@@ -26,7 +26,7 @@ namespace Kawaw
             ViewModelNavigation.Register<RegisterViewModel, RegisterView>();
             ViewModelNavigation.Register<EventsViewModel, EventsView>();
             ViewModelNavigation.Register<ConnectionsViewModel, ConnectionsView>();
-            //ViewModelNavigation.Register<NotificationsViewModel, NotificationsView>();
+            ViewModelNavigation.Register<NotificationsViewModel, NotificationsView>();
             ViewModelNavigation.Register<ProfileViewModel, ProfileView>();
             ViewModelNavigation.Register<ChangeDetailsViewModel, ChangeDetailsView>();
             ViewModelNavigation.Register<NavigationViewModel, NavigationView>();
