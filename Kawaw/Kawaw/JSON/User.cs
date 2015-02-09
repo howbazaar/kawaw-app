@@ -14,9 +14,6 @@ namespace Kawaw.JSON
         [DataMember(Name = "last_name")]
         public string LastName { get; set; }
 
-        [DataMember(Name = "token")]
-        public string CSRFToken { get; set; }
-
         [DataMember(Name = "full_name")]
         public string FullName { get; set; }
 
@@ -30,18 +27,4 @@ namespace Kawaw.JSON
         [DataMember(Name = "emails")]
         public Email[] Emails { get; set; }
     }
-
-    [DataContract]
-    public class Email
-    {
-        [DataMember(Name = "verified")]
-        public bool Verified { get; set; }
-
-        [DataMember(Name = "email")]
-        public string Address { get; set; }
-
-        [DataMember(Name = "primary")]
-        public bool Primary { get; set; }
-    }
-
 }

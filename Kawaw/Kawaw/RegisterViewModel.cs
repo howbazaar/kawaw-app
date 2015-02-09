@@ -1,55 +1,127 @@
-﻿using System.Diagnostics;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System;
+using System.Diagnostics;
 using System.Windows.Input;
+using Kawaw.Exceptions;
 using Xamarin.Forms;
 
 namespace Kawaw
 {
     class RegisterViewModel : BaseViewModel
     {
-        private string email;
-        private string password;
-        private string password2;
-        private string name;
+        private bool _buttonsActive;
+        private string _email;
+        private string _password;
+        private string _password2;
+        private readonly Command _registerCommand;
 
         public string Email
         {
-            get { return email; }
-            set { SetProperty(ref email, value); }
-        }
-        public string Name
-        {
-            get { return name; }
-            set { SetProperty(ref name, value); }
+            get { return _email; }
+            set { SetProperty(ref _email, value); }
         }
 
         public string Password
         {
-            get { return password; }
-            set { SetProperty(ref password, value); }
+            get { return _password; }
+            set { SetProperty(ref _password, value); }
         }
+
         public string Password2
         {
-            get { return password2; }
-            set { SetProperty(ref password2, value); }
+            get { return _password2; }
+            set { SetProperty(ref _password2, value); }
         }
-        public ICommand RegisterCommand { get; private set; }
+
+        public ICommand RegisterCommand
+        {
+            get { return _registerCommand; }
+        }
+
         public RegisterViewModel(IApp app)
             : base(app)
         {
-            RegisterCommand = new Command(async () =>
+            _buttonsActive = true;
+            _registerCommand = new Command(async () =>
             {
-                Debug.WriteLine("Email: " + email);
-                Debug.WriteLine("Password: {0}", password);
-                IsBusy = true;
-                await Task.Delay(2000);
-                var request = HttpWebRequest.CreateHttp("https://kawaw.com/+login-form");
+                if (!Validate()) return;
 
-                // assume we have logged in and pop the page
-                IsBusy = false;
-                await Navigation.PopModalAsync();
-            });
+                UpdateButtonsActive(false);
+
+                try
+                {
+                    App.User = await app.Remote.Register(_email, _password);
+                    await Navigation.PopModalAsync();
+                }
+                catch (FormErrorsException e)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Registration Failed",
+                        Text = e.Message
+                    });
+                }
+                catch (NetworkDownException e)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Registration Failed",
+                        Text = e.Message
+                    });
+                }
+                catch (Exception)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Registration Failed",
+                        Text = "Something went wrong, please try again later"
+                    });
+                }
+
+                UpdateButtonsActive(true);
+
+            }, () => _buttonsActive);
+        }
+
+        private void UpdateButtonsActive(bool active)
+        {
+            _buttonsActive = active;
+            IsBusy = !active;
+            _registerCommand.ChangeCanExecute();
+        }
+
+        private bool Validate()
+        {
+            if (string.IsNullOrEmpty(Email))
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Missing e-mail address",
+                    Text = "You must enter your email address."
+                });
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(Password))
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Missing password",
+                    Text = "You must enter a password."
+                });
+                return false;
+            }
+
+            if (Password != Password2)
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Mismatching passwords",
+                    Text = "Your passwords must match."
+                });
+                return false;
+            }
+            
+            return true;
         }
 
     }

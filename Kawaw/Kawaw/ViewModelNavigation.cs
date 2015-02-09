@@ -8,7 +8,7 @@ namespace Kawaw
     class ViewModelNavigation
     {
         private readonly INavigation _navigation;
-        private static Dictionary<Type, Type> Registered = new Dictionary<Type, Type>();
+        private static readonly Dictionary<Type, Type> Registered = new Dictionary<Type, Type>();
 
         public static void Register<TViewModel, TView>()
             where TViewModel : BaseViewModel

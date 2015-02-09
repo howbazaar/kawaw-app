@@ -1,4 +1,6 @@
-﻿using Xamarin.Forms;
+﻿using System.Diagnostics;
+using System.Linq;
+using Xamarin.Forms;
 
 namespace Kawaw
 {
@@ -12,7 +14,8 @@ namespace Kawaw
 
             var emailEntry = new Entry
             {
-                Placeholder = "E-mail address"
+                Placeholder = "E-mail address",
+                Keyboard = Keyboard.Email
             };
             emailEntry.SetBinding(Entry.TextProperty, "Email");
             var passwordEntry = new Entry
@@ -32,6 +35,9 @@ namespace Kawaw
             };
             registerButton.SetBinding(Button.CommandProperty, "RegisterCommand");
 
+            var remoteUrl = new Label();
+            remoteUrl.SetBinding(Label.TextProperty, "RemoteUrl");
+
             Content = new StackLayout
             {
                 Spacing = 10,
@@ -39,10 +45,22 @@ namespace Kawaw
                     emailEntry,
                     passwordEntry,
                     loginButton,
-                    registerButton
+                    registerButton,
+#if DEBUG
+                    remoteUrl,
+#endif
                 }
             };
 
+#if DEBUG
+            AddSiteToolbarOptions();
+#endif
+        }
+
+        private void AddSiteToolbarOptions()
+        {
+            ToolbarItems.Add(new ToolbarItem("Production", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "https://kawaw.com"), ToolbarItemOrder.Secondary));
+            ToolbarItems.Add(new ToolbarItem("Tim's Laptop", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "http://192.168.1.7:8080"), ToolbarItemOrder.Secondary));
         }
 
         protected override bool OnBackButtonPressed()
@@ -52,5 +70,18 @@ namespace Kawaw
             // and let me know what to do.
             return true;
         }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            SubscribeAlert<LoginViewModel>();
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            UnsubscribeAlert<LoginViewModel>();
+        }
+    
     }
 }

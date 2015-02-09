@@ -1,74 +1,138 @@
+using System;
 using System.Diagnostics;
-using System.Net;
-using System.Threading.Tasks;
 using System.Windows.Input;
+using Kawaw.Exceptions;
 using Xamarin.Forms;
 
 namespace Kawaw
 {
     class LoginViewModel : BaseViewModel
     {
-        private string email;
-        private string password;
+        private string _email;
+        private string _password;
+        private string _remoteUrl;
+        private readonly Command _loginCommand;
+        private readonly Command _registerCommand;
+        private bool _buttonsActive;
 
         public string Email
         {
-            get { return email; }
-            set { SetProperty(ref email, value); }
+            get { return _email; }
+            set { SetProperty(ref _email, value); }
         }
 
         public string Password
         {
-            get { return password; }
-            set { SetProperty(ref password, value); }
+            get { return _password; }
+            set { SetProperty(ref _password, value); }
         }
-        // autoproperty magic, c# rubbish
-        public ICommand LoginCommand { get; private set; }
-        public ICommand RegisterCommand { get; private set; }
+
+        public string RemoteUrl
+        {
+            get { return _remoteUrl; }
+            set { SetProperty(ref _remoteUrl, value); }
+        }
+
+        public ICommand LoginCommand
+        {
+            get { return _loginCommand; }
+        }
+
+        public ICommand RegisterCommand
+        {
+            get { return _registerCommand; }
+        }
+
         public LoginViewModel(IApp app)
             : base(app)
         {
-            RegisterCommand = new Command(async () =>
+            RemoteUrl = App.Remote.BaseUrl;
+
+            _buttonsActive = true;
+            _registerCommand = new Command(async () =>
             {
                 await Navigation.PushAsync(new RegisterViewModel(App));
-            });
-            Command loginCommand = null;
-            bool canLogin = true;
-            loginCommand = new Command(async () =>
+            }, () => _buttonsActive);
+
+            _loginCommand = new Command(async () =>
             {
-                canLogin = false;
-                loginCommand.ChangeCanExecute();
-                Debug.WriteLine("Email: " + email);
-                Debug.WriteLine("Password: {0}", password);
-                IsBusy = true;
+                if (!Validate()) return;
+
+                UpdateButtonsActive(false);
 
                 var remote = app.Remote;
-                var worked = await remote.Login(email, password);
-                Debug.WriteLine(worked);
-                if (!worked)
+                try
                 {
-                    IsBusy = false;
-                    // TODO: show error message about bad credentials.
-                    canLogin = true;
-                    loginCommand.ChangeCanExecute();
-                    return;
+                    App.User = await remote.Login(_email, _password);
+                    await Navigation.PopModalAsync();
                 }
-                var details= await remote.GetUserDetails();
-                var user = new RemoteUser(details);
-                user.CSRFToken = remote.CSRFToken;
-                user.SessionId = remote.SessionId;
-                App.User = user;
+                catch (FormErrorsException e)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Login Failed",
+                        Text = e.Message
+                    });
+                }
+                catch (NetworkDownException e)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Login Failed",
+                        Text = e.Message
+                    });
+                }
+                catch (Exception)
+                {
+                    MessagingCenter.Send(this, "alert", new Alert
+                    {
+                        Title = "Login Failed",
+                        Text = "Something went wrong, please try again later"
+                    });
+                }
 
-                // assume we have logged in and pop the page
-                IsBusy = false;
-                await Navigation.PopModalAsync();
+                UpdateButtonsActive(true);
+            }, () => _buttonsActive);
 
-                canLogin = true;
-                loginCommand.ChangeCanExecute();
+            MessagingCenter.Subscribe(this, "set-remote-site", (object sender, string url) =>
+            {
+                Debug.WriteLine("Setting remote site to {0}", url);
+                App.Remote.BaseUrl = url;
+                RemoteUrl = url;
+            });
 
-                // set canLogin back to true if something fucked up.
-            }, () => canLogin);
-            LoginCommand = loginCommand;
+        }
+
+        private bool Validate()
+        {
+            if (string.IsNullOrEmpty(Email))
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Missing e-mail address",
+                    Text = "You must enter your email address."
+                });
+                return false;
+            }
+            if (string.IsNullOrEmpty(Password))
+            {
+                MessagingCenter.Send(this, "alert", new Alert
+                {
+                    Title = "Missing password",
+                    Text = "You must enter your password."
+                });
+                return false;
+            }
+
+            return true;
+        }
+
+        private void UpdateButtonsActive(bool active)
+        {
+            _buttonsActive = active;
+            IsBusy = !active;
+            _loginCommand.ChangeCanExecute();
+            _registerCommand.ChangeCanExecute();
         }
 
         public void Reset()

@@ -1,7 +1,12 @@
-﻿using Xamarin.Forms;
+﻿using System;
+using Xamarin.Forms;
 
 namespace Kawaw
 {
+    public class OptionalDatePicker : DatePicker
+    {
+
+    };
     class ChangeDetailsView : BaseView
     {
         public ChangeDetailsView()
@@ -9,6 +14,8 @@ namespace Kawaw
             Title = "Change Details";
             Icon = "kawaw.png";
             Padding = new Thickness(20);
+
+            var size = Device.GetNamedSize(NamedSize.Medium, typeof (Label));
 
             var firstNameEntry = new Entry
             {
@@ -27,31 +34,93 @@ namespace Kawaw
             };
             addressEdit.SetBinding(Editor.TextProperty, "Address");
 
-            var dobEntry = new DatePicker
-            {
-            };
-            dobEntry.SetBinding(DatePicker.DateProperty, "DateOfBirth");
-
             var saveButton = new Button
             {
                 Text = "Save"
             };
             saveButton.SetBinding(Button.CommandProperty, "SaveCommand");
 
-            Content = new StackLayout
+            var cancelButton = new Button
+            {
+                Text = "Cancel"
+            };
+            cancelButton.Command = new Command(async() => await Navigation.PopAsync());
+
+            var clearDOB = new Button
+            {
+                Text = "Clear"
+            };
+            clearDOB.SetBinding(Button.CommandProperty, "ClearDateOfBirthCommand ");
+
+            var datepicker = new OptionalDatePicker()
+            {
+                Format = "dd MMM yyyy",
+                HorizontalOptions = LayoutOptions.FillAndExpand
+            };
+            datepicker.SetBinding(DatePicker.DateProperty, "DateOfBirth");
+            datepicker.Focused += (sender, args) =>
+            {
+                if (datepicker.Date == datepicker.MinimumDate)
+                {
+                    datepicker.Date = DateTime.Today;
+                }
+            };
+            datepicker.Unfocused += (sender, args) =>
+            {
+                if (datepicker.Date == DateTime.Today)
+                {
+                    datepicker.Date = datepicker.MinimumDate;
+                }
+            };
+
+            var view = new StackLayout
             {
                 Spacing = 10,
                 Children =
                 {
                     firstNameEntry,
                     lastNameEntry,
-                    new Label {Text = "Address"},
+                    new Label {Text = "Address:", FontSize = size},
                     addressEdit,
-                    dobEntry,
-                    saveButton
+                    new Label{Text = "Date of Birth: ", FontSize = size},
+                    new StackLayout
+                    {
+                        Orientation = StackOrientation.Horizontal,
+                        Children =
+                        {
+                            datepicker,
+                            clearDOB,
+                        }
+                    },
+
+                    new Grid
+                    {
+                        Padding = new Thickness(0, 15),
+                        Children =
+                        {
+                            {cancelButton,1,0},
+                            {saveButton,2,0},
+                        }
+                    }
                 }
             };
-
+            Content = new ScrollView
+            {
+                Content = view
+            };
         }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            SubscribeAlert<ChangeDetailsViewModel>();
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            UnsubscribeAlert<ChangeDetailsViewModel>();
+        }
+
     }
 }

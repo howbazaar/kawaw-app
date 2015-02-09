@@ -3,69 +3,122 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
+using Kawaw.Exceptions;
 using Kawaw.JSON;
-using Xamarin.Forms;
+using Newtonsoft.Json.Linq;
 
 namespace Kawaw
 {
-    class RemoteSite : IRemoteSite
+    public class RemoteSite : BaseProperties, IRemoteSite
     {
-        public string CSRFToken { get; private set; }
-        public string SessionId { get; private set; }
+        // ReSharper disable once InconsistentNaming
+        public string CSRFToken
+        {
+            get { return _csrfToken; }
+            private set { SetProperty(ref _csrfToken, value); }
+        }
 
-        private string _remote;
+        public string SessionId
+        {
+            get { return _sessionId; }
+            private set { SetProperty(ref _sessionId, value); }
+        }
+
+        public string BaseUrl
+        {
+            get { return _baseUrl; }
+            set
+            {
+                if (!SetProperty(ref _baseUrl, value)) return;
+                CSRFToken = null;
+                SessionId = null;
+                CreateClient();
+            }
+        }
+
         private HttpClient _client;
         private CookieContainer _cookies;
+        private string _csrfToken;
+        private string _sessionId;
+        private string _baseUrl;
 
-        public RemoteSite(string token, string sessionId)
+        public RemoteSite(string baseUrl, string token, string sessionId)
         {
+            BaseUrl = baseUrl;
             CSRFToken = token;
             SessionId = sessionId;
+            CreateClient();
+        }
 
-            // _remote = "https://kawaw.com";
-            _remote = "http://192.168.1.7:8080";
+        private void CreateClient()
+        {
             _cookies = new CookieContainer();
-            var uri = new Uri(_remote);
+            var uri = new Uri(BaseUrl);
             if (!string.IsNullOrEmpty(SessionId))
             {
                 _cookies.Add(uri, new Cookie("csrftoken", CSRFToken));
                 _cookies.Add(uri, new Cookie("sessionid", SessionId));
             }
 
-            var handler = new HttpClientHandler {CookieContainer = _cookies};
-            _client = new HttpClient(handler) {BaseAddress = uri};
+            var handler = new HttpClientHandler { CookieContainer = _cookies };
+            _client = new HttpClient(handler) { BaseAddress = uri };
             // Fake it for the all auth plugin.
-            _client.DefaultRequestHeaders.Add("X_REQUESTED_WITH", "XMLHttpRequest");
+            _client.DefaultRequestHeaders.Add("X-REQUESTED-WITH", "XMLHttpRequest");
+            _client.DefaultRequestHeaders.Add("REFERER", BaseUrl);
         }
 
+        // ReSharper disable once InconsistentNaming
         private async Task<string> GetCSRFToken()
         {
             await Get("+login-form/").ConfigureAwait(false);
-            var cookie = _cookies.GetCookies(new Uri(_remote))["csrftoken"];
+            var cookie = _cookies.GetCookies(new Uri(BaseUrl))["csrftoken"];
             return cookie.Value;
         }
 
-        private Task<HttpResponseMessage> Get(string path)
+        private async Task<HttpResponseMessage> Get(string path)
         {
-            return _client.GetAsync(path);
+            try
+            {
+                return await _client.GetAsync(path).ConfigureAwait(false);
+            }
+            catch (WebException)
+            {
+                throw new NetworkDownException();
+            }
         }
 
         private async Task<HttpResponseMessage> Post(string path)
         {
-            // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
-            // this it will come back to the thread that initially called await, which will always be the ui thread
-            var content = new ByteArrayContent(new byte[0]);
-            content.Headers.Add("X-CSRFToken", CSRFToken);
-            return await _client.PostAsync(path, content).ConfigureAwait(false);
+            try
+            {
+                if (string.IsNullOrEmpty(CSRFToken))
+                {
+                    CSRFToken = await GetCSRFToken();
+                }
+                // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
+                // this it will come back to the thread that initially called await, which will always be the ui thread
+                var content = new ByteArrayContent(new byte[0]);
+                content.Headers.Add("X-CSRFToken", CSRFToken);
+                return await _client.PostAsync(path, content).ConfigureAwait(false);
+            }
+            catch (WebException)
+            {
+                throw new NetworkDownException();
+            }
         }
 
         private async Task<HttpResponseMessage> Post(string path, Dictionary<string, string> formAttributes)
         {
+            if (string.IsNullOrEmpty(CSRFToken))
+            {
+                CSRFToken = await GetCSRFToken();
+            }
             // ConfigureAwait(false) says just run on the thread you came back on, if we don't do
             // this it will come back to the thread that initially called await, which will always be the ui thread
-            var cookies = _cookies.GetCookies(new Uri(_remote));
+            var cookies = _cookies.GetCookies(new Uri(BaseUrl));
             foreach (Cookie cookie in cookies)
             {
                 Debug.WriteLine(cookie.ToString());
@@ -76,88 +129,240 @@ namespace Kawaw
             return await _client.PostAsync(path, content).ConfigureAwait(false);
         }
 
-        private async Task<JSON.User> readUserFromContent(HttpResponseMessage response)
+        private static async Task<TResponse> ReadFromResponse<TResponse>(HttpResponseMessage response)
+            where TResponse : class
         {
-            var jsonSerializer = new DataContractJsonSerializer(typeof(JSON.User));
+            var jsonSerializer = new DataContractJsonSerializer(typeof(TResponse));
             var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
             var objResponse = jsonSerializer.ReadObject(stream);
-            return objResponse as JSON.User;
+            return objResponse as TResponse;
         }
 
-        public async Task<JSON.User> GetUserDetails()
+        private static async Task<TResponse[]> ReadArrayFromResponse<TResponse>(HttpResponseMessage response)
+            where TResponse : class
+        {
+            var jsonSerializer = new DataContractJsonSerializer(typeof(List<TResponse>));
+#if DEBUG
+            // ReSharper disable once UnusedVariable
+            var content = await response.Content.ReadAsStringAsync();
+#endif
+            var stream = await response.Content.ReadAsStreamAsync();
+            var objResponse = jsonSerializer.ReadObject(stream);
+            var list = objResponse as List<TResponse>;
+            return list != null ? list.ToArray() : null;
+        }
+
+        private static async Task<User> ReadUserFromContent(HttpResponseMessage response)
+        {
+            return await ReadFromResponse<User>(response).ConfigureAwait(false);
+        }
+
+        public async Task<User> GetUserDetails()
         {
             var response = await Get("+user/").ConfigureAwait(false);
-            // TODO: throw a known error for Forbidden.
-            if (response.StatusCode != HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                throw new Exception("not ok... sort it out");
+                return await ReadUserFromContent(response).ConfigureAwait(false);
             }
-            return await readUserFromContent(response).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+            throw new UnexpectedStatusException(response.StatusCode);
         }
 
-        public async Task<bool> Login(string username, string password)
+        private async Task<TResponse[]> GetArrayType<TResponse>(string url)
+            where TResponse : class
         {
-            CSRFToken = await GetCSRFToken();
+            var response = await Get(url).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await ReadArrayFromResponse<TResponse>(response).ConfigureAwait(false);
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+            throw new UnexpectedStatusException(response.StatusCode);
+        }
+
+        public Task<Event[]> GetEvents()
+        {
+            return GetArrayType<Event>("+events/");
+        }
+
+        public Task<JSON.Connection[]> GetConnections()
+        {
+            return GetArrayType<JSON.Connection>("+connections/");
+        }
+
+
+        private void SetValuesFromCookies()
+        {
+            var cookies = _cookies.GetCookies(new Uri(BaseUrl));
+#if DEBUG
+            foreach (Cookie cookie in cookies)
+            {
+                Debug.WriteLine("{0}: '{1}'", cookie.Name, cookie.Value);
+            }
+#endif
+            CSRFToken = cookies["csrftoken"].Value;
+            SessionId = cookies["sessionid"].Value;
+        }
+
+        public async Task<RemoteUser> Login(string username, string password)
+        {
             var values = new Dictionary<string, string>();
             values["login"] = username;
             values["password"] = password;
             values["remember"] = "True";
-            try
+            var response = await Post("accounts/login/", values);
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                var response = await Post("accounts/login/", values).ConfigureAwait(false);
-                Debug.WriteLine(response.StatusCode);
-                var content = await response.Content.ReadAsStringAsync();
-                Debug.WriteLine(content);
-                // TODO: handle different error codes.
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    var cookies = _cookies.GetCookies(new Uri(_remote));
-                    CSRFToken = cookies["csrftoken"].Value;
-                    SessionId = cookies["sessionid"].Value;
-                }
-                return response.IsSuccessStatusCode;
+                SetValuesFromCookies();
+                return new RemoteUser(this);
             }
-            catch (Exception e)
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
+        }
+
+        public async Task<RemoteUser> Register(string email, string password)
+        {
+            var values = new Dictionary<string, string>();
+            values["email"] = email;
+            values["password1"] = password;
+            values["password2"] = password;
+            var response = await Post("accounts/signup/", values);
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                Debug.WriteLine(e.Message);
+                SetValuesFromCookies();
+                return new RemoteUser(this);
             }
-            return false;
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
         }
 
         public async void Logout()
         {
-            var response = await Post("accounts/logout/").ConfigureAwait(false);
-            Debug.WriteLine(response.StatusCode);
-            var content = await response.Content.ReadAsStringAsync();
-            Debug.WriteLine(response.IsSuccessStatusCode);
+            // Try to logout and clear the session, but if it doesn't work, no biggie.
+            try
+            {
+                await Post("accounts/logout/").ConfigureAwait(false);
+            }
+            // ReSharper disable once EmptyGeneralCatchClause
+            catch (Exception)
+            {
+                // swallow the exception, there is not much we can do here.
+            }
             SessionId = null;
             CSRFToken = null;
-            var cookies = _cookies.GetCookies(new Uri(_remote));
+            var cookies = _cookies.GetCookies(new Uri(BaseUrl));
             foreach (Cookie cookie in cookies)
             {
                 cookie.Expired = true;
             }
         }
 
-        public async Task<User> UpdateUserDetails(string firstName, string lastName, string address,
+        public async Task<JSON.User> UpdateUserDetails(string firstName, string lastName, string address,
             DateTime dateOfBirth)
         {
             var values = new Dictionary<string, string>();
             values["first_name"] = firstName;
             values["last_name"] = lastName;
             values["address"] = address;
-            values["date_of_birth"] = dateOfBirth.ToString("yyyy-MM-dd");
-            var response = await Post("+update-details/", values).ConfigureAwait(false);
-            Debug.WriteLine(response.StatusCode);
-            // TODO: on 404 throw site down....
-            //       on 403 unauthorized - need to login again
-            //       on 400 extract json error from content
-            //       on 200 extract user from json
-            if (response.StatusCode != HttpStatusCode.OK)
+            if (dateOfBirth == new DateTime(0) || dateOfBirth == RemoteUser.MinDateOfBirthValue)
             {
-                throw new Exception("not ok... sort it out");
+                values["date_of_birth"] = "";
             }
-            return await readUserFromContent(response).ConfigureAwait(false);
+            else
+            {
+                values["date_of_birth"] = dateOfBirth.ToString("yyyy-MM-dd");
+            }
+            var response = await Post("+update-details/", values).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
+                return await ReadUserFromContent(response).ConfigureAwait(false);
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
+        }
+
+        [DataContract]
+        public class EmailActionResponse
+        {
+            [DataMember(Name = "user")]
+            public JSON.User User { get; set; }
+        }
+
+        public async Task<JSON.User> AddEmail(string address)
+        {
+            var values = new Dictionary<string, string>();
+            values["email"] = address;
+            var response = await Post("+add-email/", values).ConfigureAwait(false);
+            Debug.WriteLine(response.StatusCode);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await ReadUserFromContent(response).ConfigureAwait(false);
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
+        }
+
+        public async Task<JSON.User> EmailAction(string action, string address)
+        {
+            var values = new Dictionary<string, string>();
+            values["action"] = action;
+            values["email"] = address;
+            var response = await Post("+email-action/", values).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var emailResponse = await ReadFromResponse<EmailActionResponse>(response).ConfigureAwait(false);
+                return emailResponse.User;
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new SessionExpiredException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
+        }
+
+        public async Task<JSON.Connection> ConnectionAction(uint id, bool accept)
+        {
+            var values = new Dictionary<string, string>();
+            values["accepted"] = accept ? "True" : "False";
+            var url = string.Format("+update-connection/{0}/", id);
+            var response = await Post(url, values).ConfigureAwait(false);
+            Debug.WriteLine(response.StatusCode);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await ReadFromResponse<JSON.Connection>(response);
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+                throw new InconsistentStateException();
+
+            await ProcessFormError(response);
+            throw new UnexpectedException("unreachable");
+        }
+
+        private static async Task ProcessFormError(HttpResponseMessage response)
+        {
+            if (response.StatusCode != HttpStatusCode.BadRequest)
+                throw new UnexpectedStatusException(response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            var parsed = JObject.Parse(content);
+            var errors = parsed["form_errors"];
+            if (errors != null)
+            {
+                throw new FormErrorsException(errors.Value<JObject>());
+            }
+            throw new UnexpectedException(content);
         }
     }
 }
