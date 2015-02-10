@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using Android.App;
 using Android.Content.PM;
+using Android.Content.Res;
 using Android.OS;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
@@ -9,7 +10,7 @@ using DatePicker = Xamarin.Forms.DatePicker;
 [assembly:ExportRenderer(typeof(Kawaw.OptionalDatePicker), typeof(Kawaw.Droid.OptionalDatePickerRenderer))]
 namespace Kawaw.Droid
 {
-    [Activity(Label = "Kawaw", MainLauncher = false, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
+    [Activity(Label = "Kawaw", MainLauncher = false, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation, Theme = "@android:style/Theme.Holo.Light")]
     public class MainActivity : FormsApplicationActivity
     {
         protected override void OnCreate(Bundle bundle)

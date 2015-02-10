@@ -31,9 +31,14 @@ namespace Kawaw
                 Content = new Frame
                 {
                     VerticalOptions = LayoutOptions.Center,
-                    OutlineColor = Device.OnPlatform(Color.Black, Color.White, Color.Blue),
+                    OutlineColor = App.AccentColor,
+                    BackgroundColor = App.AccentColor,
+                    Padding = 2,
+
                     Content = new Grid
                     {
+                        Padding = 10,
+                        BackgroundColor = App.BackgroundColor,
                         RowSpacing = 10,
                         RowDefinitions =
                         {   // Make each of the three rows high enough for the content, not all equal for the biggest.
@@ -49,11 +54,11 @@ namespace Kawaw
                                     Text = "Add E-Mail address:",
                                     FontSize = size,
                                 },
-                                0, 3, 0, 1
+                                0, 2, 0, 1
                             },
-                            {emailEntry, 0, 3, 1, 2},
-                            {cancelButton, 1, 2},
-                            {addButton, 2, 2},
+                            {emailEntry, 0, 2, 1, 2},
+                            {cancelButton, 0, 2},
+                            {addButton, 1, 2},
                         }
                     }
                 }

@@ -20,12 +20,17 @@ namespace Kawaw
                     RowDefinitions =
                     {
                         new RowDefinition {Height = new GridLength(1, GridUnitType.Absolute)},
+                        new RowDefinition {Height = 5},
                         new RowDefinition {Height = GridLength.Auto},
+                        new RowDefinition {Height = 5},
                     },
                     ColumnDefinitions =
                     {
+                        new ColumnDefinition {Width = 10},
                         new ColumnDefinition {Width = new GridLength(1, GridUnitType.Star)},
+                        new ColumnDefinition {Width = 10},
                         new ColumnDefinition {Width = GridLength.Auto},
+                        new ColumnDefinition {Width = 10},
                     }
                 };
                 grid.Children.Add(new BoxView
@@ -33,34 +38,21 @@ namespace Kawaw
                     Color = Color.Gray,
                     HeightRequest = 1,
                     Opacity = 0.5,
-                }, 0,2,0,1);
+                }, 0,5,0,1);
 
-                var name = new Label
-                {
-                    TextColor = Color.Black
-                };
+                var name = new Label();
                 name.SetBinding(Label.TextProperty, "Name");
-                var padding = new Thickness(10);
-                grid.Children.Add(new ContentView{
-                    Content = name,
-                    Padding = padding,
-                }, 0, 1);
+                grid.Children.Add(name, 1, 2);
 
                 var pending = new Label();
                 pending.SetBinding(Label.TextProperty, "Status");
                 pending.SetBinding(Label.TextColorProperty, "StatusColor");
-
-                var pendingView = new ContentView
-                {
-                    Content = pending,
-                    Padding = padding,
-                };
+                grid.Children.Add(pending, 3, 2);
 
                 var tapGestureRecognizer = new TapGestureRecognizer();
                 tapGestureRecognizer.SetBinding(TapGestureRecognizer.CommandProperty, "TapCommand");
                 grid.GestureRecognizers.Add(tapGestureRecognizer);
 
-                grid.Children.Add(pendingView, 1,1);
                 View = grid;
             }
         }
@@ -82,10 +74,7 @@ namespace Kawaw
                     Children = { name, activity },
                 };
 
-                var description = new Label
-                {
-                    TextColor = Color.Black
-                };
+                var description = new Label();
                 description.SetBinding(Label.TextProperty, "Description");
 
                 headerLayout.SetBinding(BackgroundColorProperty, "BackgroundColor");
@@ -104,7 +93,7 @@ namespace Kawaw
 
                 var bodyLayout = new StackLayout
                 {
-                    BackgroundColor = Color.White,
+                    BackgroundColor = App.BackgroundColor,
                     Children = {descriptionView, members},
                     HorizontalOptions = LayoutOptions.FillAndExpand,
                 };
@@ -124,7 +113,6 @@ namespace Kawaw
                 {
                     Padding = 10,
                     Content = frame,
-                    BackgroundColor = Color.White,
                 };
             }
         }
@@ -133,10 +121,7 @@ namespace Kawaw
         {
             Title = "Notifications";
 
-            var main = new ScrollView
-            {
-                BackgroundColor = Color.White
-            };
+            var main = new ScrollView();
 
             var emptyText = new Label
             {

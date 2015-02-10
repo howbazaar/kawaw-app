@@ -4,19 +4,23 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
+    class CellHeaderLabel : Label { }
+
     class ProfileView : PrimaryView
     {
         class EmailCell : ViewCell
         {
             public EmailCell()
             {
-                var address = new Label();
+                var address = new CellHeaderLabel();
                 address.SetBinding(Label.TextProperty, "Address");
+                var description = new Label();
+                description.SetBinding(Label.TextProperty, "Description");
 
                 var viewLayout = new StackLayout()
                 {
-                    Orientation = StackOrientation.Horizontal,
-                    // Children = { image, nameLayout }
+                    Padding = new Thickness(15,0,0,0),
+                    Children = { address, description}
                 };
                 View = viewLayout;
             }
@@ -25,29 +29,19 @@ namespace Kawaw
         public ProfileView()
         {
             Title = "Profile";
-            var size = Device.GetNamedSize(NamedSize.Medium, typeof(Label));
-            var name = new Label
-            {
-                FontSize = size
-            };
+            var name = new Label();
             name.SetBinding(Label.TextProperty, "FullName");
-            var address = new Label
-            {
-                FontSize = size
-            };
+            var address = new Label();
             address.SetBinding(Label.TextProperty, "Address");
 
             var changeDetails = new Button
             {
                 Text = "Change Details",
-                HorizontalOptions = LayoutOptions.Center,
+                HorizontalOptions = LayoutOptions.Fill,
             };
             changeDetails.SetBinding(Button.CommandProperty, "ChangeDetailsCommand");
 
-            var dob = new Label()
-            {
-                FontSize = size
-            };
+            var dob = new Label();
             dob.SetBinding(Label.TextProperty, "DateOfBirth");
 
             var emailList = new ListView
@@ -57,14 +51,12 @@ namespace Kawaw
             };
             emailList.SetBinding(ListView.ItemsSourceProperty, "Emails");
             emailList.SetBinding(ListView.SelectedItemProperty, "SelectedItem", BindingMode.TwoWay);
-            emailList.ItemTemplate = new DataTemplate(typeof(TextCell));
-            emailList.ItemTemplate.SetBinding(TextCell.TextProperty, "Address");
-            emailList.ItemTemplate.SetBinding(TextCell.DetailProperty, "Description");
+            emailList.ItemTemplate = new DataTemplate(typeof(EmailCell));
 
             var addEmail = new Button
             {
                 Text = "Add E-mail address",
-                HorizontalOptions = LayoutOptions.Center,
+                HorizontalOptions = LayoutOptions.Fill,
             };
             addEmail.SetBinding(Button.CommandProperty, "AddEmailCommand");
 
@@ -81,12 +73,12 @@ namespace Kawaw
                         Orientation = StackOrientation.Horizontal,
                         Children =
                         {
-                            new Label{Text = "Date of Birth: ", FontSize = size},
+                            new Label{Text = "Date of Birth: "},
                             dob
                         }
                     },
                     changeDetails,
-                    new Label{Text = "Email Addresses: ", FontSize = size},
+                    new Label{Text = "Email Addresses: "},
                     emailList,
                     addEmail,
                 }

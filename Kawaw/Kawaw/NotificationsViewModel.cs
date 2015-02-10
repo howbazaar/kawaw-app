@@ -61,7 +61,7 @@ namespace Kawaw
             }
         }
         public uint Id { get { return _response.Id; } }
-        public Color StatusColor { get { return Pending ? Color.Blue : Color.Black;  } }
+        public Color StatusColor { get { return Pending ? App.AccentColor : App.ForegroundColor;  } }
         public bool Pending { get { return _response.Choice == null; } }
         public string Name { get { return _response.Name;  }}
 
@@ -86,8 +86,8 @@ namespace Kawaw
                    select new NotificationResponseViewModel(response));
         }
 
-        public Color BackgroundColor { get { return _notification.Pending ? Color.Blue : Color.FromHex("cccccc");  } }
-        public Color ForegroundColor { get { return _notification.Pending ? Color.White : Color.Black; } }
+        public Color BackgroundColor { get { return _notification.Pending ? App.AccentColor : Color.FromHex("cccccc");  } }
+        public Color ForegroundColor { get { return _notification.Pending ? Color.White : App.ForegroundColor; } }
         public string Type { get { return (_notification.Pending ? "Unactioned " : "Completed ") + _notification.Type; } }
 
         public string Activity

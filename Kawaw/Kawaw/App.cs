@@ -17,11 +17,16 @@ namespace Kawaw
     {
         private User _user;
         private readonly RootViewModel _rootViewModel;
+        // var accentColor = Color.FromHex("59C2FF");
+        public static Color AccentColor = Color.FromHex("10558d");
+        public static Color BackgroundColor = AccentColor.WithLuminosity(0.99);
+        public static Color ForegroundColor = new Color(0.1);
 
         // chevron is the rootview.master.icon
         // android is the page icon
         public App()
         {
+            GenerateKawawStyle();
             ViewModelNavigation.Register<LoginViewModel, LoginView>();
             ViewModelNavigation.Register<RegisterViewModel, RegisterView>();
             ViewModelNavigation.Register<EventsViewModel, EventsView>();
@@ -68,6 +73,66 @@ namespace Kawaw
                     Properties["Page"] = model.Name;
                 }
             });
+
+        }
+
+        private void GenerateKawawStyle()
+        {
+            Resources = new ResourceDictionary();
+
+            var labelStyle = new Style(typeof (Label))
+            {
+                Setters =
+                {
+                    new Setter {Property = Label.TextColorProperty, Value = ForegroundColor},
+                    new Setter {Property = Label.FontSizeProperty, Value = Device.GetNamedSize(NamedSize.Medium, typeof(Label))},
+                }
+            };
+            // no Key specified, becomes an implicit style for ALL labels
+            Resources.Add(labelStyle);
+            var cellHeaderLabelStyle = new Style(typeof (CellHeaderLabel))
+            {
+                BasedOn = labelStyle,
+                Setters =
+                {
+                    new Setter {Property = Label.TextColorProperty, Value = AccentColor},
+                }
+            };
+            Resources.Add(cellHeaderLabelStyle);
+
+            var contentPageStyle = new Style(typeof (ContentPage))
+            {
+                Setters =
+                {
+                    new Setter {Property = ContentPage.BackgroundColorProperty, Value = BackgroundColor}
+                }
+            };
+            Resources.Add("BaseViewStyle", contentPageStyle);
+            var buttonStyle = new Style(typeof(Button))
+            {
+                Setters =
+                {
+                    new Setter {Property = Button.BackgroundColorProperty, Value = BackgroundColor.AddLuminosity(-0.05)},
+                    new Setter {Property = Button.BorderColorProperty, Value = AccentColor},
+                    new Setter {Property = Button.BorderWidthProperty, Value = 2},
+                    new Setter {Property = Button.BorderRadiusProperty, Value = 1},
+                    new Setter {Property = Button.TextColorProperty, Value = ForegroundColor},
+                    new Setter {Property = Button.FontAttributesProperty, Value = FontAttributes.Bold},
+                    new Setter {Property = Button.FontSizeProperty, Value = Device.GetNamedSize(NamedSize.Large, typeof(Button))},
+                }
+            };
+            Resources.Add(buttonStyle);
+
+            var textCellStyle = new Style(typeof(TextCell))
+            {
+                Setters =
+                {
+                    new Setter {Property = TextCell.TextColorProperty, Value = AccentColor},
+                    new Setter {Property = TextCell.DetailColorProperty, Value = ForegroundColor.AddLuminosity(0.1)}
+                }
+            };
+            // no Key specified, becomes an implicit style for ALL labels
+            Resources.Add(textCellStyle);
 
         }
 
