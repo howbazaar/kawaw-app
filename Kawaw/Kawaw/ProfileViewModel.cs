@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 using Kawaw.Exceptions;
+using Kawaw.Framework;
+using Kawaw.Models;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -121,7 +123,10 @@ namespace Kawaw
             });
             MessagingCenter.Subscribe<object>(this, "user-updated", delegate
             {
-                UpdateFromUser(app.User);
+                if (IsPageVisible)
+                {
+                    UpdateFromUser(app.User);
+                }
             });
             MessagingCenter.Subscribe(this, "email-action", async (object sender, EmailAction action) =>
             {
@@ -151,13 +156,13 @@ namespace Kawaw
 
         }
 
-        private void UpdateFromUser(RemoteUser user)
+        private void UpdateFromUser(User user)
         {
             if (user == null) return;
 
             FullName = user.FullName;
             Address = user.Address == "" ? "no address set" : user.Address;
-            DateOfBirth = RemoteUser.OptionalDateTime(user.DateOfBirth, "not set");
+            DateOfBirth = User.OptionalDateTime(user.DateOfBirth, "not set");
             Emails = new ObservableCollection<Email>(
                 from email in user.Emails
                 orderby email.Primary descending, email.Verified descending, email.Address

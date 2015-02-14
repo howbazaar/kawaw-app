@@ -1,3 +1,5 @@
+using Kawaw.Framework;
+
 namespace Kawaw
 {
     class GlobalSettingsViewModel : BaseViewModel

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Kawaw.Models;
 
 namespace Kawaw
 {
@@ -7,8 +8,8 @@ namespace Kawaw
     {
         string BaseUrl { get; set; }
 
-        Task<RemoteUser> Login(string username, string password);
-        Task<RemoteUser> Register(string email, string password);
+        Task<User> Login(string username, string password);
+        Task<User> Register(string email, string password);
         void Logout();
 
         Task<JSON.User> GetUserDetails();
@@ -19,6 +20,9 @@ namespace Kawaw
 
         Task<JSON.Connection[]> GetConnections();
         Task<JSON.Connection> ConnectionAction(uint id, bool accept);
+
+        Task<JSON.Notification[]> GetNotifications();
+        Task NotificationAction(uint notificationId, uint memberId, bool accepted);
 
         Task<JSON.Event[]> GetEvents();
     }

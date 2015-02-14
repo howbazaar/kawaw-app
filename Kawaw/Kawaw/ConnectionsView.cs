@@ -50,7 +50,7 @@ namespace Kawaw
                     TextColor = Color.White
                 };
                 statusText.SetBinding(Label.TextProperty, "Status");
-                var status = new ContentView()
+                var status = new Frame()
                 {
                     Content = statusText,
                     Padding = new Thickness(5,0),
@@ -151,6 +151,5 @@ namespace Kawaw
             UnsubscribeAlert<ConnectionsViewModel>();
             MessagingCenter.Unsubscribe<ConnectionsViewModel, ConnectionActionOptions>(this, "show-options");
         }
- 
     }
 }

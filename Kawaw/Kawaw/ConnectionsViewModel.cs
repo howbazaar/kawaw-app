@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.ServiceModel.Channels;
 using Kawaw.Exceptions;
+using Kawaw.Framework;
+using Kawaw.Models;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -76,7 +77,10 @@ namespace Kawaw
 
             MessagingCenter.Subscribe<object>(this, "connections-updated", delegate
             {
-                UpdateFromUser(app.User);
+                if (IsPageVisible)
+                {
+                    UpdateFromUser(app.User);
+                }
             });
             MessagingCenter.Subscribe(this, "connection-action", async (object sender, ConnectionAction action) =>
             {
@@ -100,7 +104,7 @@ namespace Kawaw
             });
         }
 
-        private void UpdateFromUser(RemoteUser user)
+        private void UpdateFromUser(User user)
         {
             if (user == null || user.Connections == null)
             {

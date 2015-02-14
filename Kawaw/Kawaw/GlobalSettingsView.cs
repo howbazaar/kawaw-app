@@ -1,4 +1,5 @@
-﻿using Xamarin.Forms;
+﻿using Kawaw.Framework;
+using Xamarin.Forms;
 
 namespace Kawaw
 {

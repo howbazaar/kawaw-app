@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
+using Kawaw.Framework;
+using Kawaw.Models;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -8,22 +10,28 @@ namespace Kawaw
     interface IApp
     {
         IRemoteSite Remote { get; }
-        RemoteUser User { get; set; }
+        User User { get; set; }
     }
 
     public class App : Application, IApp
     {
-        private RemoteUser _user;
+        private User _user;
         private readonly RootViewModel _rootViewModel;
+        // var accentColor = Color.FromHex("59C2FF");
+        public static Color AccentColor = Color.FromHex("10558d");
+        public static Color BackgroundColor = AccentColor.WithLuminosity(0.99);
+        public static Color ForegroundColor = new Color(0.1);
 
         // chevron is the rootview.master.icon
         // android is the page icon
         public App()
         {
+            GenerateKawawStyle();
             ViewModelNavigation.Register<LoginViewModel, LoginView>();
             ViewModelNavigation.Register<RegisterViewModel, RegisterView>();
             ViewModelNavigation.Register<EventsViewModel, EventsView>();
             ViewModelNavigation.Register<ConnectionsViewModel, ConnectionsView>();
+            ViewModelNavigation.Register<NotificationsViewModel, NotificationsView>();
             ViewModelNavigation.Register<ProfileViewModel, ProfileView>();
             ViewModelNavigation.Register<ChangeDetailsViewModel, ChangeDetailsView>();
             ViewModelNavigation.Register<NavigationViewModel, NavigationView>();
@@ -33,7 +41,7 @@ namespace Kawaw
             // Look to see if we have a logged in person.
             if (Properties.ContainsKey("User"))
             {
-                User = Properties["User"] as RemoteUser;
+                User = Properties["User"] as User;
                 // ReSharper disable once PossibleNullReferenceException
                 Debug.WriteLine("User found in properties: {0}", User.FullName);
             }
@@ -65,6 +73,66 @@ namespace Kawaw
                     Properties["Page"] = model.Name;
                 }
             });
+
+        }
+
+        private void GenerateKawawStyle()
+        {
+            Resources = new ResourceDictionary();
+
+            var labelStyle = new Style(typeof (Label))
+            {
+                Setters =
+                {
+                    new Setter {Property = Label.TextColorProperty, Value = ForegroundColor},
+                    new Setter {Property = Label.FontSizeProperty, Value = Device.GetNamedSize(NamedSize.Medium, typeof(Label))},
+                }
+            };
+            // no Key specified, becomes an implicit style for ALL labels
+            Resources.Add(labelStyle);
+            var cellHeaderLabelStyle = new Style(typeof (CellHeaderLabel))
+            {
+                BasedOn = labelStyle,
+                Setters =
+                {
+                    new Setter {Property = Label.TextColorProperty, Value = AccentColor},
+                }
+            };
+            Resources.Add(cellHeaderLabelStyle);
+
+            var contentPageStyle = new Style(typeof (ContentPage))
+            {
+                Setters =
+                {
+                    new Setter {Property = ContentPage.BackgroundColorProperty, Value = BackgroundColor}
+                }
+            };
+            Resources.Add("BaseViewStyle", contentPageStyle);
+            var buttonStyle = new Style(typeof(Button))
+            {
+                Setters =
+                {
+                    new Setter {Property = Button.BackgroundColorProperty, Value = BackgroundColor.AddLuminosity(-0.05)},
+                    new Setter {Property = Button.BorderColorProperty, Value = AccentColor},
+                    new Setter {Property = Button.BorderWidthProperty, Value = 2},
+                    new Setter {Property = Button.BorderRadiusProperty, Value = 1},
+                    new Setter {Property = Button.TextColorProperty, Value = ForegroundColor},
+                    new Setter {Property = Button.FontAttributesProperty, Value = FontAttributes.Bold},
+                    new Setter {Property = Button.FontSizeProperty, Value = Device.GetNamedSize(NamedSize.Large, typeof(Button))},
+                }
+            };
+            Resources.Add(buttonStyle);
+
+            var textCellStyle = new Style(typeof(TextCell))
+            {
+                Setters =
+                {
+                    new Setter {Property = TextCell.TextColorProperty, Value = AccentColor},
+                    new Setter {Property = TextCell.DetailColorProperty, Value = ForegroundColor.AddLuminosity(0.1)}
+                }
+            };
+            // no Key specified, becomes an implicit style for ALL labels
+            Resources.Add(textCellStyle);
 
         }
 
@@ -129,7 +197,7 @@ namespace Kawaw
 
         public IRemoteSite Remote { get; private set; }
 
-        public RemoteUser User
+        public User User
         {
             get { return _user; }
             set
@@ -139,15 +207,6 @@ namespace Kawaw
                 if (_user != null)
                 {
                     Properties["User"] = _user;
-#if DEBUG
-                    var x = new DataContractSerializer(typeof(RemoteUser));
-                    var buf = new MemoryStream();
-                    x.WriteObject(buf, _user);
-                    buf.Seek(0, SeekOrigin.Begin);
-                    var obj = x.ReadObject(buf);
-                    var test = obj as RemoteUser;
-                    Debug.WriteLine("Serialisation of user {0} passed", test.FullName);
-#endif
                 }
                 else
                 {

@@ -8,6 +8,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kawaw.iOS", "Kawaw\Kawaw.iOS\Kawaw.iOS.csproj", "{A57A779B-9040-4C98-A400-B15693DCC9AE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kawaw.Android", "Kawaw\Kawaw.Android\Kawaw.Android.csproj", "{6CD5AC44-F7AD-4985-86E7-DCDB67CFD727}"
+	ProjectSection(ProjectDependencies) = postProject
+		{26546FE1-624C-4C63-A155-1748B7623822} = {26546FE1-624C-4C63-A155-1748B7623822}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

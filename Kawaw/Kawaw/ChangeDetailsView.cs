@@ -1,4 +1,5 @@
 ﻿using System;
+using Kawaw.Framework;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -98,8 +99,8 @@ namespace Kawaw
                         Padding = new Thickness(0, 15),
                         Children =
                         {
-                            {cancelButton,1,0},
-                            {saveButton,2,0},
+                            {cancelButton,0,0},
+                            {saveButton,1,0},
                         }
                     }
                 }

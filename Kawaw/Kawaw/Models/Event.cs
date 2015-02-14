@@ -6,7 +6,7 @@ namespace Kawaw.Models
 {
     public class Event
     {
-        private JSON.Event _event;
+        private readonly JSON.Event _event;
         private readonly DateTime _eventLocalStart;
         private readonly DateTime _eventLocalFinish;
 

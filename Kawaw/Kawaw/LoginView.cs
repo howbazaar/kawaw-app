@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Linq;
+using Kawaw.Framework;
 using Xamarin.Forms;
 
 namespace Kawaw

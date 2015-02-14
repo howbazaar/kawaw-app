@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.ObjectModel;
+using Kawaw.Framework;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -33,9 +34,10 @@ namespace Kawaw
         {
             Items = new ObservableCollection<object>
             {
-                new NavigationItem{Name="Events", Description="Your upcoming events"},
-                new NavigationItem{Name="Connections", Description="Your connections to schools, clubs or businesses"},
-                new NavigationItem{Name="Profile", Description="View or change your details"},
+                new NavigationItem{Name=RootViewModel.Events, Description="Your upcoming events"},
+                new NavigationItem{Name=RootViewModel.Connections, Description="Your connections to schools, clubs or businesses"},
+                new NavigationItem{Name=RootViewModel.Notifications, Description="Activity registration notifications"},
+                new NavigationItem{Name=RootViewModel.Profile, Description="View or change your details"},
             };
 
         }
