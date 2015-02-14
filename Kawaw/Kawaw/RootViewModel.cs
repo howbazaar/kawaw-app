@@ -122,7 +122,7 @@ namespace Kawaw
         {
             SetDetails(Profile);
             var loginModel = CreateViewModel(Login);
-            await Navigation.PushModalAsync(loginModel);
+            await Navigation.PushModalAsync(loginModel, false);
         }
 
         private BaseViewModel CreateViewModel(string name)

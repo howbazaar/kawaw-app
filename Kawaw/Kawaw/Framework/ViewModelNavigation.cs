@@ -43,10 +43,10 @@ namespace Kawaw.Framework
             return _navigation.PushAsync(GetPageForViewModel(viewModel));
         }
 
-        public Task PushModalAsync(BaseViewModel viewModel)
+        public Task PushModalAsync(BaseViewModel viewModel, bool animated = true)
         {
             // maybe later take a param for the "wrap in nav view"
-            return _navigation.PushModalAsync(new NavigationPage(GetPageForViewModel(viewModel)));
+            return _navigation.PushModalAsync(new NavigationPage(GetPageForViewModel(viewModel)), animated);
         }
     }
 }
