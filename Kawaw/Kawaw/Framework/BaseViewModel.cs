@@ -9,7 +9,7 @@ namespace Kawaw.Framework
         private bool _isBusy;
         protected IApp App;
         // Autoproperty find because the binding is one way to source, and no one is listening to change events.
-        public bool IsPageVisible { get; set; }
+        public virtual bool IsPageVisible { get; set; }
 
         public BaseViewModel(IApp app, string name = "")
         {

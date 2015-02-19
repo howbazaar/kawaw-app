@@ -43,7 +43,8 @@ namespace Kawaw
         public NavigationView()
         {
             Title = "kawaw";
-            // Icon = "kawaw.png";
+            Icon = "navigation.png";
+            Padding = new Thickness(0, Device.OnPlatform(20,0,0),0,0);
             var list = new ListView
             {
                 HasUnevenRows = true

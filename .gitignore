@@ -7,3 +7,4 @@
 # Ignore the user's solution option files
 *.suo
 **/Thumbs.db
+**/*.csproj.user
