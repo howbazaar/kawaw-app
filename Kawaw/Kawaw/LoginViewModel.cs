@@ -67,6 +67,7 @@ namespace Kawaw
                 try
                 {
                     App.User = await remote.Login(_email, _password);
+                    await App.User.Refresh();
                     // Let's tell Xamarin about this user.
                     var traits = new Dictionary<string, string>
                     {
@@ -74,7 +75,6 @@ namespace Kawaw
                         {Insights.Traits.Name, App.User.FullName}
                     };
                     Insights.Identify(App.User.PrimaryEmail, traits);
-                    await App.User.Refresh();
                     await Navigation.PopModalAsync();
                 }
                 catch (FormErrorsException e)
@@ -102,7 +102,11 @@ namespace Kawaw
                     MessagingCenter.Send(this, "alert", new Alert
                     {
                         Title = "Login Failed",
-                        Text = "Something went wrong, please try again later"
+#if DEBUG
+                        Text = exception.Message,
+#endif
+                        Text = "Something went wrong, please try again later",
+#endif
                     });
                 }
 
