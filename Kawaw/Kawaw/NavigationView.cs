@@ -43,7 +43,12 @@ namespace Kawaw
         public NavigationView()
         {
             Title = "kawaw";
-            Icon = "navigation.png";
+            // Only set the navigation icon for iOS, and leave the android with the default
+            // arrow image.
+            if (Device.OS == TargetPlatform.iOS)
+            {
+                Icon = "navigation.png";
+            }
             Padding = new Thickness(0, Device.OnPlatform(20,0,0),0,0);
             var list = new ListView
             {

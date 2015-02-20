@@ -51,7 +51,16 @@ namespace Kawaw.Droid
 			public const int kawaw = 2130837505;
 			
 			// aapt resource value: 0x7f020002
-			public const int screen = 2130837506;
+			public const int logout = 2130837506;
+			
+			// aapt resource value: 0x7f020003
+			public const int navigation = 2130837507;
+			
+			// aapt resource value: 0x7f020004
+			public const int refresh = 2130837508;
+			
+			// aapt resource value: 0x7f020005
+			public const int screen = 2130837509;
 			
 			static Drawable()
 			{

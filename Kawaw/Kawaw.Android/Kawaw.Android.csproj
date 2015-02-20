@@ -90,9 +90,8 @@
     <AndroidResource Include="Resources\Drawable\Icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <BundleResource Include="Resources\Drawable\navigation.png" />
-    <Content Include="Resources\Drawable\logout%402x.png" />
-    <Content Include="Resources\Drawable\logout.png" />
+    <AndroidResource Include="Resources\Drawable\navigation.png" />
+    <AndroidResource Include="Resources\Drawable\logout.png" />
     <Content Include="Properties\AndroidManifest.xml" />
     <AndroidResource Include="Resources\Drawable\kawaw.png" />
     <AndroidResource Include="Resources\drawable-hdpi\screen.png" />
@@ -107,8 +106,7 @@
     <AndroidResource Include="Resources\drawable-xhdpi\screen.png" />
     <AndroidResource Include="Resources\drawable-xxhdpi\screen.png" />
     <AndroidResource Include="Resources\Values\Styles.xml" />
-    <Content Include="Resources\Drawable\refresh%402x.png" />
-    <Content Include="Resources\Drawable\refresh.png" />
+    <AndroidResource Include="Resources\Drawable\refresh.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kawaw\Kawaw.csproj">
