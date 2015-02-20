@@ -3,6 +3,7 @@ using Android.App;
 using Android.Content.PM;
 using Android.Content.Res;
 using Android.OS;
+using Xamarin;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 using DatePicker = Xamarin.Forms.DatePicker;
@@ -18,6 +19,11 @@ namespace Kawaw.Droid
             base.OnCreate(bundle);
 
             Forms.Init(this, bundle);
+#if DEBUG
+            Insights.Initialize(Insights.DebugModeKey, this);
+#else
+            Insights.Initialize("22fd93ca44698441312e444b5a31160691bc86e5", this);
+#endif
 
             LoadApplication(new App());
         }
