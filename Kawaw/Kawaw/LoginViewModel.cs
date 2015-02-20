@@ -104,7 +104,7 @@ namespace Kawaw
                         Title = "Login Failed",
 #if DEBUG
                         Text = exception.Message,
-#endif
+#else
                         Text = "Something went wrong, please try again later",
 #endif
                     });
