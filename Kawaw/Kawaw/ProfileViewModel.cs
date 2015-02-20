@@ -36,6 +36,20 @@ namespace Kawaw
         private string _dateOfBirth;
         private IList<Email> _emails;
         private Email _selectedItem;
+        private bool _isPageVisible;
+
+        public override bool IsPageVisible
+        {
+            get { return _isPageVisible; }
+            set
+            {
+                _isPageVisible = value;
+                if (value)
+                {
+                    UpdateFromUser(App.User);                    
+                }
+            }
+        }
 
         public string FullName
         {

@@ -8,12 +8,13 @@ namespace Kawaw
         public PrimaryView()
         {
             Icon = "kawaw.png";
+            var itemOrder = Device.OnPlatform(ToolbarItemOrder.Primary, ToolbarItemOrder.Secondary, ToolbarItemOrder.Default);
             ToolbarItems.Add(new ToolbarItem(
-                "Refresh", null,
+                "Refresh", "refresh.png",
                 () => MessagingCenter.Send<object>(this, "refresh"),
-                ToolbarItemOrder.Secondary));
+                itemOrder));
             ToolbarItems.Add(new ToolbarItem(
-                "Logout", null, async () =>
+                "Logout", "logout.png", async () =>
                 {
                     var logout = await DisplayAlert("Logout", "Are you sure you want to logout?", "Yes", "No");
                     if (logout)
@@ -21,7 +22,7 @@ namespace Kawaw
                         MessagingCenter.Send<object>(this, "logout");
                     }
                 },
-                ToolbarItemOrder.Secondary));
+                itemOrder));
         }
 
     }

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
 using Xamarin.Forms;
@@ -59,7 +60,10 @@ namespace Kawaw
             {
                 IsBusy = false;
                 if (_contentModel != null)
+                {
                     _contentModel.IsBusy = false;
+                    Debug.WriteLine("busy is false");                    
+                }
             });
             MessagingCenter.Subscribe(this, "session-expired", (object sender) =>
             {

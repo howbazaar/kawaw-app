@@ -54,7 +54,8 @@ namespace Kawaw
                 {
                     Content = statusText,
                     Padding = new Thickness(5,0),
-                    HorizontalOptions = LayoutOptions.EndAndExpand
+                    HorizontalOptions = LayoutOptions.EndAndExpand,
+                    HasShadow = false,
                 };
                 status.SetBinding(BackgroundColorProperty, "Status", BindingMode.Default, new StatusColor());
 

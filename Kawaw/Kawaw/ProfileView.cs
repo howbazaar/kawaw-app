@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using System.Collections;
 using System.Linq;
 using Xamarin.Forms;
 
@@ -52,6 +52,13 @@ namespace Kawaw
             emailList.SetBinding(ListView.ItemsSourceProperty, "Emails");
             emailList.SetBinding(ListView.SelectedItemProperty, "SelectedItem", BindingMode.TwoWay);
             emailList.ItemTemplate = new DataTemplate(typeof(EmailCell));
+            emailList.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == ListView.ItemsSourceProperty.PropertyName)
+                {
+                    emailList.HeightRequest = emailList.RowHeight*((ICollection)emailList.ItemsSource).Count;
+                }
+            };
 
             var addEmail = new Button
             {
@@ -95,7 +102,10 @@ namespace Kawaw
         {
             base.OnAppearing();
             SubscribeAlert<ProfileViewModel>();
-            MessagingCenter.Subscribe(this, "emails-updated", (ProfileViewModel model) => ForceLayout());
+            // Calling the ForceLayout directly has it attempting to relayout the items list before it
+            // has the source property set, so by calling invoke on main thread, this call gets put at
+            // the end of the current call queue.
+            // MessagingCenter.Subscribe(this, "emails-updated", (ProfileViewModel model) => Device.BeginInvokeOnMainThread(ForceLayout));
             MessagingCenter.Subscribe(this, "show-options", async (ProfileViewModel model, EmailActionOptions options) =>
             {
                 var textOptions = from tuple in options.Options select tuple.Item2;

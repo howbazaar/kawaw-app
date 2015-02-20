@@ -76,7 +76,7 @@ namespace Kawaw
                 {
                     MessagingCenter.Send(this, "alert", new Alert
                     {
-                        Title = "Add Email Failed",
+                        Title = "Changing Details Failed",
                         Text = e.Message
                     });
                 }

@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Input;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
+using Xamarin;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -66,6 +68,13 @@ namespace Kawaw
                 {
                     App.User = await remote.Login(_email, _password);
                     await App.User.Refresh();
+                    // Let's tell Xamarin about this user.
+                    var traits = new Dictionary<string, string>
+                    {
+                        {Insights.Traits.Email, App.User.PrimaryEmail},
+                        {Insights.Traits.Name, App.User.FullName}
+                    };
+                    Insights.Identify(App.User.PrimaryEmail, traits);
                     await Navigation.PopModalAsync();
                 }
                 catch (FormErrorsException e)
@@ -84,12 +93,20 @@ namespace Kawaw
                         Text = e.Message
                     });
                 }
-                catch (Exception)
+                catch (Exception exception)
                 {
+                    Insights.Report(exception, new Dictionary<string, string>
+                    {
+                        {"Location", "LoginViewModel Login"}
+                    }, ReportSeverity.Error);
                     MessagingCenter.Send(this, "alert", new Alert
                     {
                         Title = "Login Failed",
-                        Text = "Something went wrong, please try again later"
+#if DEBUG
+                        Text = exception.Message,
+#else
+                        Text = "Something went wrong, please try again later",
+#endif
                     });
                 }
 

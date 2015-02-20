@@ -26,6 +26,8 @@ namespace Kawaw.Droid
 		
 		public static void UpdateIdValues()
 		{
+			global::Xamarin.InsightsCore.Resource.String.ApplicationName = global::Kawaw.Droid.Resource.String.ApplicationName;
+			global::Xamarin.InsightsCore.Resource.String.Hello = global::Kawaw.Droid.Resource.String.Hello;
 		}
 		
 		public partial class Attribute
@@ -51,7 +53,16 @@ namespace Kawaw.Droid
 			public const int kawaw = 2130837505;
 			
 			// aapt resource value: 0x7f020002
-			public const int screen = 2130837506;
+			public const int logout = 2130837506;
+			
+			// aapt resource value: 0x7f020003
+			public const int navigation = 2130837507;
+			
+			// aapt resource value: 0x7f020004
+			public const int refresh = 2130837508;
+			
+			// aapt resource value: 0x7f020005
+			public const int screen = 2130837509;
 			
 			static Drawable()
 			{
@@ -63,11 +74,30 @@ namespace Kawaw.Droid
 			}
 		}
 		
+		public partial class String
+		{
+			
+			// aapt resource value: 0x7f030001
+			public const int ApplicationName = 2130903041;
+			
+			// aapt resource value: 0x7f030000
+			public const int Hello = 2130903040;
+			
+			static String()
+			{
+				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
+			}
+			
+			private String()
+			{
+			}
+		}
+		
 		public partial class Style
 		{
 			
-			// aapt resource value: 0x7f030000
-			public const int Theme_Splash = 2130903040;
+			// aapt resource value: 0x7f040000
+			public const int Theme_Splash = 2130968576;
 			
 			static Style()
 			{
