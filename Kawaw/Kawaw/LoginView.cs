@@ -68,8 +68,9 @@ namespace Kawaw
         protected override bool OnBackButtonPressed()
         {
             // Say we have handled it.
-            // This means that the app won't close on back button. Jason is going to think about it
-            // and let me know what to do.
+            // This means that the app won't close on back button.
+
+            // Fix is in forms 1.3.5, correct thing to do is return flase there.
             return true;
         }
 
