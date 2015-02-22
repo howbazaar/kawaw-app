@@ -98,18 +98,17 @@
     <Content Include="Properties\AndroidManifest.xml" />
     <AndroidResource Include="Resources\Drawable\kawaw.png" />
     <AndroidResource Include="Resources\drawable-hdpi\screen.png" />
-    <AndroidResource Include="Resources\drawable-land\screen.png" />
-    <AndroidResource Include="Resources\drawable-land-hdpi\screen.png" />
-    <AndroidResource Include="Resources\drawable-land-ldpi\screen.png" />
-    <AndroidResource Include="Resources\drawable-land-mdpi\screen.png" />
-    <AndroidResource Include="Resources\drawable-land-xhdpi\screen.png" />
-    <AndroidResource Include="Resources\drawable-land-xxhdpi\screen.png" />
     <AndroidResource Include="Resources\drawable-ldpi\screen.png" />
     <AndroidResource Include="Resources\drawable-mdpi\screen.png" />
     <AndroidResource Include="Resources\drawable-xhdpi\screen.png" />
-    <AndroidResource Include="Resources\drawable-xxhdpi\screen.png" />
-    <AndroidResource Include="Resources\Values\Styles.xml" />
+    <AndroidResource Include="Resources\Values\Styles.xml">
+      <SubType>Designer</SubType>
+    </AndroidResource>
     <AndroidResource Include="Resources\Drawable\refresh.png" />
+    <AndroidResource Include="Resources\drawable-hdpi\splash.9.png" />
+    <AndroidResource Include="Resources\drawable-ldpi\splash.9.png" />
+    <AndroidResource Include="Resources\drawable-mdpi\splash.9.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\splash.9.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kawaw\Kawaw.csproj">
