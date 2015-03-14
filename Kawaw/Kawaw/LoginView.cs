@@ -71,6 +71,7 @@ namespace Kawaw
             // This means that the app won't close on back button.
 
             // Fix is in forms 1.3.5, correct thing to do is return flase there.
+            // Bug still there in 1.4.0.
             return true;
         }
 

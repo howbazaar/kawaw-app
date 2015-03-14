@@ -43,7 +43,7 @@ namespace Kawaw.iOS
         {
             // date currently set on the optional date picker (date known to model)
             var date = Element.Date;
-            if (date == Element.MinimumDate)
+            if (date == Element.MinimumDate && Control != null)
                 Control.Text = "";
         }
     }
