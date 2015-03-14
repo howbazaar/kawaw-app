@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-using MonoTouch.UIKit;
+using UIKit;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.iOS;
 
@@ -30,6 +30,9 @@ namespace Kawaw.iOS
         protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             base.OnElementPropertyChanged(sender, e);
+            // The property change event is also triggered during dispose.
+            if (Element == null) return;
+
             if (e.PropertyName == "Date" || e.PropertyName == DatePicker.FormatProperty.PropertyName)
             {
                 SetText();
