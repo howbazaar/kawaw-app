@@ -156,7 +156,16 @@ namespace Kawaw
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            SubscribeAlert<NotificationsViewModel>();
+            // SubscribeAlert<NotificationsViewModel>();
+            MessagingCenter.Subscribe(this, "alert", async (NotificationsViewModel model, Alert alert) =>
+            {
+                await DisplayAlert(alert.Title, alert.Text, "OK");
+                if (alert.Callback != null)
+                {
+                    alert.Callback.Execute(this);
+                }
+            });
+
             MessagingCenter.Subscribe(this, "show-options", async (NotificationResponseViewModel model, NotificationResponseOptions options) =>
             {
                 var textOptions = options.Options.Select(v => v.Item2);
@@ -177,7 +186,8 @@ namespace Kawaw
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            UnsubscribeAlert<NotificationsViewModel>();
+            // UnsubscribeAlert<NotificationsViewModel>();
+            MessagingCenter.Unsubscribe<NotificationsViewModel, Alert>(this, "alert");
             MessagingCenter.Unsubscribe<NotificationResponseViewModel, NotificationResponseOptions>(this, "show-options");
         }
 

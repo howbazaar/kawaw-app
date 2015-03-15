@@ -30,9 +30,6 @@ namespace Kawaw.iOS
         protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             base.OnElementPropertyChanged(sender, e);
-            // The property change event is also triggered during dispose.
-            if (Element == null) return;
-
             if (e.PropertyName == "Date" || e.PropertyName == DatePicker.FormatProperty.PropertyName)
             {
                 SetText();
@@ -41,6 +38,8 @@ namespace Kawaw.iOS
 
         void SetText()
         {
+            // The property change event is also triggered during dispose.
+            if (Element == null) return;
             // date currently set on the optional date picker (date known to model)
             var date = Element.Date;
             if (date == Element.MinimumDate && Control != null)

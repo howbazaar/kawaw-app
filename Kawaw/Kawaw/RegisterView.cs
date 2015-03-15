@@ -50,13 +50,22 @@ namespace Kawaw
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            SubscribeAlert<RegisterViewModel>();
+            // SubscribeAlert<RegisterViewModel>();
+            MessagingCenter.Subscribe(this, "alert", async (RegisterViewModel model, Alert alert) =>
+            {
+                await DisplayAlert(alert.Title, alert.Text, "OK");
+                if (alert.Callback != null)
+                {
+                    alert.Callback.Execute(this);
+                }
+            });
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            UnsubscribeAlert<RegisterViewModel>();
+            // UnsubscribeAlert<RegisterViewModel>();
+            MessagingCenter.Unsubscribe<RegisterViewModel, Alert>(this, "alert");
         }
 
     }

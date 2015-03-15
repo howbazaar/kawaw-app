@@ -125,8 +125,8 @@ namespace Kawaw
         private async void ShowLogin()
         {
             SetDetails(Profile);
-            var loginModel = CreateViewModel(Login);
-            await Navigation.PushModalAsync(loginModel, false);
+            var loginModel = new LoginViewModel(App);
+            await Navigation.PushLoginAsync(loginModel);
         }
 
         private BaseViewModel CreateViewModel(string name)

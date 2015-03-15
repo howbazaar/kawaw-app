@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Linq;
 using Xamarin.Forms;
 
@@ -100,8 +101,19 @@ namespace Kawaw
 
         protected override void OnAppearing()
         {
+            Debug.WriteLine("ProfileView.OnAppearing");
             base.OnAppearing();
-            SubscribeAlert<ProfileViewModel>();
+            // SubscribeAlert<ProfileViewModel>();
+            MessagingCenter.Subscribe(this, "alert", async (ProfileViewModel model, Alert alert) =>
+            {
+                Debug.WriteLine("Show an alert: {0}", alert.Text);
+                await DisplayAlert(alert.Title, alert.Text, "OK");
+                if (alert.Callback != null)
+                {
+                    alert.Callback.Execute(this);
+                }
+            });
+
             // Calling the ForceLayout directly has it attempting to relayout the items list before it
             // has the source property set, so by calling invoke on main thread, this call gets put at
             // the end of the current call queue.
@@ -124,8 +136,11 @@ namespace Kawaw
 
         protected override void OnDisappearing()
         {
+            Debug.WriteLine("ProfileView.OnDisappearing");
             base.OnDisappearing();
-            UnsubscribeAlert<ProfileViewModel>();
+            //UnsubscribeAlert<ProfileViewModel>();
+            MessagingCenter.Unsubscribe<ProfileViewModel, Alert>(this, "alert");
+
             MessagingCenter.Unsubscribe<ProfileViewModel>(this, "emails-updated");
             MessagingCenter.Unsubscribe<ProfileViewModel, EmailActionOptions>(this, "show-options");
         }

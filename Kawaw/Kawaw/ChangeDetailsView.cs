@@ -114,13 +114,22 @@ namespace Kawaw
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            SubscribeAlert<ChangeDetailsViewModel>();
+            // SubscribeAlert<ChangeDetailsViewModel>();
+            MessagingCenter.Subscribe(this, "alert", async (ChangeDetailsViewModel model, Alert alert) =>
+            {
+                await DisplayAlert(alert.Title, alert.Text, "OK");
+                if (alert.Callback != null)
+                {
+                    alert.Callback.Execute(this);
+                }
+            });
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            UnsubscribeAlert<ChangeDetailsViewModel>();
+            // UnsubscribeAlert<ChangeDetailsViewModel>();
+            MessagingCenter.Unsubscribe<ChangeDetailsViewModel, Alert>(this, "alert");
         }
 
     }

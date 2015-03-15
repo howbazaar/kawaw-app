@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Xamarin.Forms;
 
 namespace Kawaw.Framework
@@ -24,11 +25,14 @@ namespace Kawaw.Framework
             this.SetBinding(IsPageVisibleProperty, "IsPageVisible");
         }
 
+        // OK, we can't use this just now because the iOS compiler does weird
+        // shit and loses the ability to hook things up.
         protected void SubscribeAlert<TViewModel>()
             where TViewModel : class
         {
             MessagingCenter.Subscribe(this, "alert", async (TViewModel model, Alert alert) =>
             {
+                Debug.WriteLine("Show an alert: {0}", alert.Text);
                 await DisplayAlert(alert.Title, alert.Text, "OK");
                 if (alert.Callback != null)
                 {
@@ -37,6 +41,8 @@ namespace Kawaw.Framework
             });
         }
 
+        // OK, we can't use this just now because the iOS compiler does weird
+        // shit and loses the ability to hook things up.
         protected void UnsubscribeAlert<TViewModel>()
             where TViewModel : class
         {
