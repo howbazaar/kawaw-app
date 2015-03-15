@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
@@ -47,6 +49,12 @@ namespace Kawaw.Framework
         {
             // maybe later take a param for the "wrap in nav view"
             return _navigation.PushModalAsync(new NavigationPage(GetPageForViewModel(viewModel)), animated);
+        }
+
+        public Task PushLoginAsync(LoginViewModel viewModel)
+        {
+            var view = new LoginView {BindingContext = viewModel};
+            return _navigation.PushModalAsync(new LoginNavigationPage(view), false);
         }
     }
 }

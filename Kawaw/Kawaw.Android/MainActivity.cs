@@ -14,16 +14,22 @@ namespace Kawaw.Droid
     [Activity(Label = "Kawaw", MainLauncher = false, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation, Theme = "@android:style/Theme.Holo.Light")]
     public class MainActivity : FormsApplicationActivity
     {
+        private static bool _insightsInitialized = false;
+
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
 
             Forms.Init(this, bundle);
+            if (!_insightsInitialized)
+            {
 #if DEBUG
             Insights.Initialize(Insights.DebugModeKey, this);
 #else
             Insights.Initialize("22fd93ca44698441312e444b5a31160691bc86e5", this);
 #endif
+                _insightsInitialized = true;
+            }
 
             LoadApplication(new App());
         }

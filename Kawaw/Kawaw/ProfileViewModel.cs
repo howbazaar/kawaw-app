@@ -88,7 +88,7 @@ namespace Kawaw
                 // Look at the email and send a message...
                 if (value.Primary && value.Verified)
                 {
-                    MessagingCenter.Send(this, "alert", new Alert
+                    MessagingCenter.Send<ProfileViewModel, Alert>(this, "alert", new Alert
                     {
                         Title = "E-mail Action",
                         Text = "You cannot delete your primary email address.",

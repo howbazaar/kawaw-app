@@ -126,7 +126,15 @@ namespace Kawaw
         {
             base.OnAppearing();
             Debug.WriteLine("appearing, so subscribe {0}", this.Id);
-            SubscribeAlert<ConnectionsViewModel>();
+            // SubscribeAlert<ConnectionsViewModel>();
+            MessagingCenter.Subscribe(this, "alert", async (ConnectionsViewModel model, Alert alert) =>
+            {
+                await DisplayAlert(alert.Title, alert.Text, "OK");
+                if (alert.Callback != null)
+                {
+                    alert.Callback.Execute(this);
+                }
+            });
 
             MessagingCenter.Subscribe(this, "show-options", async (ConnectionsViewModel model, ConnectionActionOptions options) =>
             {
@@ -149,7 +157,8 @@ namespace Kawaw
         {
             base.OnDisappearing();
             Debug.WriteLine("disappearing, so unsubscribe {0}", this.Id);
-            UnsubscribeAlert<ConnectionsViewModel>();
+            // UnsubscribeAlert<ConnectionsViewModel>();
+            MessagingCenter.Unsubscribe<ConnectionsViewModel, Alert>(this, "alert");
             MessagingCenter.Unsubscribe<ConnectionsViewModel, ConnectionActionOptions>(this, "show-options");
         }
     }

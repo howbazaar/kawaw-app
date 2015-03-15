@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using Kawaw.Framework;
 using Xamarin.Forms;
@@ -65,27 +66,44 @@ namespace Kawaw
             ToolbarItems.Add(new ToolbarItem("Tim's Laptop", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "http://192.168.1.7:8080"), itemOrder));
         }
 
-        protected override bool OnBackButtonPressed()
-        {
-            // Say we have handled it.
-            // This means that the app won't close on back button.
-
-            // Fix is in forms 1.3.5, correct thing to do is return flase there.
-            // Bug still there in 1.4.0.
-            return true;
-        }
-
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            SubscribeAlert<LoginViewModel>();
+            // SubscribeAlert<LoginViewModel>();
+            MessagingCenter.Subscribe(this, "alert", async (LoginViewModel model, Alert alert) =>
+            {
+                await DisplayAlert(alert.Title, alert.Text, "OK");
+                if (alert.Callback != null)
+                {
+                    alert.Callback.Execute(this);
+                }
+            });
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            UnsubscribeAlert<LoginViewModel>();
+            // UnsubscribeAlert<LoginViewModel>();
+            MessagingCenter.Unsubscribe<LoginViewModel, Alert>(this, "alert");
         }
     
+    }
+
+    class LoginNavigationPage : NavigationPage
+    {
+        public LoginNavigationPage(Page page)
+            :base(page)
+        {
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            // Say we have handled it.
+            // This means that the app won't close on back button.
+
+            // Fix is in forms 1.3.5, correct thing to do is return false there.
+            // Bug still there in 1.4.0.
+            return false;
+        }
     }
 }
