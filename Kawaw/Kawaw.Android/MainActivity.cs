@@ -7,6 +7,7 @@ using Xamarin;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 using DatePicker = Xamarin.Forms.DatePicker;
+using PushNotification.Plugin;
 
 [assembly:ExportRenderer(typeof(Kawaw.OptionalDatePicker), typeof(Kawaw.Droid.OptionalDatePickerRenderer))]
 namespace Kawaw.Droid
@@ -30,6 +31,7 @@ namespace Kawaw.Droid
 #endif
                 _insightsInitialized = true;
             }
+            CrossPushNotification.Initialize<CrossPushNotificationListener>("217815642803");
 
             LoadApplication(new App());
         }

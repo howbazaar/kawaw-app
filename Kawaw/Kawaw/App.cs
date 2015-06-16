@@ -4,6 +4,8 @@ using System.Runtime.Serialization;
 using Kawaw.Framework;
 using Kawaw.Models;
 using Xamarin.Forms;
+using PushNotification.Plugin;
+
 
 namespace Kawaw
 {
@@ -26,6 +28,11 @@ namespace Kawaw
         // android is the page icon
         public App()
         {
+            //initialize push notification plugin
+            Debug.WriteLine("App launched");
+            CrossPushNotification.Current.Register();
+           
+
             GenerateKawawStyle();
             ViewModelNavigation.Register<LoginViewModel, LoginView>();
             ViewModelNavigation.Register<RegisterViewModel, RegisterView>();

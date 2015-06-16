@@ -98,7 +98,7 @@ namespace Kawaw
                     Insights.Report(exception, new Dictionary<string, string>
                     {
                         {"Location", "LoginViewModel Login"}
-                    }, ReportSeverity.Error);
+                    }, Insights.Severity.Error);
                     MessagingCenter.Send(this, "alert", new Alert
                     {
                         Title = "Login Failed",
