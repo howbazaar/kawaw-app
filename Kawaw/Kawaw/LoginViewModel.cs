@@ -68,13 +68,6 @@ namespace Kawaw
                 {
                     App.User = await remote.Login(_email, _password);
                     await App.User.Refresh();
-                    // Let's tell Xamarin about this user.
-                    var traits = new Dictionary<string, string>
-                    {
-                        {Insights.Traits.Email, App.User.PrimaryEmail},
-                        {Insights.Traits.Name, App.User.FullName}
-                    };
-                    Insights.Identify(App.User.PrimaryEmail, traits);
                     await Navigation.PopModalAsync();
                 }
                 catch (FormErrorsException e)

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Xamarin;
 using Xamarin.Forms;
 
 namespace Kawaw.Models
@@ -146,6 +147,13 @@ namespace Kawaw.Models
                 UpdateEvents(events);
                 var notifications = await Remote.GetNotifications();
                 UpdateNotifications(notifications);
+                // Let's tell Xamarin about this user.
+                var traits = new Dictionary<string, string>
+                    {
+                        {Insights.Traits.Email, PrimaryEmail},
+                        {Insights.Traits.Name, FullName}
+                    };
+                Insights.Identify(PrimaryEmail, traits);
             }
             finally
             {
