@@ -8,18 +8,20 @@ namespace Kawaw
 {
     class LoginView : BaseView
     {
+        private Entry _emailEntry;
+
         public LoginView()
         {
             Title = "Login";
             Icon = "kawaw.png";
             Padding = new Thickness(20);
 
-            var emailEntry = new Entry
+            _emailEntry = new Entry
             {
                 Placeholder = "E-mail address",
                 Keyboard = Keyboard.Email
             };
-            emailEntry.SetBinding(Entry.TextProperty, "Email");
+            _emailEntry.SetBinding(Entry.TextProperty, "Email");
             var passwordEntry = new Entry
             {
                 Placeholder = "Password",
@@ -44,7 +46,7 @@ namespace Kawaw
             {
                 Spacing = 10,
                 Children = {
-                    emailEntry,
+                    _emailEntry,
                     passwordEntry,
                     loginButton,
                     registerButton,
@@ -62,8 +64,8 @@ namespace Kawaw
         private void AddSiteToolbarOptions()
         {
             var itemOrder = Device.OnPlatform(ToolbarItemOrder.Primary, ToolbarItemOrder.Secondary, ToolbarItemOrder.Default);
-            ToolbarItems.Add(new ToolbarItem("Production", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "https://kawaw.com"), itemOrder));
-            ToolbarItems.Add(new ToolbarItem("Tim's Laptop", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "http://192.168.1.7:8080"), itemOrder));
+            ToolbarItems.Add(new ToolbarItem("Prod", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "https://kawaw.com"), itemOrder));
+            ToolbarItems.Add(new ToolbarItem("Laptop", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "http://10.0.0.21:8080"), itemOrder));
         }
 
         protected override void OnAppearing()
@@ -78,6 +80,7 @@ namespace Kawaw
                     alert.Callback.Execute(this);
                 }
             });
+            _emailEntry.Focus();
         }
 
         protected override void OnDisappearing()
