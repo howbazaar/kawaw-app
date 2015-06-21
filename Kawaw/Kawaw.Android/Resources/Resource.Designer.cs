@@ -26,8 +26,8 @@ namespace Kawaw.Droid
 		
 		public static void UpdateIdValues()
 		{
-			global::Xamarin.InsightsCore.Resource.String.ApplicationName = global::Kawaw.Droid.Resource.String.ApplicationName;
-			global::Xamarin.InsightsCore.Resource.String.Hello = global::Kawaw.Droid.Resource.String.Hello;
+			global::Xamarin.Forms.Platform.Resource.String.ApplicationName = global::Kawaw.Droid.Resource.String.ApplicationName;
+			global::Xamarin.Forms.Platform.Resource.String.Hello = global::Kawaw.Droid.Resource.String.Hello;
 		}
 		
 		public partial class Attribute
