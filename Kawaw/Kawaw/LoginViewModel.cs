@@ -54,7 +54,7 @@ namespace Kawaw
             _buttonsActive = true;
             _registerCommand = new Command(async () =>
             {
-                await Navigation.PushAsync(new RegisterViewModel(App));
+                await Navigation.PushAsync(new RegisterViewModel(App, Email, Password));
             }, () => _buttonsActive);
 
             _loginCommand = new Command(async () =>

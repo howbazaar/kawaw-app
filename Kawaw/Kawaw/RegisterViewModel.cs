@@ -38,9 +38,11 @@ namespace Kawaw
             get { return _registerCommand; }
         }
 
-        public RegisterViewModel(IApp app)
+        public RegisterViewModel(IApp app, string email, string password)
             : base(app)
         {
+            Email = email;
+            Password = password;
             _buttonsActive = true;
             _registerCommand = new Command(async () =>
             {

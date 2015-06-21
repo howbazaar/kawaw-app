@@ -1,3 +1,4 @@
+using System.ServiceModel.Security;
 using Kawaw.Framework;
 using Xamarin.Forms;
 
@@ -5,30 +6,34 @@ namespace Kawaw
 {
     class RegisterView : BaseView
     {
+        private Entry _passwordEntry;
+        private Entry _emailEntry;
+        private Entry _passwordEntry2;
+
         public RegisterView()
         {
             Title = "Register";
             Icon = "kawaw.png";
             Padding = new Thickness(20);
 
-            var emailEntry = new Entry
+            _emailEntry = new Entry
             {
                 Placeholder = "E-mail address",
                 Keyboard = Keyboard.Email
             };
-            emailEntry.SetBinding(Entry.TextProperty, "Email");
-            var passwordEntry = new Entry
+            _emailEntry.SetBinding(Entry.TextProperty, "Email");
+            _passwordEntry = new Entry
             {
                 Placeholder = "Your password",
                 IsPassword = true
             };
-            passwordEntry.SetBinding(Entry.TextProperty, "Password");
-            var passwordEntry2 = new Entry
+            _passwordEntry.SetBinding(Entry.TextProperty, "Password");
+            _passwordEntry2 = new Entry
             {
                 Placeholder = "Your password again",
                 IsPassword = true
             };
-            passwordEntry2.SetBinding(Entry.TextProperty, "Password2");
+            _passwordEntry2.SetBinding(Entry.TextProperty, "Password2");
             var registerButton = new Button
             {
                 Text = "Register"
@@ -39,9 +44,9 @@ namespace Kawaw
             {
                 Spacing = 10,
                 Children = {
-                    emailEntry,
-                    passwordEntry,
-                    passwordEntry2,
+                    _emailEntry,
+                    _passwordEntry,
+                    _passwordEntry2,
                     registerButton
                 }
             };
@@ -59,6 +64,14 @@ namespace Kawaw
                     alert.Callback.Execute(this);
                 }
             });
+            if (_passwordEntry.Text != "")
+            {
+                _passwordEntry2.Focus();
+            }
+            else if (_emailEntry.Text != "")
+            {
+                _passwordEntry.Focus();
+            }
         }
 
         protected override void OnDisappearing()
