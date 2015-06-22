@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
 using Newtonsoft.Json.Linq;
+using PushNotification.Plugin.Abstractions;
+using Xamarin;
 using User = Kawaw.Models.User;
 
 namespace Kawaw
@@ -378,6 +380,51 @@ namespace Kawaw
 
             await ProcessFormError(response);
             throw new UnexpectedException("unreachable");
+        }
+
+        public async Task<bool> RegisterDevice(string token, DeviceType deviceType)
+        {
+            Debug.WriteLine("RemoteSite::RegisterDevice");
+
+            var values = new Dictionary<string, string>();
+            values["token"] = token;
+            switch (deviceType)
+            {
+                case DeviceType.Android:
+                    values["device"] = "g";
+                    break;
+                case DeviceType.iOS:
+                    values["device"] = "a";
+                    break;
+            }
+            var response = await Post("+add-endpoint/", values);
+#if DEBUG
+            var content = await response.Content.ReadAsStringAsync();
+            Debug.WriteLine("Add endpoint: {0}", content);
+#endif
+            return response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Created;
+        }
+
+        public async Task<bool> UnregisterDevice(string token, DeviceType deviceType)
+        {
+            Debug.WriteLine("RemoteSite::UnregisterDevice");
+            var values = new Dictionary<string, string>();
+            values["token"] = token;
+            switch (deviceType)
+            {
+                case DeviceType.Android:
+                    values["device"] = "g";
+                    break;
+                case DeviceType.iOS:
+                    values["device"] = "a";
+                    break;
+            }
+            var response = await Post("+remove-endpoint/", values);
+#if DEBUG
+            var content = await response.Content.ReadAsStringAsync();
+            Debug.WriteLine("Remove endpoint: {0}", content);
+#endif
+            return response.StatusCode == HttpStatusCode.OK;
         }
 
         private static async Task ProcessFormError(HttpResponseMessage response)

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using PushNotification.Plugin.Abstractions;
 using Xamarin;
 using Xamarin.Forms;
 
@@ -133,6 +134,16 @@ namespace Kawaw.Models
             return value.ToString("dd MMM yyyy");
         }
 
+        public Task<bool> RegisterDevice(string token, DeviceType deviceType)
+        {
+            return Remote.RegisterDevice(token, deviceType);
+        }
+
+        public Task<bool> UnregisterDevice(string token, DeviceType deviceType)
+        {
+            return Remote.UnregisterDevice(token, deviceType);
+        }
+
         public async Task Refresh()
         {
             try
@@ -154,6 +165,7 @@ namespace Kawaw.Models
                         {Insights.Traits.Name, FullName}
                     };
                 Insights.Identify(PrimaryEmail, traits);
+                MessagingCenter.Send((object)this, "user-refreshed");
             }
             finally
             {

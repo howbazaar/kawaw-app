@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Windows.Input;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
+using PushNotification.Plugin;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -53,6 +54,7 @@ namespace Kawaw
                 try
                 {
                     App.User = await app.Remote.Register(_email, _password);
+                    CrossPushNotification.Current.Register();
                     await App.User.Refresh();
                     await Navigation.PopModalAsync();
                 }

@@ -1,35 +1,39 @@
 ﻿using PushNotification.Plugin;
 using PushNotification.Plugin.Abstractions;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Xamarin.Forms;
 
 namespace Kawaw
 {
     public class CrossPushNotificationListener : IPushNotificationListener
     {
-        public void OnMessage(IDictionary<string,object> Parameters, DeviceType deviceType)
+        public void OnMessage(IDictionary<string, object> parameters, DeviceType deviceType)
         {
             Debug.WriteLine("Message Arrived");
+            foreach (var entry in parameters)
+            {
+                Debug.WriteLine("{0}: {1}", entry.Key, entry.Value);
+            }
         }
-        public async void OnRegistered(string Token, DeviceType deviceType)
+        public void OnRegistered(string token, DeviceType deviceType)
         {
-            // Console log token
-            // Use aws to send the token in the console to get message on device 
-            Debug.WriteLine(string.Format("Push Notification - Device Registered - Token : {0}", Token));
-
+            Debug.WriteLine("Push Notification - Device Registered - Token : {0}", token);
+            var registration = new DeviceRegistration
+            {
+                DeviceType = deviceType,
+                Token = token,
+            };
+            MessagingCenter.Send((object)this, "register-device", registration);
         }
-        public async void OnUnregistered(DeviceType deviceType)
+        public void OnUnregistered(DeviceType deviceType)
         {
             Debug.WriteLine("Push Notification - Device Unnregistered");
+            MessagingCenter.Send((object)this, "unregister-device", deviceType);
         }
         public void OnError(string message, DeviceType deviceType)
         {
-            Debug.WriteLine(string.Format("Push notification error - {0}", message));
+            Debug.WriteLine("Push notification error - {0}", message);
         }
     }
 }

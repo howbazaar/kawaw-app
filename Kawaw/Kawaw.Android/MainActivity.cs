@@ -32,7 +32,6 @@ namespace Kawaw.Droid
                 _insightsInitialized = true;
             }
             CrossPushNotification.Initialize<CrossPushNotificationListener>("217815642803");
-
             LoadApplication(new App());
         }
     }

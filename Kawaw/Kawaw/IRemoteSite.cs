@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Kawaw.Models;
+using PushNotification.Plugin.Abstractions;
 
 namespace Kawaw
 {
@@ -25,5 +26,8 @@ namespace Kawaw
         Task NotificationAction(uint notificationId, uint memberId, bool accepted);
 
         Task<JSON.Event[]> GetEvents();
+
+        Task<bool> RegisterDevice(string token, DeviceType deviceType);
+        Task<bool> UnregisterDevice(string token, DeviceType deviceType);
     }
 }

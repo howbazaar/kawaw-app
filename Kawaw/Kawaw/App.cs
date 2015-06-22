@@ -1,24 +1,33 @@
 ﻿using System.Diagnostics;
-using System.IO;
-using System.Runtime.Serialization;
 using Kawaw.Framework;
 using Kawaw.Models;
+using PushNotification.Plugin.Abstractions;
 using Xamarin.Forms;
 using PushNotification.Plugin;
 
 
 namespace Kawaw
 {
+    public class DeviceRegistration
+    {
+        public string Token { get; set; }
+        public DeviceType DeviceType { get; set; }
+        public bool Registered { get; set; }
+        public string UnregToken { get; set; }
+    };
+
     interface IApp
     {
         IRemoteSite Remote { get; }
         User User { get; set; }
+        DeviceRegistration DeviceRegistration { get; set; }
     }
 
     public class App : Application, IApp
     {
         private User _user;
         private readonly RootViewModel _rootViewModel;
+        private DeviceRegistration _deviceRegistration;
         // var accentColor = Color.FromHex("59C2FF");
         public static Color AccentColor = Color.FromHex("10558d");
         public static Color BackgroundColor = AccentColor.WithLuminosity(0.99);
@@ -51,11 +60,21 @@ namespace Kawaw
                 User = Properties["User"] as User;
                 // ReSharper disable once PossibleNullReferenceException
                 Debug.WriteLine("User found in properties: {0}", User.FullName);
+                Debug.WriteLine("Call CrossPushNotification.Current.Register() from App ctor");
+                CrossPushNotification.Current.Register();
             }
             else
             {
                 Debug.WriteLine("User not found in properties, login needed");
             }
+            // Do we have any previous device registrations
+            if (Properties.ContainsKey("Device"))
+            {
+                DeviceRegistration = Properties["Device"] as DeviceRegistration;
+                // ReSharper disable once PossibleNullReferenceException
+                Debug.WriteLine("Device registration found in properties: {0}, {1}, {2}", DeviceRegistration.DeviceType, DeviceRegistration.Registered, DeviceRegistration.Token);
+            }
+
             var page = RootViewModel.Profile;
             if (Properties.ContainsKey("Page") && User != null)
             {
@@ -111,7 +130,7 @@ namespace Kawaw
             {
                 Setters =
                 {
-                    new Setter {Property = ContentPage.BackgroundColorProperty, Value = BackgroundColor}
+                    new Setter {Property = VisualElement.BackgroundColorProperty, Value = BackgroundColor}
                 }
             };
             Resources.Add("BaseViewStyle", contentPageStyle);
@@ -119,7 +138,7 @@ namespace Kawaw
             {
                 Setters =
                 {
-                    new Setter {Property = Button.BackgroundColorProperty, Value = BackgroundColor.AddLuminosity(-0.05)},
+                    new Setter {Property = VisualElement.BackgroundColorProperty, Value = BackgroundColor.AddLuminosity(-0.05)},
                     new Setter {Property = Button.BorderColorProperty, Value = AccentColor},
                     new Setter {Property = Button.BorderWidthProperty, Value = 2},
                     new Setter {Property = Button.BorderRadiusProperty, Value = 1},
@@ -203,6 +222,19 @@ namespace Kawaw
         }
 
         public IRemoteSite Remote { get; private set; }
+
+        public DeviceRegistration DeviceRegistration
+        {
+            get { return _deviceRegistration; }
+            set
+            {
+                _deviceRegistration = value;
+                if (_deviceRegistration == null)
+                    Properties.Remove("Device");
+                else
+                    Properties["Device"] = _deviceRegistration;
+            }
+        }
 
         public User User
         {
