@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using PushNotification.Plugin;
 using PushNotification.Plugin.Abstractions;
 using Xamarin;
 using Xamarin.Forms;
@@ -26,6 +27,9 @@ namespace Kawaw.Models
 
         [DataMember(Name = "notifications")]
         private JSON.Notification[] _notifications;
+
+        [DataMember(Name = "device-token")]
+        private string _token;
 
         public IRemoteSite Remote { get; set; }
 
@@ -134,14 +138,26 @@ namespace Kawaw.Models
             return value.ToString("dd MMM yyyy");
         }
 
-        public Task<bool> RegisterDevice(string token, DeviceType deviceType)
+        public Task<bool> RegisterDevice()
         {
-            return Remote.RegisterDevice(token, deviceType);
+            var token = CrossPushNotification.Current.Token;
+            if (string.IsNullOrEmpty(token))
+            {
+                Debug.WriteLine("No token to register.");
+                return Task.FromResult(false);
+            }
+            _token = token;
+            return Remote.RegisterDevice(token);
         }
 
-        public Task<bool> UnregisterDevice(string token, DeviceType deviceType)
+        public Task<bool> UnregisterDevice()
         {
-            return Remote.UnregisterDevice(token, deviceType);
+            if (string.IsNullOrEmpty(_token))
+            {
+                Debug.WriteLine("No token to unregister.");
+                return Task.FromResult(false);
+            }
+            return Remote.UnregisterDevice(_token);
         }
 
         public async Task Refresh()

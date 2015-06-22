@@ -49,10 +49,12 @@ namespace Kawaw
             MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) => SetDetails(page));
             MessagingCenter.Subscribe(this, "logout", (object sender) =>
             {
-                CrossPushNotification.Current.Unregister();
-
+                Debug.WriteLine("unregister device");
+                App.User.UnregisterDevice();
+                Debug.WriteLine("logout");
                 App.Remote.Logout();
                 App.User = null;
+                Debug.WriteLine("show login");
                 ShowLogin();
             });
             MessagingCenter.Subscribe(this, "refresh", (object sender) => RefreshUser());
@@ -77,118 +79,23 @@ namespace Kawaw
                     App.User = null;
                     ShowLogin();
             });
-            MessagingCenter.Subscribe(this, "user-refreshed", (object sender) =>
-            {
-                Debug.WriteLine("user-refreshed");
-                var user = App.User;
-                if (user == null)
-                {
-                    Debug.WriteLine("shouldn't be possible.");
-                    return;
-                }
-                var appReg = App.DeviceRegistration;
-                if (appReg == null)
-                {
-                    Debug.WriteLine("no device registration");
-                    return;
-                }
-                if (appReg.UnregToken != "" || (appReg.Token != "" && !appReg.Registered))
-                {
-                    HandleDeviceRegistration(appReg, user);
-                }
-            });
-            MessagingCenter.Subscribe(this, "unregister-device", async (object sender, DeviceType deviceType) =>
+            MessagingCenter.Subscribe(this, "unregister-device", (object sender) =>
             {
                 Debug.WriteLine("unregister-device");
-
-                var appReg = App.DeviceRegistration;
-                if (appReg == null || string.IsNullOrEmpty(appReg.Token))
-                {
-                    Debug.WriteLine("no existing registration to remove");
-                    return;
-                }
-                var user = App.User;
-                if (user != null)
-                {
-                    try
-                    {
-                        var success = await user.UnregisterDevice(appReg.Token, appReg.DeviceType);
-                        if (success)
-                        {
-                            appReg.Token = null;
-                            return;
-                        }
-                    }
-                    catch
-                    {
-                        // store to remove it later, same as no user.
-                    }
-                }
-                appReg.UnregToken = appReg.Token;
-                appReg.Token = null;
-            });
-            MessagingCenter.Subscribe(this, "register-device", (object sender, DeviceRegistration registration) =>
-            {
-                Debug.WriteLine("register-device: {0}, {1}, {2}, {3}", registration.DeviceType, registration.Registered, registration.Token, registration.UnregToken);
-                var appReg = App.DeviceRegistration;
-                if (appReg == null)
-                {
-                    Debug.WriteLine("set appReg = registration");
-                    appReg = registration;
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(appReg.Token))
-                    {
-                        if (appReg.Token == registration.Token)
-                        {
-                            Debug.WriteLine("Same token as last time.");
-                            return;
-                        }
-                        appReg.UnregToken = appReg.Token;
-                        appReg.Registered = false;
-                    }
-                    appReg.Token = registration.Token;
-                    appReg.DeviceType = registration.DeviceType;
-                }
-                App.DeviceRegistration = appReg;
                 if (App.User != null)
                 {
-                    Debug.WriteLine("Have App.User");
-                    HandleDeviceRegistration(appReg, App.User);
+                    App.User.UnregisterDevice();
+                }
+            });
+            MessagingCenter.Subscribe(this, "register-device", async (object sender) =>
+            {
+                if (App.User != null)
+                {
+                    await App.User.RegisterDevice();
                 }
             });
         }
 
-        private static async void HandleDeviceRegistration(DeviceRegistration appReg, Models.User user)
-        {
-            Debug.WriteLine("handle device registration");
-            if (!string.IsNullOrEmpty(appReg.UnregToken))
-            {
-                Debug.WriteLine("unregister {0}", appReg.UnregToken);
-                try
-                {
-                    var success = await user.UnregisterDevice(appReg.UnregToken, appReg.DeviceType);
-                    if (success)
-                    {
-                        appReg.Token = null;
-                    }
-                }
-                catch
-                {
-                    // store to remove it later, same as no user.
-                }
-            }
-            if (appReg.Registered || string.IsNullOrEmpty(appReg.Token)) return;
-            try
-            {
-                appReg.Registered = await user.RegisterDevice(appReg.Token, appReg.DeviceType);
-            }
-            catch
-            {
-                // store to remove it later, same as no user.
-            }
-        }
         public async void RefreshUser(bool silent = false)
         {
             try

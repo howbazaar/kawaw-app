@@ -68,8 +68,7 @@ namespace Kawaw
                 try
                 {
                     App.User = await remote.Login(_email, _password);
-                    Debug.WriteLine("Call CrossPushNotification.Current.Register() from Login");
-                    CrossPushNotification.Current.Register();
+                    await App.User.RegisterDevice();
                     await App.User.Refresh();
                     await Navigation.PopModalAsync();
                 }

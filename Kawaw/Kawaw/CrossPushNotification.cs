@@ -19,17 +19,12 @@ namespace Kawaw
         public void OnRegistered(string token, DeviceType deviceType)
         {
             Debug.WriteLine("Push Notification - Device Registered - Token : {0}", token);
-            var registration = new DeviceRegistration
-            {
-                DeviceType = deviceType,
-                Token = token,
-            };
-            MessagingCenter.Send((object)this, "register-device", registration);
+            MessagingCenter.Send((object)this, "register-device");
         }
         public void OnUnregistered(DeviceType deviceType)
         {
             Debug.WriteLine("Push Notification - Device Unnregistered");
-            MessagingCenter.Send((object)this, "unregister-device", deviceType);
+            MessagingCenter.Send((object)this, "unregister-device");
         }
         public void OnError(string message, DeviceType deviceType)
         {
