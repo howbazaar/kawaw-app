@@ -68,12 +68,6 @@
     </Reference>
     <Reference Include="Mono.Android" />
     <Reference Include="mscorlib" />
-    <Reference Include="PushNotification.Plugin">
-      <HintPath>..\..\packages\Xam.Plugin.PushNotification.1.0.4\lib\MonoAndroid10\PushNotification.Plugin.dll</HintPath>
-    </Reference>
-    <Reference Include="PushNotification.Plugin.Abstractions">
-      <HintPath>..\..\packages\Xam.Plugin.PushNotification.1.0.4\lib\MonoAndroid10\PushNotification.Plugin.Abstractions.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -142,6 +136,14 @@
     <Content Include="PushNotificationStarted.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\xamarin-plugins\PushNotification\PushNotification\PushNotification.Plugin.Abstractions\PushNotification.Plugin.Abstractions.csproj">
+      <Project>{6edb0588-ffc5-4ef5-8a99-9e241d0f878d}</Project>
+      <Name>PushNotification.Plugin.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\xamarin-plugins\PushNotification\PushNotification\PushNotification.Plugin.Android\PushNotification.Plugin.Android.csproj">
+      <Project>{56a56f17-7de1-4ca1-9617-bf32e971ac84}</Project>
+      <Name>PushNotification.Plugin.Android</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Kawaw\Kawaw.csproj">
       <Name>Kawaw</Name>
     </ProjectReference>
