@@ -37,13 +37,13 @@
     <Compile Include="AddEmailView.cs" />
     <Compile Include="AddEmailViewModel.cs" />
     <Compile Include="App.cs" />
-    <Compile Include="CrossPushNotification.cs" />
     <Compile Include="Exceptions\InconsistentStateException.cs" />
     <Compile Include="Framework\BaseProperties.cs" />
     <Compile Include="Framework\BaseView.cs" />
     <Compile Include="Framework\BaseViewModel.cs" />
     <Compile Include="Framework\NavigationConverter.cs" />
     <Compile Include="Framework\ViewModelNavigation.cs" />
+    <Compile Include="INotificationRegisration.cs" />
     <Compile Include="JSON\Notification.cs" />
     <Compile Include="JSON\NotificationResponse.cs" />
     <Compile Include="Models\Connection.cs" />
@@ -113,16 +113,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\xamarin-plugins\PushNotification\PushNotification\PushNotification.Plugin.Abstractions\PushNotification.Plugin.Abstractions.csproj">
-      <Project>{6edb0588-ffc5-4ef5-8a99-9e241d0f878d}</Project>
-      <Name>PushNotification.Plugin.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\xamarin-plugins\PushNotification\PushNotification\PushNotification.Plugin\PushNotification.Plugin.csproj">
-      <Project>{a6fcef44-d2ba-42c7-b3cb-13667bcd7b54}</Project>
-      <Name>PushNotification.Plugin</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <Import Project="..\..\packages\Xamarin.Forms.1.4.2.6359\build\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+MonoTouch10+Xamarin.iOS10\Xamarin.Forms.targets" Condition="Exists('..\..\packages\Xamarin.Forms.1.4.2.6359\build\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+MonoTouch10+Xamarin.iOS10\Xamarin.Forms.targets')" />

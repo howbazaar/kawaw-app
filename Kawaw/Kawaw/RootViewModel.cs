@@ -2,9 +2,6 @@ using System;
 using System.Diagnostics;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
-using Kawaw.JSON;
-using PushNotification.Plugin;
-using PushNotification.Plugin.Abstractions;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -93,6 +90,21 @@ namespace Kawaw
                 {
                     await App.User.RegisterDevice();
                 }
+            });
+            MessagingCenter.Subscribe(this, "show event", (object sender, int id) =>
+            {
+                Debug.WriteLine("show event {0}", id);
+                SetDetails(Events);
+            });
+            MessagingCenter.Subscribe(this, "show notification", (object sender, int id) =>
+            {
+                Debug.WriteLine("show notification {0}", id);
+                SetDetails(Notifications);
+            });
+            MessagingCenter.Subscribe(this, "show connections", (object sender) =>
+            {
+                Debug.WriteLine("show connections");
+                SetDetails(Connections);
             });
         }
 

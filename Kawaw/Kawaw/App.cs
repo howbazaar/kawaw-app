@@ -2,7 +2,6 @@
 using Kawaw.Framework;
 using Kawaw.Models;
 using Xamarin.Forms;
-using PushNotification.Plugin;
 
 
 namespace Kawaw
@@ -27,7 +26,7 @@ namespace Kawaw
         public App()
         {
             Debug.WriteLine("App launched");
-            CrossPushNotification.Current.Register();
+            DependencyService.Get<INotificationRegisration>().Register();
 
             GenerateKawawStyle();
             ViewModelNavigation.Register<LoginViewModel, LoginView>();
@@ -77,7 +76,6 @@ namespace Kawaw
                     Properties["Page"] = model.Name;
                 }
             });
-
         }
 
         private void GenerateKawawStyle()

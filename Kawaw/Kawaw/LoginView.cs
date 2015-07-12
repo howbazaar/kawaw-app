@@ -65,7 +65,7 @@ namespace Kawaw
         {
             var itemOrder = Device.OnPlatform(ToolbarItemOrder.Primary, ToolbarItemOrder.Secondary, ToolbarItemOrder.Default);
             ToolbarItems.Add(new ToolbarItem("Prod", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "https://kawaw.com"), itemOrder));
-            ToolbarItems.Add(new ToolbarItem("Laptop", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "http://10.0.0.21:8080"), itemOrder));
+            ToolbarItems.Add(new ToolbarItem("Laptop", null, () => MessagingCenter.Send<object, string>(this, "set-remote-site", "http://10.0.0.17:8080"), itemOrder));
         }
 
         protected override void OnAppearing()

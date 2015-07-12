@@ -1,18 +1,21 @@
 ﻿using System.ComponentModel;
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
-using Android.Content.Res;
 using Android.OS;
 using Xamarin;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 using DatePicker = Xamarin.Forms.DatePicker;
-using PushNotification.Plugin;
 
 [assembly:ExportRenderer(typeof(Kawaw.OptionalDatePicker), typeof(Kawaw.Droid.OptionalDatePickerRenderer))]
 namespace Kawaw.Droid
 {
-    [Activity(Label = "Kawaw", MainLauncher = false, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation, Theme = "@android:style/Theme.Holo.Light")]
+    [Activity(Label = "Kawaw",
+        MainLauncher = false,
+        ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation,
+        LaunchMode = LaunchMode.SingleTask,
+        Theme = "@android:style/Theme.Holo.Light")]
     public class MainActivity : FormsApplicationActivity
     {
         private static bool _insightsInitialized = false;
@@ -25,14 +28,42 @@ namespace Kawaw.Droid
             if (!_insightsInitialized)
             {
 #if DEBUG
-            Insights.Initialize(Insights.DebugModeKey, this);
+            //Insights.Initialize(Insights.DebugModeKey, this);
+            Insights.HasPendingCrashReport += (sender, isStartupCrash) => Insights.PurgePendingCrashReports().Wait();
+            Insights.Initialize("22fd93ca44698441312e444b5a31160691bc86e5", this);
 #else
             Insights.Initialize("22fd93ca44698441312e444b5a31160691bc86e5", this);
 #endif
                 _insightsInitialized = true;
             }
-            CrossPushNotification.Initialize<CrossPushNotificationListener>("217815642803");
             LoadApplication(new App());
+            SendMessageInResponseToIntent(Intent);
+        }
+
+        protected override void OnNewIntent(Intent intent)
+        {
+            base.OnNewIntent(intent);
+            SendMessageInResponseToIntent(intent);
+        }
+
+        private void SendMessageInResponseToIntent(Intent intent)
+        {
+            var tag = intent.GetStringExtra("tag");
+            var id = intent.GetIntExtra("id", 0);
+            System.Diagnostics.Debug.WriteLine("OnNewIntent: {0}, {1}", tag, id);
+
+            switch (tag)
+            {
+                case "event":
+                    MessagingCenter.Send((object)this, "show event", id);
+                    break;
+                case "notification":
+                    MessagingCenter.Send((object)this, "show notification", id);
+                    break;
+                case "connection":
+                    MessagingCenter.Send((object)this, "show connections");
+                    break;
+            }
         }
     }
     

@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using PushNotification.Plugin;
-using PushNotification.Plugin.Abstractions;
 using Xamarin;
 using Xamarin.Forms;
 
@@ -140,7 +138,7 @@ namespace Kawaw.Models
 
         public Task<bool> RegisterDevice()
         {
-            var token = CrossPushNotification.Current.Token;
+            var token = DependencyService.Get<INotificationRegisration>().Token;
             if (string.IsNullOrEmpty(token))
             {
                 Debug.WriteLine("No token to register.");

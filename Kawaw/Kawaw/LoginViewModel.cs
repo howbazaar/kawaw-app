@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Windows.Input;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
-using PushNotification.Plugin;
 using Xamarin;
 using Xamarin.Forms;
 
