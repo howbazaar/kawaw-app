@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Foundation;
 using UIKit;
 
@@ -6,30 +7,34 @@ namespace Kawaw.iOS
 {
     public class NotificationRegistraion : INotificationRegisration
     {
-        private const string TokenKey = "token";
+        public const string TokenKey = "token";
 
         public string Token { get { return NSUserDefaults.StandardUserDefaults.StringForKey(TokenKey); }
 }
         public void Register()
         {
+            Debug.Write("Register");
             if (UIDevice.CurrentDevice.CheckSystemVersion(8, 0))
             {
-                UIUserNotificationType userNotificationTypes = UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound;
-                UIUserNotificationSettings settings = UIUserNotificationSettings.GetSettingsForTypes(userNotificationTypes, null);
+                Debug.Write("if block");
+                var settings = UIUserNotificationSettings.GetSettingsForTypes(
+                    UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound,
+                    null);
                 UIApplication.SharedApplication.RegisterUserNotificationSettings(settings);
+                UIApplication.SharedApplication.RegisterForRemoteNotifications();
             }
             else
             {
-                UIRemoteNotificationType notificationTypes = UIRemoteNotificationType.Alert | UIRemoteNotificationType.Badge | UIRemoteNotificationType.Sound;
-                UIApplication.SharedApplication.RegisterForRemoteNotificationTypes(notificationTypes);
+                Debug.Write("else block");
+                UIApplication.SharedApplication.RegisterForRemoteNotificationTypes(
+                    UIRemoteNotificationType.Alert | UIRemoteNotificationType.Badge | UIRemoteNotificationType.Sound);
             } 
-            
-            throw new System.NotImplementedException();
         }
 
         public void Unregister()
         {
-            throw new System.NotImplementedException();
+            Debug.Write("Unregister");
+            UIApplication.SharedApplication.UnregisterForRemoteNotifications();
         }
     }
 }

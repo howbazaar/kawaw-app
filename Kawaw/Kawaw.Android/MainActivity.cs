@@ -50,20 +50,7 @@ namespace Kawaw.Droid
         {
             var tag = intent.GetStringExtra("tag");
             var id = intent.GetIntExtra("id", 0);
-            System.Diagnostics.Debug.WriteLine("OnNewIntent: {0}, {1}", tag, id);
-
-            switch (tag)
-            {
-                case "event":
-                    MessagingCenter.Send((object)this, "show event", id);
-                    break;
-                case "notification":
-                    MessagingCenter.Send((object)this, "show notification", id);
-                    break;
-                case "connection":
-                    MessagingCenter.Send((object)this, "show connections");
-                    break;
-            }
+            App.OnNotification(this, tag, id);
         }
     }
     

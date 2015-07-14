@@ -216,6 +216,22 @@ namespace Kawaw
                 }
             }
         }
+
+        public static void OnNotification(object sender, string tag, int id)
+        {
+            switch (tag)
+            {
+                case "event":
+                    MessagingCenter.Send(sender, "show event", id);
+                    break;
+                case "notification":
+                    MessagingCenter.Send(sender, "show notification", id);
+                    break;
+                case "connection":
+                    MessagingCenter.Send(sender, "show connections");
+                    break;
+            }
+        }
     }
 
 }
