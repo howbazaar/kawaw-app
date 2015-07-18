@@ -67,6 +67,7 @@ namespace Kawaw
                 try
                 {
                     App.User = await remote.Login(_email, _password);
+                    await App.User.RegisterDevice();
                     await App.User.Refresh();
                     await Navigation.PopModalAsync();
                 }

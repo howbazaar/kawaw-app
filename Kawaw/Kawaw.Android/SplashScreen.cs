@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Kawaw.Droid
+﻿namespace Kawaw.Droid
 {
-    using System.Threading;
     using Android.App;
     using Android.OS;
-    using Android.Content.PM;
 
     [Activity(Theme = "@style/Theme.Splash", MainLauncher = true, NoHistory = true) ]
     public class SplashActivity : Activity

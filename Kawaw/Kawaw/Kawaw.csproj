@@ -43,6 +43,7 @@
     <Compile Include="Framework\BaseViewModel.cs" />
     <Compile Include="Framework\NavigationConverter.cs" />
     <Compile Include="Framework\ViewModelNavigation.cs" />
+    <Compile Include="INotificationRegisration.cs" />
     <Compile Include="JSON\Notification.cs" />
     <Compile Include="JSON\NotificationResponse.cs" />
     <Compile Include="Models\Connection.cs" />

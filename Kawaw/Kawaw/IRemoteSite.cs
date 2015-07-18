@@ -25,5 +25,8 @@ namespace Kawaw
         Task NotificationAction(uint notificationId, uint memberId, bool accepted);
 
         Task<JSON.Event[]> GetEvents();
+
+        Task<bool> RegisterDevice(string token);
+        Task<bool> UnregisterDevice(string token);
     }
 }

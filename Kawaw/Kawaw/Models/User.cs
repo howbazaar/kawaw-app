@@ -26,6 +26,9 @@ namespace Kawaw.Models
         [DataMember(Name = "notifications")]
         private JSON.Notification[] _notifications;
 
+        [DataMember(Name = "device-token")]
+        private string _token;
+
         public IRemoteSite Remote { get; set; }
 
         public void UpdateUser(JSON.User user)
@@ -133,6 +136,28 @@ namespace Kawaw.Models
             return value.ToString("dd MMM yyyy");
         }
 
+        public Task<bool> RegisterDevice()
+        {
+            var token = DependencyService.Get<INotificationRegisration>().Token;
+            if (string.IsNullOrEmpty(token))
+            {
+                Debug.WriteLine("No token to register.");
+                return Task.FromResult(false);
+            }
+            _token = token;
+            return Remote.RegisterDevice(token);
+        }
+
+        public Task<bool> UnregisterDevice()
+        {
+            if (string.IsNullOrEmpty(_token))
+            {
+                Debug.WriteLine("No token to unregister.");
+                return Task.FromResult(false);
+            }
+            return Remote.UnregisterDevice(_token);
+        }
+
         public async Task Refresh()
         {
             try
@@ -154,6 +179,7 @@ namespace Kawaw.Models
                         {Insights.Traits.Name, FullName}
                     };
                 Insights.Identify(PrimaryEmail, traits);
+                MessagingCenter.Send((object)this, "user-refreshed");
             }
             finally
             {

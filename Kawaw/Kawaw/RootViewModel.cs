@@ -6,6 +6,7 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
+
     class RootViewModel : BaseViewModel
     {
         public const string Events = "Events";
@@ -45,8 +46,12 @@ namespace Kawaw
             MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) => SetDetails(page));
             MessagingCenter.Subscribe(this, "logout", (object sender) =>
             {
+                Debug.WriteLine("unregister device");
+                App.User.UnregisterDevice();
+                Debug.WriteLine("logout");
                 App.Remote.Logout();
                 App.User = null;
+                Debug.WriteLine("show login");
                 ShowLogin();
             });
             MessagingCenter.Subscribe(this, "refresh", (object sender) => RefreshUser());
@@ -70,6 +75,36 @@ namespace Kawaw
                     App.Remote.Logout();
                     App.User = null;
                     ShowLogin();
+            });
+            MessagingCenter.Subscribe(this, "unregister-device", (object sender) =>
+            {
+                Debug.WriteLine("unregister-device");
+                if (App.User != null)
+                {
+                    App.User.UnregisterDevice();
+                }
+            });
+            MessagingCenter.Subscribe(this, "register-device", async (object sender) =>
+            {
+                if (App.User != null)
+                {
+                    await App.User.RegisterDevice();
+                }
+            });
+            MessagingCenter.Subscribe(this, "show event", (object sender, int id) =>
+            {
+                Debug.WriteLine("show event {0}", id);
+                SetDetails(Events);
+            });
+            MessagingCenter.Subscribe(this, "show notification", (object sender, int id) =>
+            {
+                Debug.WriteLine("show notification {0}", id);
+                SetDetails(Notifications);
+            });
+            MessagingCenter.Subscribe(this, "show connections", (object sender) =>
+            {
+                Debug.WriteLine("show connections");
+                SetDetails(Connections);
             });
         }
 

@@ -147,21 +147,10 @@ namespace Kawaw
                orderby e.Start ascending
                select new EventViewModel(e));
             
-            //TODO: Check event relevent info
-            if (user.HasVerifiedEmail)
-            {
-                EmptyText =
-                    "No events yet.\n\n" +
-                    "As your verified email addresses are added as contact email addresses for people in " +
-                    "shools, clubs, or other organisations that use kawaw, connections will show up here.";
-            }
-            else
-            {
-                EmptyText =
-                    "Connections are only made using verified email addreses.\n\n" +
-                    "To see any existing connections you need to verify your email " +
-                    "addresses by clicking on the link in the email sent to that address.";
-            }
+            EmptyText =
+                "No events yet.\n\n" +
+                "As events are added by shools, clubs, or other organisations " +
+                "that you are connected to, they will show up here.";
         }
     }
 }

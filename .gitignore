@@ -8,3 +8,4 @@
 *.suo
 **/Thumbs.db
 **/*.csproj.user
+**/*.Designer.cs

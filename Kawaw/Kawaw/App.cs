@@ -1,9 +1,8 @@
 ﻿using System.Diagnostics;
-using System.IO;
-using System.Runtime.Serialization;
 using Kawaw.Framework;
 using Kawaw.Models;
 using Xamarin.Forms;
+
 
 namespace Kawaw
 {
@@ -26,6 +25,8 @@ namespace Kawaw
         // android is the page icon
         public App()
         {
+            DependencyService.Get<INotificationRegisration>().Register();
+
             GenerateKawawStyle();
             ViewModelNavigation.Register<LoginViewModel, LoginView>();
             ViewModelNavigation.Register<RegisterViewModel, RegisterView>();
@@ -49,6 +50,7 @@ namespace Kawaw
             {
                 Debug.WriteLine("User not found in properties, login needed");
             }
+
             var page = RootViewModel.Profile;
             if (Properties.ContainsKey("Page") && User != null)
             {
@@ -73,7 +75,6 @@ namespace Kawaw
                     Properties["Page"] = model.Name;
                 }
             });
-
         }
 
         private void GenerateKawawStyle()
@@ -104,7 +105,7 @@ namespace Kawaw
             {
                 Setters =
                 {
-                    new Setter {Property = ContentPage.BackgroundColorProperty, Value = BackgroundColor}
+                    new Setter {Property = VisualElement.BackgroundColorProperty, Value = BackgroundColor}
                 }
             };
             Resources.Add("BaseViewStyle", contentPageStyle);
@@ -112,7 +113,7 @@ namespace Kawaw
             {
                 Setters =
                 {
-                    new Setter {Property = Button.BackgroundColorProperty, Value = BackgroundColor.AddLuminosity(-0.05)},
+                    new Setter {Property = VisualElement.BackgroundColorProperty, Value = BackgroundColor.AddLuminosity(-0.05)},
                     new Setter {Property = Button.BorderColorProperty, Value = AccentColor},
                     new Setter {Property = Button.BorderWidthProperty, Value = 2},
                     new Setter {Property = Button.BorderRadiusProperty, Value = 1},
@@ -212,6 +213,22 @@ namespace Kawaw
                 {
                     Properties.Remove("User");
                 }
+            }
+        }
+
+        public static void OnNotification(object sender, string tag, int id)
+        {
+            switch (tag)
+            {
+                case "event":
+                    MessagingCenter.Send(sender, "show event", id);
+                    break;
+                case "notification":
+                    MessagingCenter.Send(sender, "show notification", id);
+                    break;
+                case "connection":
+                    MessagingCenter.Send(sender, "show connections");
+                    break;
             }
         }
     }
