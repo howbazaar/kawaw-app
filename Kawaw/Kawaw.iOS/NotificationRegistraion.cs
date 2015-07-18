@@ -13,10 +13,8 @@ namespace Kawaw.iOS
 }
         public void Register()
         {
-            Debug.Write("Register");
             if (UIDevice.CurrentDevice.CheckSystemVersion(8, 0))
             {
-                Debug.Write("if block");
                 var settings = UIUserNotificationSettings.GetSettingsForTypes(
                     UIUserNotificationType.Alert | UIUserNotificationType.Badge | UIUserNotificationType.Sound,
                     null);
@@ -25,7 +23,6 @@ namespace Kawaw.iOS
             }
             else
             {
-                Debug.Write("else block");
                 UIApplication.SharedApplication.RegisterForRemoteNotificationTypes(
                     UIRemoteNotificationType.Alert | UIRemoteNotificationType.Badge | UIRemoteNotificationType.Sound);
             } 

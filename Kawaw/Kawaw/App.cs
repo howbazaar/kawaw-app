@@ -25,7 +25,6 @@ namespace Kawaw
         // android is the page icon
         public App()
         {
-            Debug.WriteLine("App launched");
             DependencyService.Get<INotificationRegisration>().Register();
 
             GenerateKawawStyle();

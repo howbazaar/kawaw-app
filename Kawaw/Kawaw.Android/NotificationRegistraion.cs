@@ -26,7 +26,7 @@ namespace Kawaw.Droid
             try
             {
                 var gcm = GoogleCloudMessaging.GetInstance(context);
-                
+
                 // Run this async so it starts after the app has fully started.
                 var regId = await Task.Run(() => gcm.Register(SenderId));
 
