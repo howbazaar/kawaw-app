@@ -20,21 +20,21 @@ namespace Kawaw.Database
         Task SetRemoteSession(string sessionId, string csrfToken);
 
         Task<string> NotificationToken();
-        void SetNotificationToken(string token);
+        Task SetNotificationToken(string token);
 
         Task<List<string>> OldNotificationTokens();
-        void RemoveOldNotificationToken(string token);
+        Task RemoveOldNotificationToken(string token);
 
         Task<JSON.User> GetUserDetails();
-        void SaveUserDetails(JSON.User user);
+        Task SaveUserDetails(JSON.User user);
 
         Task<JSON.Event[]> GetEvents();
-        void SaveEvents(JSON.Event[] events);
+        Task SaveEvents(JSON.Event[] events);
 
         Task<JSON.Connection[]> GetConnections();
-        void SaveConnections(JSON.Connection[] connections);
+        Task SaveConnections(JSON.Connection[] connections);
 
-        Task<JSON.Notification[]> GetNotification();
-        void SaveNotifications(JSON.Notification[] notifications);
+        Task<JSON.Notification[]> GetNotifications();
+        Task SaveNotifications(JSON.Notification[] notifications);
     }
 }

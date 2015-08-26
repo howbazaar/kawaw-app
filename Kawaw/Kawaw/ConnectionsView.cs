@@ -17,7 +17,7 @@ namespace Kawaw
                 {
                     var status = value as string;
                     status = status.ToLower().Trim();
-                    switch (status as string)
+                    switch (status)
                     {
                         case "accepted":
                             return Color.FromHex("#5cb85c");
@@ -44,7 +44,6 @@ namespace Kawaw
                 name.SetBinding(Label.TextProperty, "Name");
                 var org = new Label();
                 org.SetBinding(Label.TextProperty, "Organisation");
-                // I think this is causing VS to go into an infinite loop.
                 var statusText = new Label()
                 {
                     TextColor = Color.White

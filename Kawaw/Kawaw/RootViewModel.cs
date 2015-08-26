@@ -28,13 +28,13 @@ namespace Kawaw
 
         private void Init()
         {
-            if (App.User == null)
+            if (App.User.Authenticated)
             {
-                ShowLogin();
+                RefreshUser(true);
             }
             else
             {
-                RefreshUser(true);
+                ShowLogin();
             }
         }
 
@@ -72,6 +72,7 @@ namespace Kawaw
                     await App.User.Logout();
                     ShowLogin();
             });
+            // TODO: determine if I really need the following two.
             MessagingCenter.Subscribe(this, "unregister-device", (object sender) =>
             {
                 Debug.WriteLine("unregister-device");
@@ -112,6 +113,8 @@ namespace Kawaw
             }
             catch (SessionExpiredException)
             {
+                // TODO: try to login again using saved credentials.
+                // If that then fails, then we get the user to try.
                 MessagingCenter.Send(this, "alert", new Alert
                 {
                     Title = "Session Expired",
@@ -143,7 +146,6 @@ namespace Kawaw
                 });
             }            
         }
-
 
         public void SetDetails(string page)
         {

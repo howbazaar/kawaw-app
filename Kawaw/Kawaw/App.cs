@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Kawaw.Database;
 using Kawaw.Framework;
 using Kawaw.Models;
@@ -132,51 +131,73 @@ namespace Kawaw
 
 #if DEBUG
         // ReSharper disable once InconsistentNaming
-        private void TestDB()
+        private async void TestDB()
         {
             var db = DependencyService.Get<IDatabase>();
             // Hacky test for the notification code.
-            if (db.NotificationToken() == null && db.OldNotificationTokens() == null)
+            var token = await db.NotificationToken();
+            var old = await db.OldNotificationTokens();
+            if (token == null && old.Count == 0)
             {
                 Debug.WriteLine("Running rudimentary test for notification handling.");
                 Debug.WriteLine("Set first token");
-                db.SetNotificationToken("first-token");
-                Debug.WriteLine(db.NotificationToken() ?? "<null>");
-                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                await db.SetNotificationToken("first-token");
+
+                token = await db.NotificationToken();
+                old = await db.OldNotificationTokens();
+                Debug.WriteLine(token ?? "<null>");
+                Debug.WriteLine(ListAsString(old));
+
                 Debug.WriteLine("Set second token");
-                db.SetNotificationToken("second-token");
-                Debug.WriteLine(db.NotificationToken() ?? "<null>");
-                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                await db.SetNotificationToken("second-token");
+                token = await db.NotificationToken();
+                old = await db.OldNotificationTokens();
+                Debug.WriteLine(token ?? "<null>");
+                Debug.WriteLine(ListAsString(old));
+
                 Debug.WriteLine("Set third token");
-                db.SetNotificationToken("third-token");
-                Debug.WriteLine(db.NotificationToken() ?? "<null>");
-                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                await db.SetNotificationToken("third-token");
+                token = await db.NotificationToken();
+                old = await db.OldNotificationTokens();
+                Debug.WriteLine(token ?? "<null>");
+                Debug.WriteLine(ListAsString(old));
+
                 Debug.WriteLine("Remove first token");
-                db.RemoveOldNotificationToken("first-token");
-                Debug.WriteLine(db.NotificationToken() ?? "<null>");
-                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                await db.RemoveOldNotificationToken("first-token");
+                token = await db.NotificationToken();
+                old = await db.OldNotificationTokens();
+                Debug.WriteLine(token ?? "<null>");
+                Debug.WriteLine(ListAsString(old));
+
                 Debug.WriteLine("Remove second token");
-                db.RemoveOldNotificationToken("second-token");
-                Debug.WriteLine(db.NotificationToken() ?? "<null>");
-                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                await db.RemoveOldNotificationToken("second-token");
+                token = await db.NotificationToken();
+                old = await db.OldNotificationTokens();
+                Debug.WriteLine(token ?? "<null>");
+                Debug.WriteLine(ListAsString(old));
+
                 Debug.WriteLine("Set <null> token");
-                db.SetNotificationToken(null);
-                Debug.WriteLine(db.NotificationToken() ?? "<null>");
-                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                await db.SetNotificationToken(null);
+                token = await db.NotificationToken();
+                old = await db.OldNotificationTokens();
+                Debug.WriteLine(token ?? "<null>");
+                Debug.WriteLine(ListAsString(old));
+
                 Debug.WriteLine("Remove third token");
-                db.RemoveOldNotificationToken("third-token");
-                Debug.WriteLine(db.NotificationToken() ?? "<null>");
-                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                await db.RemoveOldNotificationToken("third-token");
+                token = await db.NotificationToken();
+                old = await db.OldNotificationTokens();
+                Debug.WriteLine(token ?? "<null>");
+                Debug.WriteLine(ListAsString(old));
             }
         }
-#endif
 
-        private string ListAsString(List<string> values)
+        private static string ListAsString(List<string> values)
         {
             if (values == null) return "<null>";
             return "List<string>{" + string.Join(", ", values) + "}";
         }
-
+#endif
 
         protected override void OnResume()
         {

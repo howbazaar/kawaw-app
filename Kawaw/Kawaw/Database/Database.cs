@@ -37,6 +37,10 @@ namespace Kawaw.Database
 
         public async Task SetRemoteBaseUrl(string baseUrl)
         {
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                baseUrl = Constants.BaseUrl;
+            }
             var remote = await GetRemote();
             remote.BaseUrl = baseUrl;
             await BlobCache.UserAccount.InsertObject(RemoteKey, remote);
@@ -57,16 +61,25 @@ namespace Kawaw.Database
             return await BlobCache.UserAccount.GetObject<string>(TokenKey).Catch(Observable.Return<string>(null));
         }
 
-        async void IDatabase.SetNotificationToken(string token)
+        async Task IDatabase.SetNotificationToken(string token)
         {
             var oldToken = await NotificationToken();
+            if (oldToken == token) return;
+
             if (!string.IsNullOrEmpty(oldToken))
             {
                 var old = await OldNotificationTokens();
                 old.Add(oldToken);
                 await BlobCache.UserAccount.InsertObject(OldTokensKey, old);
             }
-            await BlobCache.UserAccount.InsertObject(TokenKey, token);
+            if (string.IsNullOrEmpty(token))
+            {
+                await BlobCache.UserAccount.InvalidateObject<string>(TokenKey);
+            }
+            else
+            {
+                await BlobCache.UserAccount.InsertObject(TokenKey, token);
+            }
         }
 
         public async Task<List<string>> OldNotificationTokens()
@@ -74,7 +87,7 @@ namespace Kawaw.Database
             return await BlobCache.UserAccount.GetObject<List<string>>(OldTokensKey).Catch(Observable.Return(new List<string>()));
         }
 
-        public async void RemoveOldNotificationToken(string token)
+        public async Task RemoveOldNotificationToken(string token)
         {
             Debug.WriteLine("RemoveOldNotificationToken {0}", token ?? "<null>");
             var old = await OldNotificationTokens();
@@ -87,7 +100,7 @@ namespace Kawaw.Database
             return await BlobCache.UserAccount.GetObject<JSON.User>(UserDetailsKey).Catch(Observable.Return(new JSON.User()));
         }
 
-        async void IDatabase.SaveUserDetails(JSON.User value)
+        async Task IDatabase.SaveUserDetails(JSON.User value)
         {
             if (value == null)
             {
@@ -104,7 +117,7 @@ namespace Kawaw.Database
             return await BlobCache.UserAccount.GetObject<JSON.Event[]>(EventsKey).Catch(Observable.Return<JSON.Event[]>(null));
         }
 
-        async void IDatabase.SaveEvents(JSON.Event[] events)
+        async Task IDatabase.SaveEvents(JSON.Event[] events)
         {
             if (events == null)
             {
@@ -121,7 +134,7 @@ namespace Kawaw.Database
             return await BlobCache.UserAccount.GetObject<JSON.Connection[]>(ConnectionsKey).Catch(Observable.Return<JSON.Connection[]>(null));
         }
 
-        async void IDatabase.SaveConnections(JSON.Connection[] connections)
+        async Task IDatabase.SaveConnections(JSON.Connection[] connections)
         {
             if (connections == null)
             {
@@ -133,12 +146,12 @@ namespace Kawaw.Database
             }
         }
 
-        async Task<JSON.Notification[]> IDatabase.GetNotification()
+        async Task<JSON.Notification[]> IDatabase.GetNotifications()
         {
             return await BlobCache.UserAccount.GetObject<JSON.Notification[]>(NotificationsKey).Catch(Observable.Return<JSON.Notification[]>(null));
         }
 
-        async void IDatabase.SaveNotifications(JSON.Notification[] notifications)
+        async Task IDatabase.SaveNotifications(JSON.Notification[] notifications)
         {
             if (notifications == null)
             {

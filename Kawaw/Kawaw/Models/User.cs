@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Kawaw.Database;
 using Xamarin;
@@ -15,20 +14,25 @@ namespace Kawaw.Models
         public User()
         {
             _db = DependencyService.Get<IDatabase>();
-            Remote = CreateRemoteSite(_db);
-            _user = _db.User;
+            AsyncInit();
         }
 
-        private RemoteSite CreateRemoteSite(IDatabase db)
+        private async void AsyncInit()
         {
-            var values = db.GetRemote();
+            var values = await _db.GetRemote();
+            Remote = CreateRemoteSite(values);
+            _user = await _db.GetUserDetails();
+        }
+
+        private RemoteSite CreateRemoteSite(Remote values)
+        {
             Debug.WriteLine("BaseUrl = '{0}', CSRFToken = '{1}', SessionID = '{2}'", values.BaseUrl, values.CSRFToken, values.SessionId);
             var remote = new RemoteSite(values.BaseUrl, values.CSRFToken, values.SessionId);
 
             MessagingCenter.Subscribe(this, "remote-session-change",
-                (object sender, Remote newValues) => db.SetRemoteSession(newValues.SessionId, newValues.CSRFToken));
+                (object sender, Remote newValues) => _db.SetRemoteSession(newValues.SessionId, newValues.CSRFToken));
             MessagingCenter.Subscribe(this, "remote-baseurl-change",
-                (object sender, string baseurl) => db.SetRemoteBaseUrl(baseurl));
+                (object sender, string baseurl) => _db.SetRemoteBaseUrl(baseurl));
 
             // If there is a non-empty session id then the user is authenticated.
             Authenticated = !string.IsNullOrEmpty(values.SessionId);
@@ -62,88 +66,88 @@ namespace Kawaw.Models
             await Remote.Logout();
             Authenticated = false;
             // Clear out details.
-            _db.User = null;
+            await _db.SaveUserDetails(null);
+            await _db.SaveEvents(null);
+            await _db.SaveConnections(null);
+            await _db.SaveNotifications(null);
         }
 
         public async Task AddEmail(string email)
         {
             var jsonUser = await Remote.AddEmail(email);
-            UpdateUser(jsonUser);
+            await UpdateUser(jsonUser);
         }
 
         public async Task UpdateUserDetails(string firstName, string lastName, string address,
             DateTime dateOfBirth)
         {
             var jsonUser = await Remote.UpdateUserDetails(FirstName, LastName, Address, DateOfBirth);
-            UpdateUser(jsonUser);
+            await UpdateUser(jsonUser);
         }
 
         public async Task EmailAction(string action, string address)
         {
             var jsonUser = await Remote.EmailAction(action, address);
-            UpdateUser(jsonUser);
-        }
-
-        public async Task NotificationAction(uint notificationId, uint memberId, bool accepted)
-        {
-            await Remote.NotificationAction(notificationId, memberId, accepted);
-            // Update the stored notification in the db.
+            await UpdateUser(jsonUser);
         }
 
         static public readonly DateTime MinDateOfBirthValue = new DateTime(1900, 1, 1);
 
         private JSON.User _user;
 
-        [DataMember(Name = "connections")]
-        private JSON.Connection[] _connections;
-
-        [DataMember(Name = "events")]
-        private JSON.Event[] _events;
-
-        [DataMember(Name = "notifications")]
-        private JSON.Notification[] _notifications;
-
-        [DataMember(Name = "device-token")]
-        private string _token;
-
         private readonly IDatabase _db;
 
         public RemoteSite Remote { get; private set; }
 
-        public void UpdateUser(JSON.User user)
+        private async Task UpdateUser(JSON.User user)
         {
             _user = user;
-            _db.User = user;
+            await _db.SaveUserDetails(user);
             MessagingCenter.Send<object>(this, "user-updated");
         }
 
-        public void UpdateConnections(JSON.Connection[] connections)
+        private async Task UpdateConnections()
         {
-            _connections = connections;
+            var connections = await Remote.GetConnections();
+            await _db.SaveConnections(connections);
             MessagingCenter.Send<object>(this, "connections-updated");
         }
 
-        public void UpdateEvents(JSON.Event[] events)
+        private async Task UpdateEvents()
         {
-            _events = events;
+            var events = await Remote.GetEvents();
+            await _db.SaveEvents(events);
             MessagingCenter.Send<object>(this, "events-updated");
         }
 
-        public void UpdateNotifications(JSON.Notification[] notifications)
+        private async Task UpdateNotifications()
         {
-            _notifications = notifications;
+            var notifications = await Remote.GetNotifications();
+            await _db.SaveNotifications(notifications);
             MessagingCenter.Send<object>(this, "notifications-updated");
         }
 
         public async Task ConnectionAction(Connection connection, bool accept)
         {
+            // NOTE: quite brutal at this stage, the entire list is serialized out
+            // updated and serialized back into the database.
             var result = await Remote.ConnectionAction(connection.Id, accept);
             // Update our connections.
-            foreach (var conn in _connections.Where(conn => conn.Id == result.Id))
+            var connections = await _db.GetConnections();
+            foreach (var conn in connections.Where(conn => conn.Id == result.Id))
             {
                 conn.Accepted = result.Accepted;
             }
+            await _db.SaveConnections(connections);
             MessagingCenter.Send<object>(this, "connections-updated");
+        }
+
+        public async Task NotificationAction(uint notificationId, uint memberId, bool accepted)
+        {
+            // TODO: consider having the notification action return the notifications for the user
+            // at the remote view level so there is just one call, possibly if an post value is set.
+            await Remote.NotificationAction(notificationId, memberId, accepted);
+            await UpdateNotifications();
         }
 
         public bool Authenticated { get; private set; }
@@ -162,53 +166,41 @@ namespace Kawaw.Models
                 return string.IsNullOrEmpty(_user.DateOfBirth) ? new DateTime(0) : DateTime.Parse(_user.DateOfBirth);
             }
         }
-        public string PrimaryEmail { get { return _user.PrimaryEmail; } }
+        public string PrimaryEmail { get { return _user == null ? "" : _user.PrimaryEmail; } }
 
         public IEnumerable<Email> Emails
         {
             get
             {
+                if (_user == null) return null;
+
                 var list = from e in _user.Emails select new Email(e);
                 return list.AsEnumerable();
             }
         }
 
-        public IEnumerable<Connection> Connections
+        public async Task<IEnumerable<Connection>> Connections()
         {
-            get
-            {
-                if (_connections == null)
-                {
-                    return Enumerable.Empty<Connection>();
-                }
-                //var otherlist = _connections.Select(c => new Connection(c));
-                var list = from conn in _connections select new Connection(conn); 
-                return list.AsEnumerable();
-            }
+            var connections = await _db.GetConnections();
+            return connections == null
+                ? Enumerable.Empty<Connection>()
+                : connections.Select(c => new Connection(c)).AsEnumerable();
         }
 
-        public IEnumerable<Notification> Notifications
+        public async Task<IEnumerable<Notification>> Notifications()
         {
-            get
-            {
-                return _notifications == null
-                    ? Enumerable.Empty<Notification>()
-                    : _notifications.Select(n => new Notification(n)).AsEnumerable();
-            }
+            var notifications = await _db.GetNotifications();
+            return notifications == null
+                ? Enumerable.Empty<Notification>()
+                : notifications.Select(n => new Notification(n)).AsEnumerable();
         }
 
-        public IEnumerable<Event> Events
+        public async Task<IEnumerable<Event>> Events()
         {
-            get
-            {
-                if (_events == null)
-                {
-                    return Enumerable.Empty<Event>();
-                }
-                //var otherlist = _connections.Select(c => new Connection(c));
-                var list = from ev in _events select new Event(ev);
-                return list.AsEnumerable();
-            }
+            var events = await _db.GetEvents();
+            return events == null
+                ? Enumerable.Empty<Event>()
+                : events.Select(e => new Event(e)).AsEnumerable();
         }
 
         public static string OptionalDateTime(DateTime value, string unsetText = "")
@@ -218,26 +210,40 @@ namespace Kawaw.Models
             return value.ToString("dd MMM yyyy");
         }
 
-        public Task<bool> RegisterDevice()
+        public async Task<bool> RegisterDevice()
         {
             var token = DependencyService.Get<INotificationRegisration>().Token;
             if (string.IsNullOrEmpty(token))
             {
                 Debug.WriteLine("No token to register.");
-                return Task.FromResult(false);
+                return false;
             }
-            _token = token;
-            return Remote.RegisterDevice(token);
+            var registered = await Remote.RegisterDevice(token);
+            if (registered)
+            {
+                await _db.SetNotificationToken(token);
+            }
+            return registered;
         }
 
-        public Task<bool> UnregisterDevice()
+        public async Task<bool> UnregisterDevice()
         {
-            if (string.IsNullOrEmpty(_token))
+            await _db.SetNotificationToken(null);
+            var old = await _db.OldNotificationTokens();
+            var result = true;
+            foreach (var token in old)
             {
-                Debug.WriteLine("No token to unregister.");
-                return Task.FromResult(false);
+                var unregistered = await Remote.UnregisterDevice(token);
+                if (unregistered)
+                {
+                    await _db.RemoveOldNotificationToken(token);
+                }
+                else
+                {
+                    result = false;
+                }
             }
-            return Remote.UnregisterDevice(_token);
+            return result;
         }
 
         public async Task Refresh()
@@ -246,14 +252,12 @@ namespace Kawaw.Models
             {
                 Debug.WriteLine("remote site: {0}", Remote);
                 MessagingCenter.Send((object)this, "action-started");
+                // TODO: see if we can work out how to do the for calls and updates in parallel.
                 var response = await Remote.GetUserDetails();
-                UpdateUser(response);
-                var connections = await Remote.GetConnections();
-                UpdateConnections(connections);
-                var events = await Remote.GetEvents();
-                UpdateEvents(events);
-                var notifications = await Remote.GetNotifications();
-                UpdateNotifications(notifications);
+                await UpdateUser(response);
+                await UpdateConnections();
+                await UpdateEvents();
+                await UpdateNotifications();
                 // Let's tell Xamarin about this user.
                 var traits = new Dictionary<string, string>
                     {
