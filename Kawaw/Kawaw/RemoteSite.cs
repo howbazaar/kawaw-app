@@ -226,12 +226,10 @@ namespace Kawaw
 
         public async Task Login(string username, string password)
         {
-            var values = new Dictionary<string, string>
-            {
-                ["login"] = username,
-                ["password"] = password,
-                ["remember"] = "True"
-            };
+            var values = new Dictionary<string, string>();
+            values["login"] = username;
+            values["password"] = password;
+            values["remember"] = "True";
             var response = await Post("accounts/login/", values);
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -244,12 +242,10 @@ namespace Kawaw
 
         public async Task Register(string email, string password)
         {
-            var values = new Dictionary<string, string>
-            {
-                ["email"] = email,
-                ["password1"] = password,
-                ["password2"] = password
-            };
+            var values = new Dictionary<string, string>();
+            values["email"] = email;
+            values["password1"] = password;
+            values["password2"] = password;
             var response = await Post("accounts/signup/", values);
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -318,7 +314,8 @@ namespace Kawaw
 
         public async Task<JSON.User> AddEmail(string address)
         {
-            var values = new Dictionary<string, string> {["email"] = address};
+            var values = new Dictionary<string, string>();
+            values["email"] = address;
             var response = await Post("+add-email/", values).ConfigureAwait(false);
             Debug.WriteLine(response.StatusCode);
             if (response.StatusCode == HttpStatusCode.OK)
@@ -335,11 +332,9 @@ namespace Kawaw
 
         public async Task<JSON.User> EmailAction(string action, string address)
         {
-            var values = new Dictionary<string, string>
-            {
-                ["action"] = action,
-                ["email"] = address
-            };
+            var values = new Dictionary<string, string>();
+            values["action"] = action;
+            values["email"] = address;
             var response = await Post("+email-action/", values).ConfigureAwait(false);
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -356,11 +351,9 @@ namespace Kawaw
 
         public async Task NotificationAction(uint notificationId, uint memberId, bool accepted)
         {
-            var values = new Dictionary<string, string>
-            {
-                ["id"] = memberId.ToString(),
-                ["accepted"] = accepted ? "True" : "False"
-            };
+            var values = new Dictionary<string, string>();
+            values["id"] = memberId.ToString();
+            values["accepted"] = accepted ? "True" : "False";
             var url = "+registration-response/" + notificationId + "/";
             var response = await Post(url, values).ConfigureAwait(false);
             if (response.StatusCode == HttpStatusCode.OK)
