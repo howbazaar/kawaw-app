@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace Kawaw.Database
 {
@@ -23,10 +22,8 @@ namespace Kawaw.Database
         void RemoveOldNotificationToken(string token);
 
         JSON.User User { get; set; }
+        JSON.Event Events { get; set; }
         JSON.Connection[] Connections { get; set; }
         JSON.Notification[] Notifications { get; set; }
-
-        ObservableCollection<JSON.Event> Events { get; }
-        void SaveEvents(IEnumerable<JSON.Event> events);
     }
 }
