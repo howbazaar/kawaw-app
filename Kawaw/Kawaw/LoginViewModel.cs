@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Windows.Input;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
@@ -49,7 +48,7 @@ namespace Kawaw
         public LoginViewModel(IApp app)
             : base(app)
         {
-            RemoteUrl = App.Remote.BaseUrl;
+            RemoteUrl = App.User.Remote.BaseUrl;
 
             _buttonsActive = true;
             _registerCommand = new Command(async () =>
@@ -63,12 +62,9 @@ namespace Kawaw
 
                 UpdateButtonsActive(false);
 
-                var remote = app.Remote;
                 try
                 {
-                    App.User = await remote.Login(_email, _password);
-                    await App.User.RegisterDevice();
-                    await App.User.Refresh();
+                    await App.User.Login(_email, _password);
                     await Navigation.PopModalAsync();
                 }
                 catch (FormErrorsException e)
@@ -107,10 +103,8 @@ namespace Kawaw
                 UpdateButtonsActive(true);
             }, () => _buttonsActive);
 
-            MessagingCenter.Subscribe(this, "set-remote-site", (object sender, string url) =>
+            MessagingCenter.Subscribe(this, "remote-baseurl-change", (object sender, string url) =>
             {
-                Debug.WriteLine("Setting remote site to {0}", url);
-                App.Remote.BaseUrl = url;
                 RemoteUrl = url;
             });
 

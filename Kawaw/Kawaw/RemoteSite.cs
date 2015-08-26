@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
+using Kawaw.Database;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
 using Newtonsoft.Json.Linq;
@@ -14,7 +15,7 @@ using User = Kawaw.Models.User;
 
 namespace Kawaw
 {
-    public class RemoteSite : BaseProperties, IRemoteSite
+    public class RemoteSite : BaseProperties
     {
         // ReSharper disable once InconsistentNaming
         public string CSRFToken
@@ -32,13 +33,7 @@ namespace Kawaw
         public string BaseUrl
         {
             get { return _baseUrl; }
-            set
-            {
-                if (!SetProperty(ref _baseUrl, value)) return;
-                CSRFToken = null;
-                SessionId = null;
-                CreateClient();
-            }
+            private set { SetProperty(ref _baseUrl, value); }
         }
 
         private HttpClient _client;
@@ -53,6 +48,16 @@ namespace Kawaw
             CSRFToken = token;
             SessionId = sessionId;
             CreateClient();
+
+            MessagingCenter.Subscribe(this, "remote-baseurl-change",
+                (object sender, string baseurl) =>
+                {
+                    CSRFToken = null;
+                    SessionId = null;
+                    BaseUrl = baseUrl;
+                    CreateClient();
+                });
+
         }
 
         private void CreateClient()
@@ -211,48 +216,52 @@ namespace Kawaw
 #endif
             CSRFToken = cookies["csrftoken"].Value;
             SessionId = cookies["sessionid"].Value;
+
+            MessagingCenter.Send<object, Remote>(this, "remote-session-change", new Remote
+            {
+                CSRFToken = CSRFToken,
+                SessionId = SessionId
+            });
         }
 
-        public async Task<User> Login(string username, string password)
+        public async Task Login(string username, string password)
         {
-            var values = new Dictionary<string, string>();
-            values["login"] = username;
-            values["password"] = password;
-            values["remember"] = "True";
+            var values = new Dictionary<string, string>
+            {
+                ["login"] = username,
+                ["password"] = password,
+                ["remember"] = "True"
+            };
             var response = await Post("accounts/login/", values);
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 SetValuesFromCookies();
-                return new User
-                {
-                    Remote = this
-                };
+                return;
             }
             await ProcessFormError(response);
             throw new UnexpectedException("unreachable");
         }
 
-        public async Task<User> Register(string email, string password)
+        public async Task Register(string email, string password)
         {
-            var values = new Dictionary<string, string>();
-            values["email"] = email;
-            values["password1"] = password;
-            values["password2"] = password;
+            var values = new Dictionary<string, string>
+            {
+                ["email"] = email,
+                ["password1"] = password,
+                ["password2"] = password
+            };
             var response = await Post("accounts/signup/", values);
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 SetValuesFromCookies();
-                return new User
-                {
-                    Remote = this
-                };
+                return;
             }
 
             await ProcessFormError(response);
             throw new UnexpectedException("unreachable");
         }
 
-        public async void Logout()
+        public async Task Logout()
         {
             // Try to logout and clear the session, but if it doesn't work, no biggie.
             try
@@ -271,6 +280,7 @@ namespace Kawaw
             {
                 cookie.Expired = true;
             }
+            MessagingCenter.Send<object, Remote>(this, "remote-session-change", new Remote());
         }
 
         public async Task<JSON.User> UpdateUserDetails(string firstName, string lastName, string address,
@@ -308,8 +318,7 @@ namespace Kawaw
 
         public async Task<JSON.User> AddEmail(string address)
         {
-            var values = new Dictionary<string, string>();
-            values["email"] = address;
+            var values = new Dictionary<string, string> {["email"] = address};
             var response = await Post("+add-email/", values).ConfigureAwait(false);
             Debug.WriteLine(response.StatusCode);
             if (response.StatusCode == HttpStatusCode.OK)
@@ -326,9 +335,11 @@ namespace Kawaw
 
         public async Task<JSON.User> EmailAction(string action, string address)
         {
-            var values = new Dictionary<string, string>();
-            values["action"] = action;
-            values["email"] = address;
+            var values = new Dictionary<string, string>
+            {
+                ["action"] = action,
+                ["email"] = address
+            };
             var response = await Post("+email-action/", values).ConfigureAwait(false);
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -345,9 +356,11 @@ namespace Kawaw
 
         public async Task NotificationAction(uint notificationId, uint memberId, bool accepted)
         {
-            var values = new Dictionary<string, string>();
-            values["id"] = memberId.ToString();
-            values["accepted"] = accepted ? "True" : "False";
+            var values = new Dictionary<string, string>
+            {
+                ["id"] = memberId.ToString(),
+                ["accepted"] = accepted ? "True" : "False"
+            };
             var url = "+registration-response/" + notificationId + "/";
             var response = await Post(url, values).ConfigureAwait(false);
             if (response.StatusCode == HttpStatusCode.OK)

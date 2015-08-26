@@ -4,17 +4,94 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Kawaw.Database;
 using Xamarin;
 using Xamarin.Forms;
 
 namespace Kawaw.Models
 {
-    [DataContract]
     public class User
     {
+        public User()
+        {
+            _db = DependencyService.Get<IDatabase>();
+            Remote = CreateRemoteSite(_db);
+            _user = _db.User;
+        }
+
+        private RemoteSite CreateRemoteSite(IDatabase db)
+        {
+            var values = db.GetRemote();
+            Debug.WriteLine("BaseUrl = '{0}', CSRFToken = '{1}', SessionID = '{2}'", values.BaseUrl, values.CSRFToken, values.SessionId);
+            var remote = new RemoteSite(values.BaseUrl, values.CSRFToken, values.SessionId);
+
+            MessagingCenter.Subscribe(this, "remote-session-change",
+                (object sender, Remote newValues) => db.SetRemoteSession(newValues.SessionId, newValues.CSRFToken));
+            MessagingCenter.Subscribe(this, "remote-baseurl-change",
+                (object sender, string baseurl) => db.SetRemoteBaseUrl(baseurl));
+
+            // If there is a non-empty session id then the user is authenticated.
+            Authenticated = !string.IsNullOrEmpty(values.SessionId);
+
+            return remote;
+        }
+
+        public async Task Login(string email, string password)
+        {
+            await Remote.Login(email, password);
+            await PostAuthenticate();
+        }
+
+        public async Task Register(string email, string password)
+        {
+            await Remote.Register(email, password);
+            await PostAuthenticate();
+        }
+
+        private async Task PostAuthenticate()
+        {
+            Authenticated = true;
+            await RegisterDevice();
+            await Refresh();
+        }
+
+        public async Task Logout()
+        {
+            Debug.WriteLine("unregister device");
+            await UnregisterDevice();
+            await Remote.Logout();
+            Authenticated = false;
+            // Clear out details.
+            _db.User = null;
+        }
+
+        public async Task AddEmail(string email)
+        {
+            var jsonUser = await Remote.AddEmail(email);
+            UpdateUser(jsonUser);
+        }
+
+        public async Task UpdateUserDetails(string firstName, string lastName, string address,
+            DateTime dateOfBirth)
+        {
+            var jsonUser = await Remote.UpdateUserDetails(FirstName, LastName, Address, DateOfBirth);
+            UpdateUser(jsonUser);
+        }
+
+        public async Task EmailAction(string action, string address)
+        {
+            var jsonUser = await Remote.EmailAction(action, address);
+            UpdateUser(jsonUser);
+        }
+
+        public async Task NotificationAction(uint notificationId, uint memberId, bool accepted)
+        {
+            await Remote.NotificationAction(notificationId, memberId, accepted);
+            // Update the stored notification in the db.
+        }
+
         static public readonly DateTime MinDateOfBirthValue = new DateTime(1900, 1, 1);
 
-        [DataMember(Name = "user")]
         private JSON.User _user;
 
         [DataMember(Name = "connections")]
@@ -29,11 +106,14 @@ namespace Kawaw.Models
         [DataMember(Name = "device-token")]
         private string _token;
 
-        public IRemoteSite Remote { get; set; }
+        private readonly IDatabase _db;
+
+        public RemoteSite Remote { get; private set; }
 
         public void UpdateUser(JSON.User user)
         {
             _user = user;
+            _db.User = user;
             MessagingCenter.Send<object>(this, "user-updated");
         }
 
@@ -65,6 +145,8 @@ namespace Kawaw.Models
             }
             MessagingCenter.Send<object>(this, "connections-updated");
         }
+
+        public bool Authenticated { get; private set; }
 
         public bool HasVerifiedEmail { get { return _user.Emails.Any(email => email.Verified); }}
 
@@ -178,7 +260,7 @@ namespace Kawaw.Models
                         {Insights.Traits.Email, PrimaryEmail},
                         {Insights.Traits.Name, FullName}
                     };
-                Insights.Identify(PrimaryEmail, traits);
+                Insights.Identify("user-" + response.Id, traits);
                 MessagingCenter.Send((object)this, "user-refreshed");
             }
             finally

@@ -146,8 +146,7 @@ namespace Kawaw
             {
                 try
                 {
-                    var user = await app.Remote.EmailAction(action.Name, action.Email.Address);
-                    app.User.UpdateUser(user);
+                    await app.User.EmailAction(action.Name, action.Email.Address);
                 }
                 catch (SessionExpiredException)
                 {
@@ -172,7 +171,7 @@ namespace Kawaw
 
         private void UpdateFromUser(User user)
         {
-            if (user == null) return;
+            if (!user.Authenticated) return;
 
             FullName = user.FullName;
             Address = user.Address == "" ? "no address set" : user.Address;

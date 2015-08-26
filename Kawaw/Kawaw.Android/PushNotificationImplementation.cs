@@ -23,9 +23,9 @@ namespace Kawaw.Droid
         {
 #if DEBUG
             //Insights.Initialize(Insights.DebugModeKey, this);
-            Insights.Initialize("22fd93ca44698441312e444b5a31160691bc86e5", this);
+            Insights.Initialize(Constants.InsightsApiKey, this);
 #else
-            Insights.Initialize("22fd93ca44698441312e444b5a31160691bc86e5", this);
+            Insights.Initialize(Constants.InsightsApiKey, this);
 #endif
             base.OnCreate();
         }

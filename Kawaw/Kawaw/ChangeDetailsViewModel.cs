@@ -55,8 +55,7 @@ namespace Kawaw
             {
                 try
                 {
-                    var jsonUser = await app.Remote.UpdateUserDetails(FirstName, LastName, Address, DateOfBirth);
-                    app.User.UpdateUser(jsonUser);
+                    await app.User.UpdateUserDetails(FirstName, LastName, Address, DateOfBirth);
                     await Navigation.PopAsync();
                 }
                 catch (SessionExpiredException)

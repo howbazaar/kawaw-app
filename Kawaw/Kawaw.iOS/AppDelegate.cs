@@ -19,9 +19,9 @@ namespace Kawaw.iOS
             Forms.Init();
 #if DEBUG
             // Insights.Initialize(Insights.DebugModeKey);
-            Insights.Initialize("22fd93ca44698441312e444b5a31160691bc86e5");
+            Insights.Initialize(Constants.InsightsApiKey);
 #else
-            Insights.Initialize("22fd93ca44698441312e444b5a31160691bc86e5");
+            Insights.Initialize(Constants.InsightsApiKey);
 #endif
 
             LoadApplication(new App());

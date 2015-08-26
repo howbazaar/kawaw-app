@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Kawaw.Database;
 using Kawaw.Framework;
 using Kawaw.Models;
 using Xamarin.Forms;
@@ -8,13 +11,11 @@ namespace Kawaw
 {
     interface IApp
     {
-        IRemoteSite Remote { get; }
-        User User { get; set; }
+        User User { get; }
     }
 
     public class App : Application, IApp
     {
-        private User _user;
         private readonly RootViewModel _rootViewModel;
         // var accentColor = Color.FromHex("59C2FF");
         public static Color AccentColor = Color.FromHex("10558d");
@@ -25,6 +26,9 @@ namespace Kawaw
         // android is the page icon
         public App()
         {
+#if DEBUG
+            TestDB();
+#endif
             DependencyService.Get<INotificationRegisration>().Register();
 
             GenerateKawawStyle();
@@ -38,18 +42,7 @@ namespace Kawaw
             ViewModelNavigation.Register<NavigationViewModel, NavigationView>();
             ViewModelNavigation.Register<AddEmailViewModel, AddEmailView>();
 
-            Remote = CreateRemoteSite();
-            // Look to see if we have a logged in person.
-            if (Properties.ContainsKey("User"))
-            {
-                User = Properties["User"] as User;
-                // ReSharper disable once PossibleNullReferenceException
-                Debug.WriteLine("User found in properties: {0}", User.FullName);
-            }
-            else
-            {
-                Debug.WriteLine("User not found in properties, login needed");
-            }
+            User = new User();
 
             var page = RootViewModel.Profile;
             if (Properties.ContainsKey("Page") && User != null)
@@ -137,84 +130,62 @@ namespace Kawaw
 
         }
 
-        private RemoteSite CreateRemoteSite()
+#if DEBUG
+        // ReSharper disable once InconsistentNaming
+        private void TestDB()
         {
-            string csrftoken = null;
-            string sessionid = null;
-            string baseurl = null;
-            if (Properties.ContainsKey("CSRFToken"))
-                csrftoken = Properties["CSRFToken"] as string;
-            if (Properties.ContainsKey("SessionId"))
-                sessionid = Properties["SessionId"] as string;
-            if (Properties.ContainsKey("BaseUrl"))
-                baseurl = Properties["BaseUrl"] as string;
-
-            if (string.IsNullOrEmpty(baseurl))
+            var db = DependencyService.Get<IDatabase>();
+            // Hacky test for the notification code.
+            if (db.NotificationToken() == null && db.OldNotificationTokens() == null)
             {
-                baseurl = "https://kawaw.com";
-            }
-            Debug.WriteLine("BaseUrl = '{0}', CSRFTkoen = '{1}', SessionID = '{2}'", baseurl, csrftoken, sessionid);
-            var remote = new RemoteSite(baseurl, csrftoken, sessionid);
-
-            remote.PropertyChanged += (sender, args) =>
-            {
-                switch (args.PropertyName)
-                {
-                    case "BaseUrl":
-                        SetProperty("BaseUrl", remote.BaseUrl);
-                        break;
-                    case "CSRFToken":
-                        SetProperty("CSRFToken", remote.CSRFToken);
-                        break;
-                    case "SessionId":
-                        SetProperty("SessionId", remote.SessionId);
-                        break;
-                }
-            };
-
-            return remote;
-        }
-
-        private void SetProperty(string name, string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                Debug.WriteLine("Removing property {0}", name);
-                Properties.Remove(name);
-            }
-            else
-            {
-                Debug.WriteLine("Setting property {0}: '{1}'", name, value);
-                Properties[name] = value;
+                Debug.WriteLine("Running rudimentary test for notification handling.");
+                Debug.WriteLine("Set first token");
+                db.SetNotificationToken("first-token");
+                Debug.WriteLine(db.NotificationToken() ?? "<null>");
+                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                Debug.WriteLine("Set second token");
+                db.SetNotificationToken("second-token");
+                Debug.WriteLine(db.NotificationToken() ?? "<null>");
+                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                Debug.WriteLine("Set third token");
+                db.SetNotificationToken("third-token");
+                Debug.WriteLine(db.NotificationToken() ?? "<null>");
+                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                Debug.WriteLine("Remove first token");
+                db.RemoveOldNotificationToken("first-token");
+                Debug.WriteLine(db.NotificationToken() ?? "<null>");
+                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                Debug.WriteLine("Remove second token");
+                db.RemoveOldNotificationToken("second-token");
+                Debug.WriteLine(db.NotificationToken() ?? "<null>");
+                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                Debug.WriteLine("Set <null> token");
+                db.SetNotificationToken(null);
+                Debug.WriteLine(db.NotificationToken() ?? "<null>");
+                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
+                Debug.WriteLine("Remove third token");
+                db.RemoveOldNotificationToken("third-token");
+                Debug.WriteLine(db.NotificationToken() ?? "<null>");
+                Debug.WriteLine(ListAsString(db.OldNotificationTokens()));
             }
         }
+#endif
+
+        private string ListAsString(List<string> values)
+        {
+            if (values == null) return "<null>";
+            return "List<string>{" + string.Join(", ", values) + "}";
+        }
+
 
         protected override void OnResume()
         {
             base.OnResume();
-            if (User != null)
+            if (User.Authenticated)
                 _rootViewModel.RefreshUser(true);
         }
 
-        public IRemoteSite Remote { get; private set; }
-
-        public User User
-        {
-            get { return _user; }
-            set
-            {
-                _user = value;
-                // should also work with nil...
-                if (_user != null)
-                {
-                    Properties["User"] = _user;
-                }
-                else
-                {
-                    Properties.Remove("User");
-                }
-            }
-        }
+        public User User { get; private set; }
 
         public static void OnNotification(object sender, string tag, int id)
         {

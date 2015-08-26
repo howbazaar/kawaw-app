@@ -27,8 +27,7 @@ namespace Kawaw
                 try
                 {
                     // TODO: disable add and cancel while this is running.
-                    var user = await app.Remote.AddEmail(Email);
-                    app.User.UpdateUser(user);
+                    await app.User.AddEmail(Email);
                     await Navigation.PopAsync();
                 }
                 catch (SessionExpiredException)

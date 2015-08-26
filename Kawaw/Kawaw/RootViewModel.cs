@@ -44,13 +44,10 @@ namespace Kawaw
 
             // not logged in so push the login page
             MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) => SetDetails(page));
-            MessagingCenter.Subscribe(this, "logout", (object sender) =>
+            MessagingCenter.Subscribe(this, "logout", async (object sender) =>
             {
-                Debug.WriteLine("unregister device");
-                App.User.UnregisterDevice();
                 Debug.WriteLine("logout");
-                App.Remote.Logout();
-                App.User = null;
+                await App.User.Logout();
                 Debug.WriteLine("show login");
                 ShowLogin();
             });
@@ -70,23 +67,22 @@ namespace Kawaw
                     Debug.WriteLine("busy is false");                    
                 }
             });
-            MessagingCenter.Subscribe(this, "session-expired", (object sender) =>
+            MessagingCenter.Subscribe(this, "session-expired", async (object sender) =>
             {
-                    App.Remote.Logout();
-                    App.User = null;
+                    await App.User.Logout();
                     ShowLogin();
             });
             MessagingCenter.Subscribe(this, "unregister-device", (object sender) =>
             {
                 Debug.WriteLine("unregister-device");
-                if (App.User != null)
+                if (App.User.Authenticated)
                 {
                     App.User.UnregisterDevice();
                 }
             });
             MessagingCenter.Subscribe(this, "register-device", async (object sender) =>
             {
-                if (App.User != null)
+                if (App.User.Authenticated)
                 {
                     await App.User.RegisterDevice();
                 }
@@ -112,7 +108,6 @@ namespace Kawaw
         {
             try
             {
-                App.User.Remote = App.Remote;
                 await App.User.Refresh();
             }
             catch (SessionExpiredException)

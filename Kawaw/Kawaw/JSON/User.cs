@@ -5,6 +5,9 @@ namespace Kawaw.JSON
     [DataContract]
     public class User
     {
+        [DataMember(Name = "id")]
+        public int Id { get; set; }
+
         [DataMember(Name = "date_of_birth")]
         public string DateOfBirth { get; set; }
 
@@ -20,7 +23,8 @@ namespace Kawaw.JSON
         [DataMember(Name = "address")]
         public string Address { get; set; }
 
-        // There is a social thing, but need to remember what it does.
+        // There is a social list as well that shows which google/facebook connections the user has set up.
+
         [DataMember(Name = "email")]
         public string PrimaryEmail { get; set; }
 

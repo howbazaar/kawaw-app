@@ -51,9 +51,7 @@ namespace Kawaw
 
                 try
                 {
-                    App.User = await app.Remote.Register(_email, _password);
-                    await App.User.RegisterDevice();
-                    await App.User.Refresh();
+                    await app.User.Register(_email, _password);
                     await Navigation.PopModalAsync();
                 }
                 catch (FormErrorsException e)

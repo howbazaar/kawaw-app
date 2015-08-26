@@ -162,7 +162,7 @@ namespace Kawaw
                     var memberId = action.Response.Id;
                     var notifiationId = action.Response.Notification.Id;
                     var accepted = action.Action == "yes";
-                    await app.Remote.NotificationAction(notifiationId, memberId, accepted);
+                    await app.User.NotificationAction(notifiationId, memberId, accepted);
 
                     var viewModel = _notifications.Single(n => n.Id == notifiationId);
                     viewModel.SetMemberResponse(memberId, accepted);
