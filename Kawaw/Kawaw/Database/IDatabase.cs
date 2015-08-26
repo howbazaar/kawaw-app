@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.VisualBasic;
 
 namespace Kawaw.Database
 {
@@ -12,18 +15,26 @@ namespace Kawaw.Database
 
     public interface IDatabase
     {
-        Remote GetRemote();
-        void SetRemoteBaseUrl(string baseUrl);
-        void SetRemoteSession(string sessionId, string csrfToken);
+        Task<Remote> GetRemote();
+        Task SetRemoteBaseUrl(string baseUrl);
+        Task SetRemoteSession(string sessionId, string csrfToken);
 
-        string NotificationToken();
+        Task<string> NotificationToken();
         void SetNotificationToken(string token);
-        List<string> OldNotificationTokens();
+
+        Task<List<string>> OldNotificationTokens();
         void RemoveOldNotificationToken(string token);
 
-        JSON.User User { get; set; }
-        JSON.Event Events { get; set; }
-        JSON.Connection[] Connections { get; set; }
-        JSON.Notification[] Notifications { get; set; }
+        Task<JSON.User> GetUserDetails();
+        void SaveUserDetails(JSON.User user);
+
+        Task<JSON.Event[]> GetEvents();
+        void SaveEvents(JSON.Event[] events);
+
+        Task<JSON.Connection[]> GetConnections();
+        void SaveConnections(JSON.Connection[] connections);
+
+        Task<JSON.Notification[]> GetNotification();
+        void SaveNotifications(JSON.Notification[] notifications);
     }
 }
