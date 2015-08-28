@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Kawaw.Framework;
 using Kawaw.Models;
 using Xamarin.Forms;
@@ -124,8 +125,17 @@ namespace Kawaw
         public EventsViewModel(IApp app)
             : base(app, RootViewModel.Events)
         {
+            Events = new ObservableCollection<EventViewModel>();
             UpdateFromUser(app.User);
 
+            MessagingCenter.Subscribe<User>(this, "initialized", delegate
+            {
+                Debug.WriteLine("Update because user initialized");
+                if (IsPageVisible)
+                {
+                    UpdateFromUser(app.User);
+                }
+            });
             MessagingCenter.Subscribe<object>(this, "events-updated", delegate
             {
                 if (IsPageVisible)
@@ -134,19 +144,19 @@ namespace Kawaw
                 }
             });
         }
-        private void UpdateFromUser(User user)
+
+        private async void UpdateFromUser(User user)
         {
-            if (user == null || user.Events == null)
+            Events.Clear();
+            if (!user.Initialized || !user.Authenticated) return;
+
+            var evs = await user.Events();
+
+            foreach (var e in evs.OrderBy(e => e.Start))
             {
-                // empty
-                Events = new ObservableCollection<EventViewModel>();
-                return;
+                Events.Add(new EventViewModel(e));
             }
-            Events = new ObservableCollection<EventViewModel>(
-               from e in user.Events
-               orderby e.Start ascending
-               select new EventViewModel(e));
-            
+
             EmptyText =
                 "No events yet.\n\n" +
                 "As events are added by shools, clubs, or other organisations " +

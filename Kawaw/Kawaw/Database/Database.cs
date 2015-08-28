@@ -37,6 +37,7 @@ namespace Kawaw.Database
 
         public async Task SetRemoteBaseUrl(string baseUrl)
         {
+            Debug.WriteLine("Database.SetRemoteBaseUrl('{0}')", baseUrl);
             if (string.IsNullOrEmpty(baseUrl))
             {
                 baseUrl = Constants.BaseUrl;

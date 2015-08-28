@@ -91,7 +91,8 @@ namespace Kawaw
             var list = new ListView()
             {
                 // Surely it could figure this out?
-                RowHeight = 70,
+                // RowHeight = 70,
+                HasUnevenRows = true, // Actually means, go work out the hight of the rows.
             };
 
             var emptyText = new Label

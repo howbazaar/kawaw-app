@@ -50,11 +50,12 @@ namespace Kawaw
             CreateClient();
 
             MessagingCenter.Subscribe(this, "remote-baseurl-change",
-                (object sender, string baseurl) =>
+                (object sender, string url) =>
                 {
+                    Debug.WriteLine("RemoteSite, 'remote-baseurl-change' listener, baseUrl == '{0}'", url);
                     CSRFToken = null;
                     SessionId = null;
-                    BaseUrl = baseUrl;
+                    BaseUrl = url;
                     CreateClient();
                 });
 
@@ -62,6 +63,7 @@ namespace Kawaw
 
         private void CreateClient()
         {
+            Debug.WriteLine("RemoteSite.CreateClient(), set BaseUrl == '{0}'", BaseUrl);
             _cookies = new CookieContainer();
             var uri = new Uri(BaseUrl);
             if (!string.IsNullOrEmpty(SessionId))
@@ -276,7 +278,7 @@ namespace Kawaw
             {
                 cookie.Expired = true;
             }
-            MessagingCenter.Send<object, Remote>(this, "remote-session-change", new Remote());
+            MessagingCenter.Send<object, Remote>(this, "remote-session-change", new Remote{ BaseUrl = BaseUrl });
         }
 
         public async Task<JSON.User> UpdateUserDetails(string firstName, string lastName, string address,

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
+using Kawaw.Models;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -21,13 +22,21 @@ namespace Kawaw
         public override ViewModelNavigation Navigation
         {
             get { return _navigation; }
-            set { _navigation = value; Init(); }
+            set { _navigation = value; Init("Navigation setter"); }
         }
 
         public NavigationViewModel NavigationModel { get; private set; }
 
-        private void Init()
+        private void Init(string source)
         {
+            Debug.WriteLine("RootViewModel.Init('{0}')", source);
+
+            if (!App.User.Initialized)
+            {
+                Debug.WriteLine("User not yet initialized");
+                return;
+            }
+
             if (App.User.Authenticated)
             {
                 RefreshUser(true);
@@ -42,6 +51,7 @@ namespace Kawaw
         {
             NavigationModel = new NavigationViewModel(app);
 
+            MessagingCenter.Subscribe<User>(this, "initialized", obj => Init("User initialized"));
             // not logged in so push the login page
             MessagingCenter.Subscribe(this, "show-page", (NavigationViewModel sender, string page) => SetDetails(page));
             MessagingCenter.Subscribe(this, "logout", async (object sender) =>
@@ -73,12 +83,12 @@ namespace Kawaw
                     ShowLogin();
             });
             // TODO: determine if I really need the following two.
-            MessagingCenter.Subscribe(this, "unregister-device", (object sender) =>
+            MessagingCenter.Subscribe(this, "unregister-device", async (object sender) =>
             {
                 Debug.WriteLine("unregister-device");
                 if (App.User.Authenticated)
                 {
-                    App.User.UnregisterDevice();
+                    await App.User.UnregisterDevice();
                 }
             });
             MessagingCenter.Subscribe(this, "register-device", async (object sender) =>

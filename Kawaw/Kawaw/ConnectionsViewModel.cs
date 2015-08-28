@@ -34,7 +34,7 @@ namespace Kawaw
         public string EmptyText
         {
             get { return _emptyText; }
-            private set { _emptyText = value; }
+            private set { SetProperty(ref _emptyText, value); }
         }
 
         public IList<Connection> Connections
@@ -73,8 +73,17 @@ namespace Kawaw
         public ConnectionsViewModel(IApp app)
             : base(app, RootViewModel.Connections)
         {
+            Connections = new ObservableCollection<Connection>();
             UpdateFromUser(app.User);
 
+            MessagingCenter.Subscribe<User>(this, "initialized", delegate
+            {
+                Debug.WriteLine("Update because user initialized");
+                if (IsPageVisible)
+                {
+                    UpdateFromUser(app.User);
+                }
+            });
             MessagingCenter.Subscribe<object>(this, "connections-updated", delegate
             {
                 if (IsPageVisible)
@@ -104,18 +113,35 @@ namespace Kawaw
             });
         }
 
-        private void UpdateFromUser(User user)
+        private async void UpdateFromUser(User user)
         {
-            if (user == null || user.Connections == null)
+            if (!user.Initialized || !user.Authenticated)
             {
-                // empty
-                Connections = new ObservableCollection<Connection>();
+                Debug.WriteLine("ConnectionViewModel.UpdateFromUser, skipping due to initialized = {0}, authenticated = {1}", user.Initialized, user.Authenticated);
+                Connections.Clear();
                 return;
             }
-            Connections = new ObservableCollection<Connection>(
-                from connection in user.Connections
-                orderby connection.Pending descending, connection.Accepted descending, connection.Organisation, connection.Name
-                select connection);
+
+            var connections = await user.Connections();
+
+            var updated = new ObservableCollection<Connection>();
+            foreach (var connection in connections.OrderByDescending(connection => connection.Pending)
+                    .ThenByDescending(connection => connection.Accepted)
+                    .ThenBy(connection => connection.Organisation)
+                    .ThenBy(connection => connection.Name))
+            {
+                updated.Add(connection);
+            }
+
+            var empty = Connections.Count == 0;
+            if (!Connections.SequenceEqual(updated))
+            {
+                Connections.Clear();
+                foreach (var connection in updated)
+                {
+                    Connections.Add(connection);
+                }
+            }
 
             if (user.HasVerifiedEmail)
             {
@@ -130,6 +156,12 @@ namespace Kawaw
                     "Connections are only made using verified email addreses.\n\n" +
                     "To see any existing connections you need to verify your email " +
                     "addresses by clicking on the link in the email sent to that address.";
+            }
+
+            if (empty != (Connections.Count == 0))
+            {
+                OnPropertyChanged("EmptyOpacity");
+                OnPropertyChanged("ListOpacity");
             }
         }
 

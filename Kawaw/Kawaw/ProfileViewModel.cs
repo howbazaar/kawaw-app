@@ -125,7 +125,7 @@ namespace Kawaw
         public ProfileViewModel(IApp app)
             : base(app, RootViewModel.Profile)
         {
-            UpdateFromUser(app.User);
+            UpdateFromUser(app.User, false);
 
             ChangeDetailsCommand = new Command(async () =>
             {
@@ -135,13 +135,8 @@ namespace Kawaw
             {
                 await Navigation.PushAsync(new AddEmailViewModel(app));
             });
-            MessagingCenter.Subscribe<object>(this, "user-updated", delegate
-            {
-                if (IsPageVisible)
-                {
-                    UpdateFromUser(app.User);
-                }
-            });
+            MessagingCenter.Subscribe<User>(this, "initialized", obj => UpdateFromUser(app.User, true));
+            MessagingCenter.Subscribe<object>(this, "user-updated", obj => UpdateFromUser(app.User, true));
             MessagingCenter.Subscribe(this, "email-action", async (object sender, EmailAction action) =>
             {
                 try
@@ -169,9 +164,15 @@ namespace Kawaw
 
         }
 
-        private void UpdateFromUser(User user)
+        private void UpdateFromUser(User user, bool checkVisible)
         {
-            if (!user.Authenticated) return;
+            if (checkVisible && !IsPageVisible) return;
+
+            if (!user.Initialized || !user.Authenticated)
+            {
+                Debug.WriteLine("ProfileViewModel.UpdateFromUser, skipping due to initialized = {0}, authenticated = {1}", user.Initialized, user.Authenticated);
+                return;
+            }
 
             FullName = user.FullName;
             Address = user.Address == "" ? "no address set" : user.Address;

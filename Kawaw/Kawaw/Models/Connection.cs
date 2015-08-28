@@ -25,5 +25,24 @@ namespace Kawaw.Models
         } }
         public string Name { get { return _connection.Name; } }
         public string Organisation { get { return _connection.Organisation; } }
+
+
+        protected bool Equals(Connection other)
+        {
+            return Equals(_connection, other._connection);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Connection)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return (_connection != null ? _connection.GetHashCode() : 0);
+        }
     }
 }

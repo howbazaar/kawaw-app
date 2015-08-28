@@ -148,6 +148,14 @@ namespace Kawaw
             Notifications = new ObservableCollection<NotificationViewModel>();
             UpdateFromUser(app.User);
 
+            MessagingCenter.Subscribe<User>(this, "initialized", delegate
+            {
+                Debug.WriteLine("Update because user initialized");
+                if (IsPageVisible)
+                {
+                    UpdateFromUser(app.User);
+                }
+            });
             MessagingCenter.Subscribe<object>(this, "notifications-updated", delegate
             {
                 if (IsPageVisible)
@@ -180,22 +188,18 @@ namespace Kawaw
                     });
                 }
             });
-
         }
 
-        private void UpdateFromUser(User user)
+        private async void UpdateFromUser(User user)
         {
             Notifications.Clear();
-            if (user == null || user.Notifications == null)
-            {
-                return;
-            }
+            if (!user.Initialized || !user.Authenticated) return;
 
-            var notifications = from note in user.Notifications
-                orderby note.Pending descending, note.ClosingDate, note.Organisation, note.Activity
-                select note;
-
-            foreach (var note in notifications)
+            var notifications = await user.Notifications();
+            foreach (var note in notifications.OrderByDescending(note => note.Pending)
+                    .ThenBy(note => note.ClosingDate)
+                    .ThenBy(note => note.Organisation)
+                    .ThenBy(note => note.Activity))
             {
                 Notifications.Add(new NotificationViewModel(note));
             }

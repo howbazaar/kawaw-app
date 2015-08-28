@@ -13,6 +13,8 @@ namespace Kawaw.Models
     {
         public User()
         {
+            Initialized = false;
+            Debug.WriteLine("new User, not initialized");
             _db = DependencyService.Get<IDatabase>();
             AsyncInit();
         }
@@ -22,6 +24,9 @@ namespace Kawaw.Models
             var values = await _db.GetRemote();
             Remote = CreateRemoteSite(values);
             _user = await _db.GetUserDetails();
+            Initialized = true;
+            Debug.WriteLine("user initialized");
+            MessagingCenter.Send(this, "initialized");
         }
 
         private RemoteSite CreateRemoteSite(Remote values)
@@ -150,6 +155,7 @@ namespace Kawaw.Models
             await UpdateNotifications();
         }
 
+        public bool Initialized { get; private set; }
         public bool Authenticated { get; private set; }
 
         public bool HasVerifiedEmail { get { return _user.Emails.Any(email => email.Verified); }}
@@ -172,7 +178,7 @@ namespace Kawaw.Models
         {
             get
             {
-                if (_user == null) return null;
+                if (_user == null) return Enumerable.Empty<Email>();
 
                 var list = from e in _user.Emails select new Email(e);
                 return list.AsEnumerable();
