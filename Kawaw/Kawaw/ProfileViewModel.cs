@@ -44,10 +44,7 @@ namespace Kawaw
             set
             {
                 _isPageVisible = value;
-                if (value)
-                {
-                    UpdateFromUser(App.User);                    
-                }
+                UpdateFromUser(App.User, true);
             }
         }
 

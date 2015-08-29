@@ -158,11 +158,10 @@ namespace Kawaw
                     "addresses by clicking on the link in the email sent to that address.";
             }
 
-            if (empty != (Connections.Count == 0))
-            {
-                OnPropertyChanged("EmptyOpacity");
-                OnPropertyChanged("ListOpacity");
-            }
+            if (empty == (Connections.Count == 0)) return;
+
+            OnPropertyChanged("EmptyOpacity");
+            OnPropertyChanged("ListOpacity");
         }
 
     }

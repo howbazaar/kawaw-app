@@ -126,41 +126,39 @@ namespace Kawaw
             : base(app, RootViewModel.Events)
         {
             Events = new ObservableCollection<EventViewModel>();
-            UpdateFromUser(app.User);
+            UpdateFromUser(app.User, false);
 
-            MessagingCenter.Subscribe<User>(this, "initialized", delegate
-            {
-                Debug.WriteLine("Update because user initialized");
-                if (IsPageVisible)
-                {
-                    UpdateFromUser(app.User);
-                }
-            });
-            MessagingCenter.Subscribe<object>(this, "events-updated", delegate
-            {
-                if (IsPageVisible)
-                {
-                    UpdateFromUser(app.User);
-                }
-            });
+            MessagingCenter.Subscribe<User>(this, "initialized", obj => UpdateFromUser(app.User, true));
+            MessagingCenter.Subscribe<object>(this, "events-updated", obj => UpdateFromUser(app.User, true));
         }
 
-        private async void UpdateFromUser(User user)
+        private async void UpdateFromUser(User user, bool checkVisible)
         {
-            Events.Clear();
-            if (!user.Initialized || !user.Authenticated) return;
+            if (checkVisible && !IsPageVisible) return;
+
+            if (!user.Initialized || !user.Authenticated)
+            {
+                Events.Clear();
+                return;
+            }
 
             var evs = await user.Events();
 
+            var empty = Events.Count == 0;
+            Events.Clear();
             foreach (var e in evs.OrderBy(e => e.Start))
             {
                 Events.Add(new EventViewModel(e));
             }
 
-            EmptyText =
-                "No events yet.\n\n" +
+            EmptyText = "No events yet.\n\n" +
                 "As events are added by shools, clubs, or other organisations " +
                 "that you are connected to, they will show up here.";
+
+            if (empty == (Events.Count == 0)) return;
+
+            OnPropertyChanged("EmptyOpacity");
+            OnPropertyChanged("ListOpacity");
         }
     }
 }

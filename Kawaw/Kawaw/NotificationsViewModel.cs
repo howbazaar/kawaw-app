@@ -146,23 +146,10 @@ namespace Kawaw
             : base(app, RootViewModel.Notifications)
         {
             Notifications = new ObservableCollection<NotificationViewModel>();
-            UpdateFromUser(app.User);
+            UpdateFromUser(app.User, false);
 
-            MessagingCenter.Subscribe<User>(this, "initialized", delegate
-            {
-                Debug.WriteLine("Update because user initialized");
-                if (IsPageVisible)
-                {
-                    UpdateFromUser(app.User);
-                }
-            });
-            MessagingCenter.Subscribe<object>(this, "notifications-updated", delegate
-            {
-                if (IsPageVisible)
-                {
-                    UpdateFromUser(app.User);
-                }
-            });
+            MessagingCenter.Subscribe<User>(this, "initialized", obj => UpdateFromUser(app.User, true));
+            MessagingCenter.Subscribe<object>(this, "notifications-updated", obj => UpdateFromUser(app.User, true));
             MessagingCenter.Subscribe(this, "notification-action", async (object sender, NotificationResponseAction action) =>
             {
                 try
@@ -190,12 +177,20 @@ namespace Kawaw
             });
         }
 
-        private async void UpdateFromUser(User user)
+        private async void UpdateFromUser(User user, bool checkVisible)
         {
-            Notifications.Clear();
-            if (!user.Initialized || !user.Authenticated) return;
+            if (checkVisible && !IsPageVisible) return;
+
+            if (!user.Initialized || !user.Authenticated)
+            {
+                Notifications.Clear();
+                return;
+            }
 
             var notifications = await user.Notifications();
+
+            var empty = Notifications.Count == 0;
+            Notifications.Clear();
             foreach (var note in notifications.OrderByDescending(note => note.Pending)
                     .ThenBy(note => note.ClosingDate)
                     .ThenBy(note => note.Organisation)
@@ -219,6 +214,11 @@ namespace Kawaw
                     "To see any existing notifications you need to verify your email " +
                     "addresses by clicking on the link in the email sent to that address.";
             }
+
+            if (empty == (Notifications.Count == 0)) return;
+
+            OnPropertyChanged("EmptyOpacity");
+            OnPropertyChanged("ListOpacity");
         }
 
     }
