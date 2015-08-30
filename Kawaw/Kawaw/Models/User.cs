@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Kawaw.Database;
+using Kawaw.Exceptions;
 using Xamarin;
 using Xamarin.Forms;
 
@@ -66,15 +67,14 @@ namespace Kawaw.Models
 
         public async Task Logout()
         {
-            Debug.WriteLine("unregister device");
-            await UnregisterDevice();
-            await Remote.Logout();
             Authenticated = false;
             // Clear out details.
             await _db.SaveUserDetails(null);
             await _db.SaveEvents(null);
             await _db.SaveConnections(null);
             await _db.SaveNotifications(null);
+            await UnregisterDevice();
+            await Remote.Logout();
         }
 
         public async Task AddEmail(string email)
@@ -228,6 +228,11 @@ namespace Kawaw.Models
             if (registered)
             {
                 await _db.SetNotificationToken(token);
+                Insights.Track("NotificationToken", new Dictionary<string, string>
+                {
+                    {"Registered", token}
+                });
+                await TryToUnregisterOldTokens();
             }
             return registered;
         }
@@ -235,19 +240,44 @@ namespace Kawaw.Models
         public async Task<bool> UnregisterDevice()
         {
             await _db.SetNotificationToken(null);
+            return await TryToUnregisterOldTokens();
+        }
+
+        private async Task<bool> TryToUnregisterOldTokens()
+        {
             var old = await _db.OldNotificationTokens();
             var result = true;
-            foreach (var token in old)
+            try
             {
-                var unregistered = await Remote.UnregisterDevice(token);
-                if (unregistered)
+                foreach (var token in old)
                 {
-                    await _db.RemoveOldNotificationToken(token);
+                    var unregistered = await Remote.UnregisterDevice(token);
+                    if (unregistered)
+                    {
+                        Insights.Track("NotificationToken", new Dictionary<string, string>
+                        {
+                            {"Unregistered", token}
+                        });
+                        await _db.RemoveOldNotificationToken(token);
+                    }
+                    else
+                    {
+                        result = false;
+                    }
                 }
-                else
-                {
-                    result = false;
-                }
+            }
+            catch (NetworkDownException e)
+            {
+                // Network is down, and this is most likely being called through logout.
+                result = false;
+            }
+            catch (Exception exception)
+            {
+                Insights.Report(exception, new Dictionary<string, string>
+                    {
+                        {"Location", "TryToUnregisterOldTokens"}
+                    }, Insights.Severity.Error);
+                result = false;
             }
             return result;
         }
