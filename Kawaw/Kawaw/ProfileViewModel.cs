@@ -174,11 +174,9 @@ namespace Kawaw
             FullName = user.FullName;
             Address = user.Address == "" ? "no address set" : user.Address;
             DateOfBirth = User.OptionalDateTime(user.DateOfBirth, "not set");
-            Emails = new ObservableCollection<Email>(
-                from email in user.Emails
-                orderby email.Primary descending, email.Verified descending, email.Address
-                select email);
-            MessagingCenter.Send(this, "emails-updated");
+            Emails = new ObservableCollection<Email>(user.Emails.OrderByDescending(email => email.Primary)
+                .ThenByDescending(email => email.Verified)
+                .ThenBy(email => email.Address));
         }
 
     }

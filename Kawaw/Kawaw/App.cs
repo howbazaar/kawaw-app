@@ -44,7 +44,7 @@ namespace Kawaw
             User = new User();
 
             var page = RootViewModel.Profile;
-            if (Properties.ContainsKey("Page") && User != null)
+            if (Properties.ContainsKey("Page"))
             {
                 page = Properties["Page"] as string;
                 Debug.WriteLine("Last page: {0}", page);

@@ -114,10 +114,6 @@ namespace Kawaw
                 }
             });
 
-            // Calling the ForceLayout directly has it attempting to relayout the items list before it
-            // has the source property set, so by calling invoke on main thread, this call gets put at
-            // the end of the current call queue.
-            // MessagingCenter.Subscribe(this, "emails-updated", (ProfileViewModel model) => Device.BeginInvokeOnMainThread(ForceLayout));
             MessagingCenter.Subscribe(this, "show-options", async (ProfileViewModel model, EmailActionOptions options) =>
             {
                 var textOptions = from tuple in options.Options select tuple.Item2;
@@ -140,8 +136,6 @@ namespace Kawaw
             base.OnDisappearing();
             //UnsubscribeAlert<ProfileViewModel>();
             MessagingCenter.Unsubscribe<ProfileViewModel, Alert>(this, "alert");
-
-            MessagingCenter.Unsubscribe<ProfileViewModel>(this, "emails-updated");
             MessagingCenter.Unsubscribe<ProfileViewModel, EmailActionOptions>(this, "show-options");
         }
     }

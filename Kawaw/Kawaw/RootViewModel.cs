@@ -159,6 +159,7 @@ namespace Kawaw
 
         public void SetDetails(string page)
         {
+            Debug.WriteLine("RootViewModel.SetDetails('{0}')", page);
             _contentModel = CreateViewModel(page);
             _contentModel.IsBusy = IsBusy;
             MessagingCenter.Send(this, "show-page", _contentModel);
