@@ -1,3 +1,5 @@
+using Kawaw.Models;
+
 namespace Kawaw.Framework
 {
     class BaseViewModel : BaseProperties
@@ -6,14 +8,17 @@ namespace Kawaw.Framework
         // and is used for the app to remember which was the last page.
         public string Name { get; private set; }
         public virtual ViewModelNavigation Navigation {get; set;}
+
+        protected User User { get; private set; }
+
         private bool _isBusy;
-        protected IApp App;
+
         // Autoproperty find because the binding is one way to source, and no one is listening to change events.
         public virtual bool IsPageVisible { get; set; }
 
-        public BaseViewModel(IApp app, string name = "")
+        public BaseViewModel(User user, string name = "")
         {
-            App = app;
+            User = user;
             Name = name;
         }
 

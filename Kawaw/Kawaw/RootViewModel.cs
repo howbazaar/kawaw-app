@@ -31,13 +31,13 @@ namespace Kawaw
         {
             Debug.WriteLine("RootViewModel.Init('{0}')", source);
 
-            if (!App.User.Initialized)
+            if (!User.Initialized)
             {
                 Debug.WriteLine("User not yet initialized");
                 return;
             }
 
-            if (App.User.Authenticated)
+            if (User.Authenticated)
             {
                 RefreshUser(true);
             }
@@ -47,9 +47,9 @@ namespace Kawaw
             }
         }
 
-        public RootViewModel(IApp app) : base(app)
+        public RootViewModel(User user) : base(user)
         {
-            NavigationModel = new NavigationViewModel(app);
+            NavigationModel = new NavigationViewModel(user);
 
             MessagingCenter.Subscribe<User>(this, "initialized", obj => Init("User initialized"));
             // not logged in so push the login page
@@ -57,7 +57,7 @@ namespace Kawaw
             MessagingCenter.Subscribe(this, "logout", async (object sender) =>
             {
                 Debug.WriteLine("logout");
-                await App.User.Logout();
+                await User.Logout();
                 Debug.WriteLine("show login");
                 ShowLogin();
             });
@@ -79,23 +79,23 @@ namespace Kawaw
             });
             MessagingCenter.Subscribe(this, "session-expired", async (object sender) =>
             {
-                    await App.User.Logout();
+                    await User.Logout();
                     ShowLogin();
             });
             // TODO: determine if I really need the following two.
             MessagingCenter.Subscribe(this, "unregister-device", async (object sender) =>
             {
                 Debug.WriteLine("unregister-device");
-                if (App.User.Authenticated)
+                if (User.Authenticated)
                 {
-                    await App.User.UnregisterDevice();
+                    await User.UnregisterDevice();
                 }
             });
             MessagingCenter.Subscribe(this, "register-device", async (object sender) =>
             {
-                if (App.User.Authenticated)
+                if (User.Authenticated)
                 {
-                    await App.User.RegisterDevice();
+                    await User.RegisterDevice();
                 }
             });
             MessagingCenter.Subscribe(this, "show event", (object sender, int id) =>
@@ -119,7 +119,7 @@ namespace Kawaw
         {
             try
             {
-                await App.User.Refresh();
+                await User.Refresh();
             }
             catch (SessionExpiredException)
             {
@@ -168,7 +168,7 @@ namespace Kawaw
         private async void ShowLogin()
         {
             SetDetails(Profile);
-            var loginModel = new LoginViewModel(App);
+            var loginModel = new LoginViewModel(User);
             await Navigation.PushLoginAsync(loginModel);
         }
 
@@ -177,17 +177,17 @@ namespace Kawaw
             switch (name)
             {
                 case Events:
-                    return new EventsViewModel(App);
+                    return new EventsViewModel(User);
                 case Connections:
-                    return new ConnectionsViewModel(App);
+                    return new ConnectionsViewModel(User);
                 case Notifications:
-                    return new NotificationsViewModel(App);
+                    return new NotificationsViewModel(User);
                 case Profile:
-                    return new ProfileViewModel(App);
+                    return new ProfileViewModel(User);
                 case Login:
-                    return new LoginViewModel(App);
+                    return new LoginViewModel(User);
             }
-            return new ProfileViewModel(App);
+            return new ProfileViewModel(User);
             // throw new Exception("Unknown model name " + name);
         }
 

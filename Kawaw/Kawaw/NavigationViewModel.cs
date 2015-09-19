@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 using Kawaw.Framework;
+using Kawaw.Models;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -30,7 +31,7 @@ namespace Kawaw
         }
 
         public IList Items { get; private set; }
-        public NavigationViewModel(IApp app) : base(app)
+        public NavigationViewModel(User user) : base(user)
         {
             Items = new ObservableCollection<object>
             {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
+using Kawaw.Models;
 using Xamarin;
 using Xamarin.Forms;
 
@@ -45,15 +46,15 @@ namespace Kawaw
             get { return _registerCommand; }
         }
 
-        public LoginViewModel(IApp app)
-            : base(app)
+        public LoginViewModel(User user)
+            : base(user)
         {
-            RemoteUrl = App.User.Remote.BaseUrl;
+            RemoteUrl = User.Remote.BaseUrl;
 
             _buttonsActive = true;
             _registerCommand = new Command(async () =>
             {
-                await Navigation.PushAsync(new RegisterViewModel(App, Email, Password));
+                await Navigation.PushAsync(new RegisterViewModel(User, Email, Password));
             }, () => _buttonsActive);
 
             _loginCommand = new Command(async () =>
@@ -64,7 +65,7 @@ namespace Kawaw
 
                 try
                 {
-                    await App.User.Login(_email, _password);
+                    await User.Login(_email, _password);
                     await Navigation.PopModalAsync();
                 }
                 catch (FormErrorsException e)

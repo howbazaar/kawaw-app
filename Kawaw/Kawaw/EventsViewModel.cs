@@ -122,14 +122,14 @@ namespace Kawaw
             }
         }
 
-        public EventsViewModel(IApp app)
-            : base(app, RootViewModel.Events)
+        public EventsViewModel(User user)
+            : base(user, RootViewModel.Events)
         {
             Events = new ObservableCollection<EventViewModel>();
-            UpdateFromUser(app.User, false);
+            UpdateFromUser(User, false);
 
-            MessagingCenter.Subscribe<User>(this, "initialized", obj => UpdateFromUser(app.User, true));
-            MessagingCenter.Subscribe<object>(this, "events-updated", obj => UpdateFromUser(app.User, true));
+            MessagingCenter.Subscribe<User>(this, "initialized", obj => UpdateFromUser(User, true));
+            MessagingCenter.Subscribe<object>(this, "events-updated", obj => UpdateFromUser(User, true));
         }
 
         private async void UpdateFromUser(User user, bool checkVisible)

@@ -8,12 +8,7 @@ using Xamarin.Forms;
 
 namespace Kawaw
 {
-    interface IApp
-    {
-        User User { get; }
-    }
-
-    public class App : Application, IApp
+    public class App : Application
     {
         private readonly RootViewModel _rootViewModel;
         // var accentColor = Color.FromHex("59C2FF");
@@ -50,7 +45,7 @@ namespace Kawaw
                 Debug.WriteLine("Last page: {0}", page);
             }
 
-            _rootViewModel = new RootViewModel(this);
+            _rootViewModel = new RootViewModel(User);
             var rootView = new RootView
             {
                 BindingContext = _rootViewModel,

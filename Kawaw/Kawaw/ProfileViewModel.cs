@@ -44,7 +44,7 @@ namespace Kawaw
             set
             {
                 _isPageVisible = value;
-                UpdateFromUser(App.User, true);
+                UpdateFromUser(User, true);
             }
         }
 
@@ -119,26 +119,26 @@ namespace Kawaw
         public ICommand ChangeDetailsCommand { get; private set; }
         public ICommand AddEmailCommand { get; private set; }
 
-        public ProfileViewModel(IApp app)
-            : base(app, RootViewModel.Profile)
+        public ProfileViewModel(User user)
+            : base(user, RootViewModel.Profile)
         {
-            UpdateFromUser(app.User, false);
+            UpdateFromUser(User, false);
 
             ChangeDetailsCommand = new Command(async () =>
             {
-                await Navigation.PushAsync(new ChangeDetailsViewModel(app));
+                await Navigation.PushAsync(new ChangeDetailsViewModel(user));
             });
             AddEmailCommand = new Command(async () =>
             {
-                await Navigation.PushAsync(new AddEmailViewModel(app));
+                await Navigation.PushAsync(new AddEmailViewModel(user));
             });
-            MessagingCenter.Subscribe<User>(this, "initialized", obj => UpdateFromUser(app.User, true));
-            MessagingCenter.Subscribe<object>(this, "user-updated", obj => UpdateFromUser(app.User, true));
+            MessagingCenter.Subscribe<User>(this, "initialized", obj => UpdateFromUser(User, true));
+            MessagingCenter.Subscribe<object>(this, "user-updated", obj => UpdateFromUser(User, true));
             MessagingCenter.Subscribe(this, "email-action", async (object sender, EmailAction action) =>
             {
                 try
                 {
-                    await app.User.EmailAction(action.Name, action.Email.Address);
+                    await User.EmailAction(action.Name, action.Email.Address);
                 }
                 catch (SessionExpiredException)
                 {

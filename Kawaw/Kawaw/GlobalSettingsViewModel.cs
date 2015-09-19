@@ -1,11 +1,12 @@
 using Kawaw.Framework;
+using Kawaw.Models;
 
 namespace Kawaw
 {
     class GlobalSettingsViewModel : BaseViewModel
     {
-        public GlobalSettingsViewModel(IApp app)
-            : base(app)
+        public GlobalSettingsViewModel(User user)
+            : base(user)
         {
             
         }

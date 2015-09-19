@@ -266,7 +266,7 @@ namespace Kawaw.Models
                     }
                 }
             }
-            catch (NetworkDownException e)
+            catch (NetworkDownException)
             {
                 // Network is down, and this is most likely being called through logout.
                 result = false;

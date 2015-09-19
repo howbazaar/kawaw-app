@@ -142,14 +142,14 @@ namespace Kawaw
             private set { SetProperty(ref _notifications, value); }
         }
 
-        public NotificationsViewModel(IApp app)
-            : base(app, RootViewModel.Notifications)
+        public NotificationsViewModel(User user)
+            : base(user, RootViewModel.Notifications)
         {
             Notifications = new ObservableCollection<NotificationViewModel>();
-            UpdateFromUser(app.User, false);
+            UpdateFromUser(User, false);
 
-            MessagingCenter.Subscribe<User>(this, "initialized", obj => UpdateFromUser(app.User, true));
-            MessagingCenter.Subscribe<object>(this, "notifications-updated", obj => UpdateFromUser(app.User, true));
+            MessagingCenter.Subscribe<User>(this, "initialized", obj => UpdateFromUser(User, true));
+            MessagingCenter.Subscribe<object>(this, "notifications-updated", obj => UpdateFromUser(User, true));
             MessagingCenter.Subscribe(this, "notification-action", async (object sender, NotificationResponseAction action) =>
             {
                 try
@@ -157,7 +157,7 @@ namespace Kawaw
                     var memberId = action.Response.Id;
                     var notifiationId = action.Response.Notification.Id;
                     var accepted = action.Action == "yes";
-                    await app.User.NotificationAction(notifiationId, memberId, accepted);
+                    await User.NotificationAction(notifiationId, memberId, accepted);
 
                     var viewModel = _notifications.Single(n => n.Id == notifiationId);
                     viewModel.SetMemberResponse(memberId, accepted);

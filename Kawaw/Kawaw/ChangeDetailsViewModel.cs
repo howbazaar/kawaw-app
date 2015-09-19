@@ -1,10 +1,8 @@
 using System;
-using System.Diagnostics;
-using System.Globalization;
 using System.Windows.Input;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
-using Kawaw.JSON;
+using Kawaw.Models;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -43,19 +41,19 @@ namespace Kawaw
         public ICommand SaveCommand { get; private set; }
         public ICommand ClearDateOfBirthCommand { get; private set; }
 
-        public ChangeDetailsViewModel(IApp app)
-            : base(app)
+        public ChangeDetailsViewModel(User user)
+            : base(user)
         {
-            FirstName = app.User.FirstName;
-            LastName = app.User.LastName;
-            Address = app.User.Address;
-            DateOfBirth = app.User.DateOfBirth;
+            FirstName = User.FirstName;
+            LastName = User.LastName;
+            Address = User.Address;
+            DateOfBirth = User.DateOfBirth;
 
             SaveCommand = new Command(async () =>
             {
                 try
                 {
-                    await app.User.UpdateUserDetails(FirstName, LastName, Address, DateOfBirth);
+                    await User.UpdateUserDetails(FirstName, LastName, Address, DateOfBirth);
                     await Navigation.PopAsync();
                 }
                 catch (SessionExpiredException)

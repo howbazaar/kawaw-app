@@ -2,6 +2,7 @@
 using System.Windows.Input;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
+using Kawaw.Models;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -37,8 +38,8 @@ namespace Kawaw
             get { return _registerCommand; }
         }
 
-        public RegisterViewModel(IApp app, string email, string password)
-            : base(app)
+        public RegisterViewModel(User user, string email, string password)
+            : base(user)
         {
             Email = email;
             Password = password;
@@ -51,7 +52,7 @@ namespace Kawaw
 
                 try
                 {
-                    await app.User.Register(_email, _password);
+                    await User.Register(_email, _password);
                     await Navigation.PopModalAsync();
                 }
                 catch (FormErrorsException e)

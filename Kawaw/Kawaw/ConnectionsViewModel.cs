@@ -70,25 +70,25 @@ namespace Kawaw
             }
         }
 
-        public ConnectionsViewModel(IApp app)
-            : base(app, RootViewModel.Connections)
+        public ConnectionsViewModel(User user)
+            : base(user, RootViewModel.Connections)
         {
             Connections = new ObservableCollection<Connection>();
-            UpdateFromUser(app.User);
+            UpdateFromUser(User);
 
             MessagingCenter.Subscribe<User>(this, "initialized", delegate
             {
                 Debug.WriteLine("Update because user initialized");
                 if (IsPageVisible)
                 {
-                    UpdateFromUser(app.User);
+                    UpdateFromUser(User);
                 }
             });
             MessagingCenter.Subscribe<object>(this, "connections-updated", delegate
             {
                 if (IsPageVisible)
                 {
-                    UpdateFromUser(app.User);
+                    UpdateFromUser(User);
                 }
             });
             MessagingCenter.Subscribe(this, "connection-action", async (object sender, ConnectionAction action) =>
@@ -96,7 +96,7 @@ namespace Kawaw
                 try
                 {
                     Debug.WriteLine("{0} for {1}", action.Name, action.Connection.Name);
-                    await app.User.ConnectionAction(action.Connection, action.Name == "accept");
+                    await User.ConnectionAction(action.Connection, action.Name == "accept");
                 }
                 catch (InconsistentStateException)
                 {

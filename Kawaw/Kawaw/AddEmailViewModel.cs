@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Windows.Input;
 using Kawaw.Exceptions;
 using Kawaw.Framework;
+using Kawaw.Models;
 using Xamarin.Forms;
 
 namespace Kawaw
@@ -19,15 +20,15 @@ namespace Kawaw
         public ICommand AddCommand { get; private set; }
         public ICommand CancelCommand { get; private set; }
 
-        public AddEmailViewModel(IApp app)
-            :base(app)
+        public AddEmailViewModel(User user)
+            :base(user)
         {
             AddCommand = new Command(async () =>
             {
                 try
                 {
                     // TODO: disable add and cancel while this is running.
-                    await app.User.AddEmail(Email);
+                    await User.AddEmail(Email);
                     await Navigation.PopAsync();
                 }
                 catch (SessionExpiredException)
