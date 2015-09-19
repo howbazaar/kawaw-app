@@ -61,7 +61,6 @@ namespace Kawaw.Models
         private async Task PostAuthenticate()
         {
             Authenticated = true;
-            await RegisterDevice();
             await Refresh();
         }
 
@@ -224,6 +223,10 @@ namespace Kawaw.Models
                 Debug.WriteLine("No token to register.");
                 return false;
             }
+            var currentRegisteredToken = await _db.NotificationToken();
+            if (token == currentRegisteredToken)
+                return true; // this token has been registred already
+
             var registered = await Remote.RegisterDevice(token);
             if (registered)
             {
@@ -289,6 +292,7 @@ namespace Kawaw.Models
                 Debug.WriteLine("remote site: {0}", Remote);
                 MessagingCenter.Send((object)this, "action-started");
                 // TODO: see if we can work out how to do the for calls and updates in parallel.
+                await RegisterDevice();
                 var response = await Remote.GetUserDetails();
                 await UpdateUser(response);
                 await UpdateConnections();
